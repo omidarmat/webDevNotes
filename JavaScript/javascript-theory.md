@@ -261,7 +261,7 @@ Student.prototype.introduce = function () {
 };
 ```
 
-1. **ES6 Classes:** this introduced classes to JavaScript. However, this is not exactly what we mean by 'classes' in traditional OOP. ES6 classes do **NOT** behave like classes in traditional OOP.
+**2. ES6 Classes:** this introduced classes to JavaScript. However, this is not exactly what we mean by 'classes' in traditional OOP. ES6 classes do **NOT** behave like classes in traditional OOP.
 
 #### **_Defining a class and instance properties_**
 
@@ -422,7 +422,46 @@ We should then call the `hey` method on the `Person` class, and not on its insta
 Person.hey();
 ```
 
-3. **`Object.create()`:** this is the easiest way of linking an object to a prototype object. However, this syntax is not used much.
+#### **_Inheritance between ES6 classes_**
+
+We first define a `Person` class:
+
+```js
+class Person {
+  constructor(fullName, birthYear) {
+    // instance properties
+    this.fullName = fullName;
+    this.birthYear = birthYear;
+  }
+
+  // instance methods: will be added to Person.prototype
+  calcAge() {
+    return 2037 - this.birthYear;
+  }
+}
+```
+
+Then we define a `Student` class knowing that it `extends` the `Person` class. The `extends` keyword will make the `Student` class to inherit from the `Person` class, it will link the prototypes for us. We also need to call the `super` function inside the `Student`'s constructor function. `super` is the constructor function of the parent class `Person`, and it is responsible for defining `this` in the child class.
+
+```js
+class Student extends Person {
+  constructor(fullName, birthYear, course) {
+    super(fullName, birthYear); // defines this, so should be called before other code
+
+    // instance properties
+    this.course = course;
+  }
+
+  // instance methods
+  introduce() {
+    console.log(`My name is ${this.fullName} and I strudy ${this.course}`);
+  }
+}
+```
+
+> **_Note_** | It is not necessary for the child class to accept additional instance properties compared to the parent class. In such case, we would not have to define the constructor function in the child class, and still all instances of `Student` will get their `fullName` and `birthYear` instance properties, because `Student` would still _extend_ `Person`. Just keep in mind that no constructor function, means no `super` function call, and therefore `this` would be `undefined`.
+
+**3. `Object.create()`:** this is the easiest way of linking an object to a prototype object. However, this syntax is not used much.
 
 In this last way of implementing OOP programming, the idea is still based on prototypal inheritance, but there are no `prototype` properties involved. Also, there is no constructor function, and no `new` operator.
 
