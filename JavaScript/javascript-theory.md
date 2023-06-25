@@ -209,7 +209,59 @@ console.log(arr.__proto__.__proto__); // Object.prototype
 
 When we call the `hasOwnProperty` method on an object like `omid`, JavaScript will first start looking for the method on the object itself. If it is not there, it will go up the prototype chain and look for the method in `omid`'s prototype, which is `Person.prototype`. If it is not there too, it will go up the prototype chain on level further and look into `Object.prototype`. This is where it will find and call the method.
 
-2. **ES6 Classes:** this introduced classes to JavaScript. However, this is not exactly what we mean by 'classes' in traditional OOP. ES6 classes do **NOT** behave like classes in traditional OOP.
+#### **_Inheritance between constructor functions (classes)_**
+
+This is a situation where we define 2 constructor functions, and we want one (child) to extend another (parent). For example, we want a `Person` constructor function, and a `Student` constructor function to extend `Person`.
+
+We define the `Person` constructor function as:
+
+```js
+const Person = function (name, birthYear) {
+  this.name = name;
+  this.birthYear = birthYear;
+};
+
+Person.prototype.calaAge = function () {
+  return 2037 - this.birthYear;
+};
+```
+
+Then we define the `Student` constructor function, and call the `Person` constructor function in it. It is important to note here that the `Person` constructor function needs to use `this`. So calling the `Person` in `Student` should not be a regular function call, since in a regular function call, `this` is `undefined`. We can use the `call` method on `Person` to be able to define `this` manually.
+
+```js
+const Student = function (name, birthYear, course) {
+  Person.call(this, name, birthYear);
+  this.course = course;
+};
+
+Student.prototype.introduce = function () {
+  console.log(`My name is ${this.name} and I study ${this.course}`);
+};
+```
+
+We can then create an instance of `Student`:
+
+```js
+const omid = new Student("Omid", 1992, "Photography");
+```
+
+> **_Note_** | up until this point, any instance created from the `Student` constructor function will not have access to instance methods defined on `Person.prototype`. They will only have access to instance methods defined on `Student.prototype`. We need to manually establish the prototype chain, meaning that we want to set the `__proto__` of `Student.prototype` to `Person.prototype`.
+
+```js
+const Student = function (name, birthYear, course) {
+  Person.call(this, name, birthYear);
+  this.course = course;
+};
+
+Student.prototype = Object.create(Person.prototype);
+// linking prototypes should be implemented right at this point of code, before defining any instance methods, otherwise it would overwrite all instance methods and delete them since it returns an empty object.
+
+Student.prototype.introduce = function () {
+  console.log(`My name is ${this.name} and I study ${this.course}`);
+};
+```
+
+1. **ES6 Classes:** this introduced classes to JavaScript. However, this is not exactly what we mean by 'classes' in traditional OOP. ES6 classes do **NOT** behave like classes in traditional OOP.
 
 #### **_Defining a class and instance properties_**
 
