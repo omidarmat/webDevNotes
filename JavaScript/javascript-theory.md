@@ -76,9 +76,11 @@ So the `num` array is linked to `Array.prototype` object, and therefore has acce
 
 There are 3 ways of implementing prototypal inheritance in JavaScript:
 
-1. **Constructor function and the `prototype` property:** this is a technique to create objects from a function, and it is how built-in objects like Array, Map and Set are actually implemented in JavaScript.
+#### **1. Constructor function and the `prototype` property:**
 
-#### **_Creating a construtor function_**
+this is a technique to create objects from a function, and it is how built-in objects like Array, Map and Set are actually implemented in JavaScript.
+
+##### **_Creating a construtor function_**
 
 To create a constructor function, the syntax is exactly the same as a regular function declaration or expression.
 
@@ -94,7 +96,7 @@ const Person = function (name, birthYear) {
 
 > **_Note_** | we can define methods inside a constructor function, but this is a bad practice. Methods that are defined inside the constructor function, would be copied into each and every instance object, producing unnecessary copies of the same functionality. The better way to go is to add methods to the `prototype` property of the constructor function.
 
-#### **_Defining methods on prototype_**
+##### **_Defining methods on prototype_**
 
 Any function in JavaScript automatically has access to a property called `prototype`. Objects created from a constructor function, will have access to all the methods defined on the `prototype` property of that constructor function.
 
@@ -104,7 +106,7 @@ Person.prototype.calcAge = function () {
 };
 ```
 
-#### **_Defining properties on prototype_**
+##### **_Defining properties on prototype_**
 
 We can also set properties on the prototype, not just methods.
 
@@ -112,7 +114,7 @@ We can also set properties on the prototype, not just methods.
 Person.protoype.species = "Homo Sapiens";
 ```
 
-#### **_Defining static methods_**
+##### **_Defining static methods_**
 
 Static methods are usually used as helper functions defined on constructor functions. So objects (instances) created from a constructor function will not have access to static methods.
 
@@ -132,7 +134,7 @@ We should then call the `hey` method on the `Person` constructor, and not on its
 Person.hey();
 ```
 
-#### **_Creating an object (instance)_**
+##### **_Creating an object (instance)_**
 
 `Person` is a normal JavaScript function. If we want it to act as a constructor function in order to create an object from it, we should call it using the `new` keyword.
 
@@ -187,7 +189,7 @@ console.log(omid.hasOwnProperty("name")); //true
 console.log(omid.hasOwnProperty("species")); //false
 ```
 
-#### **_Prototype chain_**
+##### **_Prototype chain_**
 
 Every objects in JavaScript has a prototype. Remember that arrays and functions are also objects in JavaScript. An object and its prototype form a prototype chain, but the chain is not always this short.
 
@@ -209,7 +211,7 @@ console.log(arr.__proto__.__proto__); // Object.prototype
 
 When we call the `hasOwnProperty` method on an object like `omid`, JavaScript will first start looking for the method on the object itself. If it is not there, it will go up the prototype chain and look for the method in `omid`'s prototype, which is `Person.prototype`. If it is not there too, it will go up the prototype chain on level further and look into `Object.prototype`. This is where it will find and call the method.
 
-#### **_Inheritance between constructor functions (classes)_**
+##### **_Inheritance between constructor functions (classes)_**
 
 This is a situation where we define 2 constructor functions, and we want one (child) to extend another (parent). For example, we want a `Person` constructor function, and a `Student` constructor function to extend `Person`.
 
@@ -261,9 +263,11 @@ Student.prototype.introduce = function () {
 };
 ```
 
-**2. ES6 Classes:** this introduced classes to JavaScript. However, this is not exactly what we mean by 'classes' in traditional OOP. ES6 classes do **NOT** behave like classes in traditional OOP.
+#### **2. ES6 Classes:**
 
-#### **_Defining a class and instance properties_**
+this introduced classes to JavaScript. However, this is not exactly what we mean by 'classes' in traditional OOP. ES6 classes do **NOT** behave like classes in traditional OOP.
+
+##### **_Defining a class and instance properties_**
 
 To declare classes in JavaScript we use a special syntax. Remember that a class is a special type of function. Inside the class, a `constructor` function should be defined. This constructor function behaves exactly the same way as the regular JavaScript constructor function.
 
@@ -277,7 +281,21 @@ class Person {
 }
 ```
 
-#### **_Defining methods_**
+> **_Note_** | we can also define properties that are not based on inputs.
+
+```js
+class Person {
+  constructor(name, birthYear) {
+    // instance properties
+    this.name = name;
+    this.birthYear = birthYear;
+    this.movements = [];
+    this.locale = navigator.language;
+  }
+}
+```
+
+##### **_Defining methods_**
 
 We can simply write methods after the constructor function. These methods will not be copied into the instances, they will be accessed by the instances through their prototype.
 
@@ -304,7 +322,7 @@ Person.prototype.greet = function () {
 };
 ```
 
-#### **_Creating an object (instance)_**
+##### **_Creating an object (instance)_**
 
 To create an instance of a declared class, we use the exact same syntax as before:
 
@@ -318,7 +336,7 @@ Here are some tips to remember about ES6 classes:
 - Classes are **first-class citizens**. We can pass them into functions and we can also return them from functions.
 - Classes are always executed in **strict mode**.
 
-#### **_Defining getters and setters_**
+##### **_Defining getters and setters_**
 
 Every object in JavaScript can have getter and setter properties. These are calls **Assessor properties**, while normal properties are called **Data properties**.
 
@@ -397,7 +415,7 @@ class Person {
 }
 ```
 
-#### **_Defining static methods_**
+##### **_Defining static methods_**
 
 To define a static method on the `Person` class:
 
@@ -422,7 +440,7 @@ We should then call the `hey` method on the `Person` class, and not on its insta
 Person.hey();
 ```
 
-#### **_Inheritance between ES6 classes_**
+##### **_Inheritance between ES6 classes_**
 
 We first define a `Person` class:
 
@@ -461,13 +479,15 @@ class Student extends Person {
 
 > **_Note_** | It is not necessary for the child class to accept additional instance properties compared to the parent class. In such case, we would not have to define the constructor function in the child class, and still all instances of `Student` will get their `fullName` and `birthYear` instance properties, because `Student` would still _extend_ `Person`. Just keep in mind that no constructor function, means no `super` function call, and therefore `this` would be `undefined`.
 
-**3. `Object.create()`:** this is the easiest way of linking an object to a prototype object. However, this syntax is not used much.
+#### **3. `Object.create()`:**
+
+this is the easiest way of linking an object to a prototype object. However, this syntax is not used much.
 
 In this last way of implementing OOP programming, the idea is still based on prototypal inheritance, but there are no `prototype` properties involved. Also, there is no constructor function, and no `new` operator.
 
 We use `Object.create()` to manually set the prototype of an object, to any other object that we want. For example, we can now create a new object and make it the prototype of all the person objects.
 
-#### **_Defining a prototype object and instance methods_**
+##### **_Defining a prototype object and instance methods_**
 
 The prototype objects would be defined as a simple JavaScript object. However, to make the instances be created programmatically, we need to implement a method like `init` in this object that will place instance properties as they are passed into it. This would be very similar to a constructor function, but it actually has nothing to do with it. It is just a regular method available on an object.
 
@@ -485,7 +505,7 @@ const Person = {
 };
 ```
 
-#### **_Creating an object (instance)_**
+##### **_Creating an object (instance)_**
 
 ```js
 const omid = Object.create(Person);
