@@ -552,6 +552,31 @@ class Account {
 }
 ```
 
+##### **_Making class methods chainable_**
+
+Each method defined in the class should `return` the object (`this`) after all its process.
+
+```js
+class Account {
+  #movements = [];
+  #pin;
+
+  constructor(name, birthYear, pin) {
+    this.#pin = pin;
+  }
+
+  deposit(val) {
+    this.#movements.push(val);
+    return this;
+  }
+
+  requestLoan(val) {
+    this.deposit(val);
+    return this;
+  }
+}
+```
+
 #### **3. `Object.create()`:**
 
 this is the easiest way of linking an object to a prototype object. However, this syntax is not used much.
