@@ -505,7 +505,7 @@ It means to keep some properties and methods private inside a class so that they
 1. prevent code from outside the class to accidentally manuipulate data inside the class.
 2. encapsulation enables us to expose only a small public interface of the class, and this, in turn, allows us to change all other internal methods with confidence, because this way we can be sure that external code does not rely on these internal private methods and our code will not break.
 
-In order to make a property and a method fake-private we add an underscore at the beginning of the property or method name:
+In order to make properties and methods fake-private, we add an underscore at the beginning of their names:
 
 ```js
 class Student {
@@ -519,7 +519,7 @@ class Student {
 }
 ```
 
-> **_Note_** | this does not make the property truly private, it is just a convention. We call it a protected property.
+> **_Note_** | this does not make the property truly private, it is just a convention and they are still accessible with the underscore. Therefore, we call these _protected properties_.
 
 In traditional OOP, properties are called **class fields**. With the current proposal of implementing private class fields in JavaScript, the language is actually giving its classes some abilities that they didn't have previously.
 
