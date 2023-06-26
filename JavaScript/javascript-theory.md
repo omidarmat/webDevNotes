@@ -281,7 +281,7 @@ class Person {
 }
 ```
 
-> **_Note_** | we can also define properties that are not based on inputs.
+> **_Note_** | we can also define properties that are not based on inputs. They will just be set by the constructor function
 
 ```js
 class Person {
@@ -291,6 +291,23 @@ class Person {
     this.birthYear = birthYear;
     this.movements = [];
     this.locale = navigator.language;
+  }
+}
+```
+
+> **_Note_** | any code can be inserted into the constructor function and it would be executed once the constructor function is called.
+
+```js
+class Person {
+  constructor(name, birthYear) {
+    // instance properties
+    this.name = name;
+    this.birthYear = birthYear;
+    this.movements = [];
+    this.locale = navigator.language;
+
+    // any executable code
+    console.log(`Thanks for opening an account, ${name}`);
   }
 }
 ```
@@ -313,6 +330,8 @@ class Person {
   }
 }
 ```
+
+> **_Note_** | methods defined in a class can call each other.
 
 > **_Note_** | we can still define methods on the `prototype` property of the `Person` class. It is just simpler to write it in the class declaration.
 
@@ -478,6 +497,60 @@ class Student extends Person {
 ```
 
 > **_Note_** | It is not necessary for the child class to accept additional instance properties compared to the parent class. In such case, we would not have to define the constructor function in the child class, and still all instances of `Student` will get their `fullName` and `birthYear` instance properties, because `Student` would still _extend_ `Person`. Just keep in mind that no constructor function, means no `super` function call, and therefore `this` would be `undefined`.
+
+##### **_Data Encapsulation_**
+
+It means to keep some properties and methods private inside a class so that they are not accessible from outside the class. There are 2 main reasons why we need encapsulation and data privacy:
+
+1. prevent code from outside the class to accidentally manuipulate data inside the class.
+2. encapsulation enables us to expose only a small public interface of the class, and this, in turn, allows us to change all other internal methods with confidence, because this way we can be sure that external code does not rely on these internal private methods and our code will not break.
+
+In order to make a property and a method fake-private we add an underscore at the beginning of the property or method name:
+
+```js
+class Student {
+  constructor(name, birthYear, pin) {
+    this._pin = pin;
+  }
+
+  _approveLoan(val) {
+    return true;
+  }
+}
+```
+
+> **_Note_** | this does not make the property truly private, it is just a convention. We call it a protected property.
+
+In traditional OOP, properties are called **class fields**. With the current proposal of implementing private class fields in JavaScript, the language is actually giving its classes some abilities that they didn't have previously.
+
+In this proposal, there are 6 different kinds of fields and methods:
+
+1. Public fields
+2. Private fields (fields cannot be defined in constructor functions, they should be defined outside. Then the constructor can access them via `this`)
+3. Public methods
+4. Private methods
+5. Public static methods
+6. Private static methods
+
+```js
+class Account {
+  // public fields (available on all instances)
+  locale = navigator.language;
+
+  // private fields (not accessible from outside the class)
+  #movements = [];
+  #pin;
+
+  constructor(name, birthYear, pin) {
+    this.#pin = pin;
+  }
+
+  // private methods (currently not supported by any browser)
+  #approveLoan(val) {
+    return true;
+  }
+}
+```
 
 #### **3. `Object.create()`:**
 
