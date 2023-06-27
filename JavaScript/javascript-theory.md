@@ -646,3 +646,24 @@ addHandlerRender(handler) {
   window.addEventListener('load', handler);
 }
 ```
+
+# **Working with the DOM**
+
+## **Event delegation**
+
+In event delegation we use the fact that events _bubble up_. Utilizing this fact usually means to attach the event listener to a common parent of a series of elements. Now if the user clicks on any of the elements in that parent element, an event is emited and we can catch it at the parent level as it bubbles up. We can also identify where the event is originating from using the `e.target` property.
+
+Actual steps in utilizing event delegation:
+
+1. Add the event listener to a common parent element of all the elements that we are interested in.
+2. Determine what element originated the event.
+3. Execute a custom command.
+
+```js
+document.querySelector(".nav__links").addEventListener("click", function (e) {
+  if (e.target.classList.contains("nav__link")) {
+    const id = e.target.getAttribute("href");
+    // other executable commands
+  }
+});
+```
