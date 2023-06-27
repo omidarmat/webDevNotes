@@ -615,3 +615,34 @@ to input data into this object is it is defined in the `Person` object, we shoul
 ```js
 omid.init("Omid", 1992);
 ```
+
+# **MVC architecture**
+
+## **Publisher-subscriber pattern**
+
+According to the MVC architecture, we must be able to handle all application logic in Controller, and handle all presentation logic in View. Therefore, we should be able to listen for events in View, and handle events in Controller. The solution is the publisher-subscriber pattern.
+
+The publisher-subscriber pattern involves event listeners attached to DOM elements in View, and events handled by Controller functions living in the controller module.
+
+In this pattern, publisher is the code that knows when to react. It will certainly involve the `addEventListener` method and it is written in View. On the other hand, there is a subscriber which is the code that actually performs the reaction to the event, so it is the code that should be executed when the event happens. It is written in Controller.
+
+The actual implementation of this solution will include a controller `init` function which passes the subscriber into the publisher, so that the publisher would know that the subscriber even exists. The `init` will be called as soon as the program is loaded, and it will, in turn, call the publisher and pass the subscriber into it.
+
+**`controller.js`:**
+
+```js
+const init = function () {
+  recipeView.addHandlerRender(handler);
+};
+
+init();
+```
+
+**`view.js`:**
+
+```js
+// publisher is usually implmented as a public API of a view class
+addHandlerRender(handler) {
+  window.addEventListener('load', handler);
+}
+```
