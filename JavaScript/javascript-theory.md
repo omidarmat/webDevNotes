@@ -92,12 +92,59 @@ There are many array methods that we can attach to arrays in order to perform so
 - Receives the element value.
 - Returns the element's index (zero-based). If there is no such element, returns `-1`.
 
-#### **Check element's existence**
+**`.find()`**: used to retrieve one element of an array based on a condition.
+
+- Does NOT mutate the original array.
+- Receives a callback function that is called in each iteration in order to check the current element with the condition.
+- Returns the first element in the array that satisfies the condition. (unlike `.filter()` the returns a new array of all the elements that satisfy the condition)
+
+```js
+const movements = [200, 450, -400, 3000, 650];
+const firstWithdrawal = movements.find((mov) => mov < 0);
+```
+
+**`.findIndex()`**: works almost the same way as `.find()`.
+
+- Does NOT mutate the original array.
+- Receives a callback function that is called in each iteration in order to check the current element with the condition.
+- Returns the index of the first element in the array that satisfies the condition.
+
+```js
+const movements = [200, 450, -400, 3000, 650];
+const firstWithdrawal = movements.findIndex((mov) => mov < 0);
+```
+
+#### **Check element existence**
 
 **`.includes()`**: Checks through _strict equality_ if a certain element exists in the array.
 
+```js
+const movements = [200, 450, -400, 3000, 650];
+console.log(movements.includes(-400)); //true
+```
+
 - Receives the element value.
 - Returns boolean.
+
+**`.some()`**: Checks whether there is **any element** in an array that satisfy a given condition.
+
+- Receives a callback function where the condition is defined.
+- Returns boolean.
+
+```js
+const movements = [200, 450, -400, 3000, 650];
+console.log(movements.some((mov) => mov > 500)); //true
+```
+
+**`.every()`**: Checks whether **all elements** of an array satisfy a given condition.
+
+- Receives a callback function where the condition is defined.
+- Returns boolean.
+
+```js
+const movements = [200, 450, -400, 3000, 650];
+console.log(movements.every((mov) => mov > 500)); //false
+```
 
 #### **Looping over array**
 
@@ -184,6 +231,8 @@ const arrCopy = arr.slice();
 
 **`.splice()`**: works very similar to `.slice()`, but actually mutates the original array. The extracted elements will be gone from the original array.
 
+Use case: when we want to delete a specific element from the array. (`.splice(<index>, 1)`)
+
 - Mutates the original array
 - Receives either 1 or 2 arugments: first the starting index and then the delete count.
 - Returns a new array with the slice part extracted from the original array. But we are usually not interested in what it returns, we just need its deletion operation to be performed on the original array.
@@ -225,6 +274,63 @@ console.log(letters); // ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
 - Does NOT mutate the original array.
 - Receives a character which will be inserted between the elements as they are joined together as a whole string.
 - Returns a string.
+
+**`.flat()`**: Introduced in ES2019, will flat a nested array for a specified depth.
+
+- Does NOT mutate the original array.
+- Receives one arguments: flatening level. If left empty, default is 1.
+- Returns a new array.
+
+```js
+const arr = [[[1, 2], 3], [4, 5, 6], 7, 8];
+console.log(arr.flat(2)); // [1, 2, 3, 4, 5, 6, 7, 8];
+```
+
+**`.flatMap()`**: Introduced in ES2019, executes `.map()` and then `.flat()` method on a given array of elements. Since the execution sequence is a pretty popular one, the method was introduced to perform it in one go.
+
+> **_Note_** | The flatening operation can go only 1 level deep and we cannot increase it.
+
+- Receives the callback function that we would normally pass into the `.map()` method.
+- Returns a new flattened array.
+
+**`.sort()`**: used to sort elements of an array based a sorting logic implemented in a callback function that is passed into the method. If no callback is passed into the method, it can only be used to sort string values in an array, not numbers.
+
+- Mutates the original array.
+- Receives a callback function where the sorting logic is implemented.
+- Returns the original array with its elements sorted.
+
+```js
+const owners = ["omid", "ali", "saber", "nasrin"];
+console.log(owners.sort());
+```
+
+For sorting arrays with numbers, the callback function will have 2 arguments as 2 consecutive elements of the array in each iteration. In each iteration, if the callback returns a positive value, `a` will be positioned before `b`. If the callback returns a negative value, `a` will be positioned after `b`.
+
+```js
+const movements = [200, 450, -400, 3000, 650];
+movements.sort((a, b) => {
+  // for ascending order
+  if (a > b) return 1;
+  if (a < b) return -1;
+
+  // for descending order
+  if (a > b) return -1;
+  if (a < b) return 1;
+});
+```
+
+> **_Note_** | this works with both numbers and strings. However, if we are attempting to sort numbers, the logic above can be simplified as:
+
+```js
+const movements = [200, 450, -400, 3000, 650];
+movements.sort((a, b) => {
+  // for ascending order
+  return a - b;
+
+  // for descending order
+  return b - a;
+});
+```
 
 ### **Destructuring arrays**
 
