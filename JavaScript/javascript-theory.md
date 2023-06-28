@@ -126,7 +126,7 @@ So the spread operator (`...`) will take out the elements of an array and automa
 
 > **_Note_** | spread operators work on all iterables. Iterables in JavaScript include arrays, strings, maps, and sets, but not objects.
 
-> **_Note_** | the `...` syntax is considered by JavaScript as the spread operator if it is used on the right side of the equal sign. If it is on the left side of the equal sign, it will be considered as the **rest pattern**.
+> **_Note_** | the `...` syntax is considered by JavaScript as the spread operator if it is used on the right side of the equal sign. If it is on the left side of the equal sign, it will be considered as the **rest pattern**, which would usually be used together with the destructuring syntax. Also this syntax would be considered as the rest pattern if it is used in the arguments of a function.
 
 Use cases:
 
@@ -164,6 +164,8 @@ const wholeMenu = [...restaurant.starterMenu, ...restaurant.mainMenu];
 ### **Rest pattern in arrays**
 
 The rest pattern looks exactly like the spread operator, but it does the opposite. Rest pattern is used to condence or pack multiple elements into one array. The rest pattern is usually used together with the destructuring syntax.
+
+**In other words:** we use the rest pattern whenever we would otherwise write multiple variable names separated by commas.
 
 Use cases:
 
