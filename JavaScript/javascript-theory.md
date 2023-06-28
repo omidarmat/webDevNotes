@@ -1,4 +1,161 @@
-# Object-Oriented Programming
+# **Data structures**
+
+## **Arrays**
+
+An array acts a container into which we can store variables and then reference them.
+
+We have two ways of defining an array:
+
+```js
+const friends = ["masoud", "amirhossein", "behzad"];
+// or
+const friends = new Array("masoud", "amirhossein", "behzad");
+```
+
+> **_Note_** | an array can hold as many values as we want, and also of any type that we need. It is even possible to insert an expression, a variable containing a value, or another array as an element.
+
+### **Retrieve elements from array**
+
+In order to retrieve an element from an existing array we can use the bracket notation with the index of the required element in it.
+
+```js
+console.log(friends[0]);
+```
+
+> **_Note_** | inside the bracket we can insert any **expression**. Remember that expression is anything that can produce a value. We canno put a **statement** here.
+
+### **Mutate elements of array**
+
+The bracket notation also allows us to mutate array elements.
+
+```js
+friends[2] = "maryam";
+```
+
+> **_Note_** | this works becasue an array is not a primitive value. Remember that primitive values declared with `const` are not immutable. However, we cannot replace (redefine) the entire array.
+
+### **Length of array**
+
+Length of an array is the number of elements that the array holds in it. We can access this value with the `length` property of the array.
+
+```js
+console.log(friends.length); // not zero-based
+```
+
+> **_Note_** | This can be useful when we want to retrieve the last element of an array.
+
+```js
+console.log(friends[friends.length - 1]);
+```
+
+### **Array methods**
+
+There are many array methods that we can attach to arrays in order to perform some operations on them.
+
+#### **Add elements**
+
+**`.push()`**: adds elements to the end of an array.
+
+- Receives one argument: data of any type that should be added to the array.
+- Returns the `length` of the updated array. (We rarely use this value).
+
+**`.unshift()`**: adds elements to the beginning of an array.
+
+- Receives one argument: data of any type that should be added to the array.
+- Returns the `length` of the updated array. (We rarely use this value).
+
+#### **Remove elements**
+
+**`.pop()`**: removes the last element of an array.
+
+- Receives no argument.
+- Returns the removed element.
+
+**`.shift()`**: removes the first element of an array.
+
+- Receives no argument.
+- Returns the removed element.
+
+#### **Find elements**
+
+**`.indexOf()`**: finds the index of a certain element in the array.
+
+- Receives the element value.
+- Returns the element's index (zero-based). If there is no such element, returns `-1`.
+
+#### **Check element's existence**
+
+**`.includes()`**: Checks through _strict equality_ if a certain element exists in the array.
+
+- Receives the element value.
+- Returns boolean.
+
+## **Objects**
+
+Objects are the most fundamental concept in the whole JavaScript language.
+
+In arrays there is no way of giving names to elements. So we are not able to reference them by a name, but only with their index number. Objects, however, provides this option.
+
+In objects we define key-value pairs. So each value will have a key (property) that can be referenced by it.
+
+There are multiple ways of creating objects. This is the object literal syntax:
+
+```js
+const omid = {
+  name: "omid",
+  age: 2037 - 1992,
+  job: "developer",
+  friends: ["amirhossein", "behzad", "maryam"],
+};
+```
+
+After defining the object, we can still add key-value pairs to it using the dot notation:
+
+```js
+omid.location = "iran";
+```
+
+### **Retrieve data from obejct**
+
+Unlike arrays, the order of properties does not matter when we want to retrieve them. To retrieve data from an object we have two ways:
+
+- Bracket notation:
+
+```js
+console.log(omid.name); //omid
+```
+
+- Dot notation: the bracket notation can receive any expression in it. We don't need to explicitely write the property name. We can generate it programmatically with an expression.
+
+```js
+console.log(omid["name"]); //omid
+```
+
+> **_Note_** | when we try to retireve a property that does not exist in an object, we receive `undefined`. This implies that we can, in a sense, remove a property from an object by setting it to `undefined`.
+
+### **Object methods**
+
+Since functions are yet another type of values in JavaScript, we can add functions as key-value pairs to objects. Functions defined in objects are also called **methods**.
+
+```js
+const omid = {
+  name: "omid",
+  birthYear: 1992,
+
+  // can only insert function expression, not function declaration
+  calcAge: function () {
+    this.age = 2037 - this.birthYear;
+  },
+};
+
+omid.calcAge();
+// or
+omid["calcAge"]();
+```
+
+> **_Note_** | `this` refers to the object that is calling the method.
+
+# **Object-Oriented Programming**
 
 Object-oriented programming is a programming paradigm based on the concept of obejcts. It was developed with the goal of organazing code (paradigm), to make code more flexible and easier to maintain. Here are some tips to be added on this general definition.
 
