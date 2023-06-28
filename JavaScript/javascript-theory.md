@@ -90,6 +90,33 @@ There are many array methods that we can attach to arrays in order to perform so
 - Receives the element value.
 - Returns boolean.
 
+### **Destructuring arrays**
+
+Destructuring is an ES6 feature allowing us to unpack values from an array or an object into separate variables.
+
+Whenever JavaScript detects `[]` on the left side of the equal sign, it knows that it should perform destructuring.
+
+```js
+const arr = [2, 3, 4];
+
+const [x, y] = arr;
+console.log(x, y); //2 3
+
+const [a, , c] = arr;
+console.log(a, c); //2 4
+```
+
+> **_Note_** | Attempting to retrieve more variables than the actual length of the array will result in `undefined`. However, we can prevent producing an `undefined` value by definging default values.
+
+```js
+const arr = [2, 3, 4];
+
+const [a = 1, b = 1, c = 1] = arr;
+console.log(a, b, c); //2 3 1
+```
+
+> **_Note_** | the original array is not destroyed with destructuring.
+
 ## **Objects**
 
 Objects are the most fundamental concept in the whole JavaScript language.
@@ -154,6 +181,79 @@ omid["calcAge"]();
 ```
 
 > **_Note_** | `this` refers to the object that is calling the method.
+
+### **Destructuring objects**
+
+Destructuring is an ES6 feature allowing us to unpack values from an array or an object into separate variables.
+
+Whenever JavaScript detects `{}` on the left side of the equal sign, it knows that it should perform destructuring objects.
+
+```js
+const omid = {
+  name: "omid",
+  age: 2037 - 1992,
+  job: "developer",
+  friends: ["amirhossein", "behzad", "maryam"],
+};
+
+const { name, age, job } = omid; //variable names should match the exact property names of the object
+```
+
+> **_Note_** | we can rename variables as we create them in destructuring:
+
+```js
+const { name: fullname, age, job: occupation } = omid;
+```
+
+> **_Note_** | Attempting to retrieve variables that don't exist in the object will result in `undefined` value. However, we can set default values just like with array destructuring. Notice that we can both rename and provide default value at the same time.
+
+```js
+const { name, age, job, location: country = "iran" } = omid;
+```
+
+> **_Note_** | to destructure nested objects we nest the destructuing syntax like this:
+
+```js
+const restaurant = {
+  name: 'italiano';
+  openingHours: {
+    fri: {
+      open: 12,
+      close: 23,
+    }
+  }
+}
+
+const {
+  fri: { open, close },
+} = restaurant.openingHours;
+// renaming and default values also work in this case
+```
+
+> **_Note_** | we can destructure an object immediately as we receive it in a function. Default values can be set here also.
+
+```js
+const restaurant = {
+  name: 'italiano';
+  openingHours: {
+    fri: {
+      open: 12,
+      close: 23,
+    }
+  }
+
+  orderDelivery: function({starterIndex, mainIndex, time, address}) {
+    console.log(starterIndex, mainIndex, time, address);
+  }
+}
+
+restaurant.orderDelivery({
+  time: '20:45',
+  address: 'Ahmad Abad St.',
+  mainIndex: 2,
+  starterIndex: 3,
+})
+```
 
 # **Object-Oriented Programming**
 
