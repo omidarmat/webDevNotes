@@ -117,6 +117,87 @@ console.log(a, b, c); //2 3 1
 
 > **_Note_** | the original array is not destroyed with destructuring.
 
+### **Spread operator for arrays**
+
+Spread operator is used to expand an array into its elements. It is usually used when we want to create a new array based on a previous array, but the new array is intended to have some determined elements and then include all the elements of the previous array.
+So the spread operator (`...`) will take out the elements of an array and automatically write its elements with a comma between them, just as we would do manually.
+
+**In other words:** we use the spread operator whenever we would otherwise write multiple values separated by commas.
+
+> **_Note_** | spread operators work on all iterables. Iterables in JavaScript include arrays, strings, maps, and sets, but not objects.
+
+> **_Note_** | the `...` syntax is considered by JavaScript as the spread operator if it is used on the right side of the equal sign. If it is on the left side of the equal sign, it will be considered as the **rest pattern**.
+
+Use cases:
+
+1. when we want to rewrite the elements of an array in a new array, and
+
+```js
+const arr = [7, 8, 9];
+const newArr = [5, 6, ...arr];
+console.log(newArr); // [5, 6, 7, 8, 9]
+```
+
+2. when we want to pass multiple arguments into functions.
+
+```js
+const arr = [1, 2, 3];
+const calcAvg = function (val1, val2, val3) {
+  const avg = (val1 + val2 + val3) / 3;
+};
+
+calcAvg(...arr);
+```
+
+3. create shallow copies of arrays.
+
+```js
+const menuCopy = [...restaurant.mainMenu];
+```
+
+4. Join two or more arrays.
+
+```js
+const wholeMenu = [...restaurant.starterMenu, ...restaurant.mainMenu];
+```
+
+### **Rest pattern in arrays**
+
+The rest pattern looks exactly like the spread operator, but it does the opposite. Rest pattern is used to condence or pack multiple elements into one array. The rest pattern is usually used together with the destructuring syntax.
+
+Use cases:
+
+1. to destructure multiple elements from the beginning of an array into new variables and leave all the _rest_ in another variable. In this use case, the rest pattern should be last element of the destructuring syntax.
+
+```js
+const [a, b, ...others] = [1, 2, 3, 4, 5];
+console.log(others); // [3, 4, 5]
+```
+
+2. to pass multiple arrguments into a function, and also make the function ready to receive any arbitrary amount of arguments:
+
+```js
+const add = function (...numbers) {
+  let sum = 0;
+  for (let i = 0; i < numbers.length; i++) sum += numbers[1];
+};
+
+add(2, 3);
+add(5, 3, 6, 2);
+```
+
+This situation can be used together with the same use case of the spread operator.
+
+```js
+const numbers = [2, 5, 5, 6, 3, 5, 3];
+const add = function (...numbers) {
+  let sum = 0;
+  for (let i = 0; i < numbers.length; i++) sum += numbers[1];
+};
+
+add(...numbers);
+```
+
 ## **Objects**
 
 Objects are the most fundamental concept in the whole JavaScript language.
@@ -253,6 +334,32 @@ restaurant.orderDelivery({
   mainIndex: 2,
   starterIndex: 3,
 })
+```
+
+### **Spread operator for objects**
+
+Since ES2018 spread operators can operate on objects although objects are not iterables.
+
+```js
+const newRestaurant = { ...restaurant, founder: "Philipo", foundedIn: 1998 };
+```
+
+We can also create shallow copies of objects:
+
+```js
+const restaurantCopy = { ...restaurant };
+```
+
+### **Rest pattern in objects**
+
+The rest pattern looks exactly like the spread operator, but it does the opposite. Rest pattern is used to condence or pack multiple elements into one object.
+
+Use cases:
+
+1. to destructure multiple properties of an object and then pack them into a new object and leave all the _rest_ in another object.
+
+```js
+const { sat, ...weekDays } = restaurant.openingHours;
 ```
 
 # **Object-Oriented Programming**
