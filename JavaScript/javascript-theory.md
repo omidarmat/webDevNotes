@@ -281,7 +281,7 @@ class Person {
 }
 ```
 
-> **_Note_** | we can also define properties that are not based on inputs.
+> **_Note_** | we can also define properties that are not based on inputs. They will just be set by the constructor function
 
 ```js
 class Person {
@@ -291,6 +291,23 @@ class Person {
     this.birthYear = birthYear;
     this.movements = [];
     this.locale = navigator.language;
+  }
+}
+```
+
+> **_Note_** | any code can be inserted into the constructor function and it would be executed once the constructor function is called.
+
+```js
+class Person {
+  constructor(name, birthYear) {
+    // instance properties
+    this.name = name;
+    this.birthYear = birthYear;
+    this.movements = [];
+    this.locale = navigator.language;
+
+    // any executable code
+    console.log(`Thanks for opening an account, ${name}`);
   }
 }
 ```
@@ -313,6 +330,8 @@ class Person {
   }
 }
 ```
+
+> **_Note_** | methods defined in a class can call each other.
 
 > **_Note_** | we can still define methods on the `prototype` property of the `Person` class. It is just simpler to write it in the class declaration.
 
@@ -479,6 +498,85 @@ class Student extends Person {
 
 > **_Note_** | It is not necessary for the child class to accept additional instance properties compared to the parent class. In such case, we would not have to define the constructor function in the child class, and still all instances of `Student` will get their `fullName` and `birthYear` instance properties, because `Student` would still _extend_ `Person`. Just keep in mind that no constructor function, means no `super` function call, and therefore `this` would be `undefined`.
 
+##### **_Data Encapsulation_**
+
+It means to keep some properties and methods private inside a class so that they are not accessible from outside the class. There are 2 main reasons why we need encapsulation and data privacy:
+
+1. prevent code from outside the class to accidentally manuipulate data inside the class.
+2. encapsulation enables us to expose only a small public interface of the class, and this, in turn, allows us to change all other internal methods with confidence, because this way we can be sure that external code does not rely on these internal private methods and our code will not break.
+
+In order to make properties and methods fake-private, we add an underscore at the beginning of their names:
+
+```js
+class Student {
+  constructor(name, birthYear, pin) {
+    this._pin = pin;
+  }
+
+  _approveLoan(val) {
+    return true;
+  }
+}
+```
+
+> **_Note_** | this does not make the property truly private, it is just a convention and they are still accessible with the underscore. Therefore, we call these _protected properties_.
+
+In traditional OOP, properties are called **class fields**. With the current proposal of implementing private class fields in JavaScript, the language is actually giving its classes some abilities that they didn't have previously.
+
+In this proposal, there are 6 different kinds of fields and methods:
+
+1. Public fields
+2. Private fields (fields cannot be defined in constructor functions, they should be defined outside. Then the constructor can access them via `this`)
+3. Public methods
+4. Private methods
+5. Public static methods
+6. Private static methods
+
+```js
+class Account {
+  // public fields (available on all instances)
+  locale = navigator.language;
+
+  // private fields (not accessible from outside the class)
+  #movements = [];
+  #pin;
+
+  constructor(name, birthYear, pin) {
+    this.#pin = pin;
+  }
+
+  // private methods (currently not supported by any browser)
+  #approveLoan(val) {
+    return true;
+  }
+}
+```
+
+##### **_Making class methods chainable_**
+
+Each method defined in the class should `return` the object (`this`) after all its process.
+
+```js
+class Account {
+  #movements = [];
+  #pin;
+
+  constructor(name, birthYear, pin) {
+    this.#pin = pin;
+  }
+
+  deposit(val) {
+    this.#movements.push(val);
+    return this;
+  }
+
+  requestLoan(val) {
+    this.deposit(val);
+    return this;
+  }
+}
+```
+
 #### **3. `Object.create()`:**
 
 this is the easiest way of linking an object to a prototype object. However, this syntax is not used much.
@@ -517,3 +615,59 @@ to input data into this object is it is defined in the `Person` object, we shoul
 ```js
 omid.init("Omid", 1992);
 ```
+
+# **MVC architecture**
+
+## **Publisher-subscriber pattern**
+
+According to the MVC architecture, we must be able to handle all application logic in Controller, and handle all presentation logic in View. Therefore, we should be able to listen for events in View, and handle events in Controller. The solution is the publisher-subscriber pattern.
+
+The publisher-subscriber pattern involves event listeners attached to DOM elements in View, and events handled by Controller functions living in the controller module.
+
+In this pattern, publisher is the code that knows when to react. It will certainly involve the `addEventListener` method and it is written in View. On the other hand, there is a subscriber which is the code that actually performs the reaction to the event, so it is the code that should be executed when the event happens. It is written in Controller.
+
+The actual implementation of this solution will include a controller `init` function which passes the subscriber into the publisher, so that the publisher would know that the subscriber even exists. The `init` will be called as soon as the program is loaded, and it will, in turn, call the publisher and pass the subscriber into it.
+
+**`controller.js`:**
+
+```js
+const init = function () {
+  recipeView.addHandlerRender(handler);
+};
+
+init();
+```
+
+**`view.js`:**
+
+```js
+// publisher is usually implmented as a public API of a view class
+addHandlerRender(handler) {
+  window.addEventListener('load', handler);
+}
+```
+
+# **Working with the DOM**
+
+## **Event delegation**
+
+In event delegation we use the fact that events _bubble up_. Utilizing this fact usually means to attach the event listener to a common parent of a series of elements. Now if the user clicks on any of the elements in that parent element, an event is emited and we can catch it at the parent level as it bubbles up. We can also identify where the event is originating from using the `e.target` property.
+
+Actual steps in utilizing event delegation:
+
+1. Add the event listener to a common parent element of all the elements that we are interested in.
+2. Determine what element originated the event.
+3. Execute a custom command.
+
+```js
+document.querySelector(".nav__links").addEventListener("click", function (e) {
+  if (e.target.classList.contains("nav__link")) {
+    const id = e.target.getAttribute("href");
+    // other executable commands
+  }
+});
+```
+
+> **_Note_** | Event delegation is a nice solution for situations where we want to work with elements that are not yet on the page in the runtime. This is a common use case of event delegation, especially with buttons that are added dynamically to the webpage while using the application.
+
+Another change.
