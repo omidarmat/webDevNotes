@@ -669,3 +669,5 @@ document.querySelector(".nav__links").addEventListener("click", function (e) {
 ```
 
 > **_Note_** | Event delegation is a nice solution for situations where we want to work with elements that are not yet on the page in the runtime. This is a common use case of event delegation, especially with buttons that are added dynamically to the webpage while using the application.
+
+Another change.
