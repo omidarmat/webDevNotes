@@ -24,6 +24,15 @@ console.log(friends[0]);
 
 > **_Note_** | inside the bracket we can insert any **expression**. Remember that expression is anything that can produce a value. We canno put a **statement** here.
 
+> **_Note_** | a new array method (`.at()`) was introduced in ES2022 that enables us to retrieve elementes in another way. This method can also count the elements index from the end using negative indexes. Getting the last element with this method requires `-1` as the index passed into it. This method is particularly useful when we want to do method chaining, or just retrieve elements from the end of an array.
+
+```js
+const arr = [1, 2, 3];
+console.log(arr.at(0)); // 1
+console.log(arr.at(-1)); // 3
+console.log(arr.at(-2)); // 2
+```
+
 ### **Mutate elements of array**
 
 The bracket notation also allows us to mutate array elements.
@@ -89,6 +98,133 @@ There are many array methods that we can attach to arrays in order to perform so
 
 - Receives the element value.
 - Returns boolean.
+
+#### **Looping over array**
+
+**`.forEach()`**: used to loop over an array. It receives a callback function in order to tell it what to do. So it is the `forEach()` method that will call the callback function, not us. The method loops over the array and in each iteration, it will call the callback function.
+
+- Receives a callback function as argument.
+- Callback has access to: 1) current element of array, 2) current element's index, 3) the entire array that is being looped. (order matters)
+
+```js
+const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
+
+movements.forEach((mov, i, arr) => {
+  if (mov > 0) {
+    console.log(`Movement ${i + 1}: You deposited ${mov}`);
+  } else {
+    console.log(`Movement ${i + 1}: You withdrew ${mov}`);
+  }
+});
+```
+
+> **_Note_** | unlike for-of loop, we cannot break out of a forEach loop. Once it starts, it will go to the end. We cannot use `continue` and `break` in a `forEach` loop.
+
+##### **Data transformation methods**
+
+There are 3 important array methods to perform data transformations, the results of each are always stored in new arrays.
+
+**`.map()`**: yet another method, used to loop over arrays. As it loops over the array, in each iteration, it calls a callback function that pass into it.
+
+- Does NOT mutate the original array.
+- Receives a callback function.
+- Callback has access to: 1) current element of array, 2) current element's index, 3) the entire array that is being looped.
+- Returns a new array based on an operation that it does on the original array. The value that is returned by the callback function in each iteration will be pushed to the new array.
+
+```js
+const movements = [200, 450, -400, 3000, 650];
+const movementsUSD = movements.map((mov, i, arr) => mov * 1.1);
+```
+
+**`.filter()`**: used to filter elements in the original array that satisfies a condition that is checked by a callback function that we pass into the method.
+
+- Receives a callback function.
+- Callback has access to: 1) current element of array, 2) current element's index, 3) the entire array.
+- Returns a new array including the elements that satisfy the condition that is checked by the callback function that we pass into the callback function.
+
+```js
+const movements = [200, 450, -400, 3000, 650];
+const deposites = movements.filter((mov, i, arr) => mov > 0);
+```
+
+**`.reduce()`**: used to boil down all the elements of an array into one single value. This is usually used to calculate totals, averages, etc. of elements stored in an array.
+
+- Receives two arguments: a callback function and the starting number for the accumulator variable. The callback loops over the array and
+- Callback has access to: 1) accumulator variable, 2) current element, 3) current element's index, 4) the entire array.
+- Returns a single value.
+
+```js
+const movements = [200, 450, -400, 3000, 650];
+const balance = movements.reduce((acc, mov, i, arr) => {
+  return acc + mov;
+}, 0);
+```
+
+#### **Other array methods**
+
+**`.slice()`**: extracts a slice of any array, without chainging the original array.
+
+- Does NOT mutate the original array.
+- Receives either 1 or 2 arugments: in either case, the first argument will be the starting index for slicing. The element related to the starting index will be included in the slice. If there is a second argument, it would be the ending index of the slice, which will not be included in the slice. Inserting one negative index will start slicing from the end of the array. Negativa and positive indexes can be used together as the starting and ending indexes.
+- Returns a new array with the slice part extracted from the original array.
+
+```js
+let arr = ["a", "b", "c", "d", "e"];
+console.log(arr.slice(2)); // ['c', 'd', 'e']
+console.log(arr.slice(2, 4)); // ['c', 'd']
+console.log(arr.slice(-1)); // ['e']
+consoloe.log(arr.slice(1, -2)); // ['b', 'c']
+```
+
+> **_Note_** | it is also possible to create shallow copies with the slice method. Just use it with no index.
+
+```js
+const arrCopy = arr.slice();
+```
+
+**`.splice()`**: works very similar to `.slice()`, but actually mutates the original array. The extracted elements will be gone from the original array.
+
+- Mutates the original array
+- Receives either 1 or 2 arugments: first the starting index and then the delete count.
+- Returns a new array with the slice part extracted from the original array. But we are usually not interested in what it returns, we just need its deletion operation to be performed on the original array.
+
+```js
+let arr1 = ["a", "b", "c", "d", "e"];
+arr.splice(2); // arr1 = ['a', 'b']
+
+let arr2 = ["a", "b", "c", "d", "e"];
+arr.splice(1, 2); // arr2 = ['a', 'd', 'e']
+```
+
+**`.reverse()`**: reverses the order of elements in an array. It mutates the original array.
+
+- Mutates the original array
+- Receives no argument.
+- Returns the same array after its elements being reversed.
+
+```js
+let arr = ["a", "b", "c", "d", "e"];
+console.log(arr2.reverse());
+```
+
+**`.concat()`**: used to concatenate two arrays.
+
+- Does NOT mutate the original array
+- Receives the other array that should be attached to the array that the method as called upon.
+- Returns a new array.
+
+```js
+let arr1 = ["a", "b", "c", "d", "e"];
+let arr2 = ["f", "g", "h"];
+const letters = arr1.concat(arr2);
+console.log(letters); // ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
+```
+
+**`.join()`**: used to join the elements of an array.
+
+- Does NOT mutate the original array.
+- Receives a character which will be inserted between the elements as they are joined together as a whole string.
+- Returns a string.
 
 ### **Destructuring arrays**
 
