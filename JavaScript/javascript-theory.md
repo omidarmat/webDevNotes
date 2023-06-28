@@ -649,6 +649,334 @@ addHandlerRender(handler) {
 
 # **Working with the DOM**
 
+DOM stands for Document Object Model. It is a structured representation of HTML documents which allows JavaScript to access and manipulate HTML elements. So the DOM is the connection between HTML documents and JavaScript code.
+
+The DOM is automatically created by the browser as soon as the HTML page loads. It is stored in a tree structure of nodes, where each HTML element is an object. In the DOM tree, for each HTML element there is one element node that we can manipulate and interact with. The DOM also allows us to respond to certain DOM events using the JavaScript code.
+
+The DOM always starts with the document object. Document is a special object that we can access in JavaScript. It serves as an entry point into the DOM as we can easily examine this by using the `querySelector` method on it to select any HTML element:
+
+```js
+document.querySelector(".class");
+```
+
+The first child element of the document is usually the `<html>` element. This is usually the root element in all HTML documents.
+
+Next, the `<html>` element usually has two child elements: `<head>` and `<body>`. These are adjacent elements, so they are siblings in the DOM.
+
+The DOM has more than just element nodes. It also has nodes for each group of text characters (e.g text inside a `<p>` element), comments and other stuff.
+
+> **_Note_** | the rule is that whatever is in the HTML document, also has to be in the DOM.
+
+> **_Note_** | DOM is not part of the JavaScript language. DOM allows us to make JavaScript code impact the appearance of webpages. **Web APIs** make it possible to work with DOM and DOM methods. Web APIs are libraries written in JavaScript and implemented by browsers, which we can access from our JavaScript code. Besides the DOM, there are many other web APIs like timers, fetch API, and so on.
+
+## **A detailed look into the DOM**
+
+The DOM API allows JavaScript to programmatically interact with the DOM. So the DOM actually contains a ton of methods and properties that we use to interact with the DOM tree. (e.g `querySelector`, `addEventListener`, and `createElement` methods, or `innerHTML`, `textContent`, and `children` properties among many others)
+
+There are different types of nodes in the DOM. Some nodes are HTML elements, but others are just text. This is important because DOM methods and properties are organized into these different types of objects.
+
+### **DOM organization**
+
+Every single node in the DOM tree is of the type **Node**. Each node is represented in JavaScript by an object. This object has access to different node methods and properties, such as `textContent`, `childNodes`, `parentNodes`, `cloneNodes` among many others.
+
+This Node type has a couple of child types: **Element**, **Text**, **Comment**, **Document**.
+
+- `Window` node
+
+- `Node` node: every single node in the DOM is of this type. Each `Node` is represented in JavaScript by an object that has access to special methods and properties, such as `.textContent`, `.childNodes`, `.parentNode`, `cloneNode` among many others.
+
+  - `Element` node: each HTML element is of this type. Gives each HTML elemtn access to a ton of useful methods and properties, such as `innerHTML`, `classList`, `children`, `parentElement`, `append()`, `remove()`, `querySelector()`, `closest()` and so on. Each element is represented internally as an object.
+
+    - `HTMLElement` node: this node type would have exactly one child type for each HTML element that exists in the HTML file. Each of these HTML elements can have unique properties. (e.g `src` attribute of the `<img>` element, or `href` attribute of the `<a>` element)
+
+      - HTMLDivElement
+      - HTMLButtonElement
+
+  - `Text` node: text inside any element gets its own Text node.
+  - `Comment` node: comment in the HTML file gets its Comment node.
+  - `Document` node: has access to methods and properties, such as `querySelector()`, `createElement()`, `getElementById()`.
+
+> **_Note_** | Inheritance makes the relation between these node types work. So all the child types will have access to methods and properties of their parent node types. Note how the Document node type and Element node type both have access to `querySelector()`.
+
+The DOM needs to provide all node types with the ability to listen to events. Remember that we usually listen to events by calling the `addEventListener` method on an Element or Document node type. The DOM has another node type called `EventTarget` which is a parent of both the `Node` and the `Window` node types. So actually, we can call the `addEventListener` method on every single type of node.
+
+## **Selecting elements**
+
+### **Select document, head and body**
+
+To select the document element in order to apply CSS styles we don't need to use any selector:
+
+```js
+const doc = document.documentElement;
+```
+
+We can also select the `head` and `body` elements:
+
+```js
+const head = document.head;
+const body = document.body;
+```
+
+### **Select elements with `querySelector()`**
+
+> Frequently used
+
+We can use any CSS selector with the`querySelector()` method in order to select one element.
+
+- Returns the first element that matches the query.
+
+```js
+const header = document.querySelector(".header");
+```
+
+### **Select elements with `querySelectorAll()`**
+
+> Frequently used
+
+We can use any CSS selector with the`querySelectorAll()` method in order to select a series of elements.
+
+- Returns a `NodeList` containing all the elements that match the query. Remember that a `NodeList` is not a live list.
+
+```js
+const allSections = document.querySelectorAll(".section");
+```
+
+> **_Note_** | `querySelector()` and `querySelectorAll()` are available not only the document, but also on all the elements. Using them on elements is usually with the goal of selecting child elements.
+
+### **Select elements with `getElementById()`**
+
+We can select elements only with their ID in this method. We don't need to insert the CSS ID selector actually.
+
+- Returns the only element with the inserted ID.
+
+```js
+const map = document.getElementById("map");
+```
+
+### **Select elements with `getElementsByTagName()`**
+
+Used to selec all elements with the same tag name.
+
+- Returns a `HTMLCollection`, which is a live collection, meaning that if the DOM changes, this collection is immediately updated.
+
+```js
+const allButtons = document.getElementById("button");
+```
+
+### **Select elements with `getElementsByClassName()`**
+
+Used to selec all elements with the same class name.
+
+- Returns a `HTMLCollection`.
+
+```js
+const allButtons = document.getElementsByClassName("button");
+```
+
+## **Creating and inserting elements**
+
+### **Create elements with `insertAdjacentHTML()`**
+
+Used to insert HTML markup into a certain HTML element.
+
+- Accepts two arguments:
+
+  1. Determine where the HTML markup should be inserted in the HTML element: `beforeend`, `beforebegin`, `afterend`, `afterbegin`.
+  2. HTML markup code
+
+```js
+const section1 = document.querySelector('.section-1');
+section1.insertAdjacentHTML('beforebegin', <markup-code>);
+```
+
+### **Create elements with `createElement()`**
+
+used to create an HTML element.
+
+- Accepts one argument: string containing the tag name.
+- Returns an HTML element with the specified tag name.
+
+```js
+const message = document.createElement("div");
+```
+
+> **_Note_** | All this does is to create a DOM element. It is not yet in the DOM itself, and it cannot yet be found on the webpage. We have to manually insert it into the page.
+
+We can also add classes to this newly created element.
+
+```js
+message.classList.add("cookie-message");
+```
+
+We can add text to this element.
+
+```js
+message.textContent =
+  "We use cookies for improved functionality and analytics.";
+```
+
+We can also insert HTML code into this element.
+
+```js
+message.innerHTML = '<button class="btn btn--close-cookie">Got it!</button>';
+```
+
+> **_Note_** | we can use the `innerHTML` property to both read and set the HTML markup.
+
+Finally, to insert this element really into the DOM, we can use `prepend()`, `append()`, `before()`, or `after()`.
+
+### **Insert element with `prepend()`**
+
+Used to insert an element at the beginning of another element.
+
+- Accepts one argument: the element that should be inserted.
+
+```js
+header.prepend(message);
+```
+
+### **Insert element with `append()`**
+
+Used to insert an element at the end of another element.
+
+- Accepts one argument: the element that should be inserted.
+
+```js
+header.append(message);
+```
+
+> **_Note_** | one DOM element is unique and cannot exist at two places at the same time. Therefore, in a code example where both prepend and append are used, only the last method used will affect the DOM. However, if we need the same element appear in two places, we have to make a copy of it using the `cloneNode()` method.
+
+```js
+header.prepend(message);
+header.append(message.cloneNode(true)); // true determines that all the child elements of the message will also be copied
+```
+
+### **Insert element with `before()`**
+
+Uset to insert an element as a sibling, before another element.
+
+- Accepts one argument: the element that should be inserted.
+
+```js
+header.before(message);
+```
+
+### **Insert element with `after()`**
+
+Uset to insert an element as a sibling, after another element.
+
+- Accepts one argument: the element that should be inserted.
+
+```js
+header.after(message);
+```
+
+### **Delete element with `remove()`**
+
+Used to delete elements, usually based on a click or timer event.
+
+```js
+document
+  .querySelector(".btn--close-cookie")
+  .addEventListener("click", function () {
+    message.remove();
+  });
+```
+
+> **_Note_** | previously, before the `remove()` method became available in JavaScript, we had to move up the DOM to select the parent element, and then remove the child element using the `removeChild()` method, into which we had to pass in the element that should be removed again.
+
+```js
+document
+  .querySelector(".btn--close-cookie")
+  .addEventListener("click", function () {
+    message.parentElement.removeChild(message);
+  });
+```
+
+## **Manipulating styles, attributes and classas**
+
+### **Manipulate styles**
+
+In order to manipulate the style of an element, we should select the `style` property of that element, and then select a specific css property on it.
+
+```js
+message.style.backgroundColor = "#374956";
+message.style.width = "120%";
+```
+
+> **_Note_** | Styles set through JavaScript code are inserted into the HTML file as inline styles. Therefore, we cannot use the `style` property to read styles defined outside the HTML file, for example, in a CSS file. However, we can use it to read inline styles.
+
+> **_Note_** | in order to get non-inline styles of an element, we can use the `getComputedStyle()` function. It receives the target element as an argument. It returns a `CSSStyleDeclaration` object containing all the styles with which the element is appearing on the page. So these styles are not necessarily written in the CSS file.
+
+```js
+console.log(getComputedStyle(message));
+```
+
+### **Manipulate CSS custom properties**
+
+We can change the values stored in CSS custom properties using JavaScript. As we know, CSS custom properties are stored in the document root, and in JavaScript that is equivalent to the document element.
+
+In order to achieve this we can use the `setProperty()` method on the style property of the document element.
+
+```js
+document.documentElement.style.setProperty("--color-primary", "orangered");
+```
+
+### **Manipulate HTML attributes**
+
+We can read and set attributes in JavaScript.
+
+```js
+const logo = document.querySelector(".nav__logo");
+console.log(logo.src); // returns absolute URL while in HTML file we write the relative URL. To get the relative URL we use getAttribute(). Same is true about 'href' for links.
+console.log(logo.className); // NOT 'class'
+
+logo.alt = "Beautiful minimalist logo";
+```
+
+> **_Note_** | this works only if the target attribute is a standard HTML attribute that the element is supposed to have it. So if we set these standard attributes in the HTML file, they will be accessible in JavaScript simply as properties of the element. However, if we set some non-standard properties on an element, we would only be able to access them using the `getAttribute()` method, into which we can pass the attribute name.
+
+```js
+const logo = document.querySelector(".nav__logo");
+console.log(logo.designer);
+```
+
+> **_Note_** | we can also set non-standard attributes using the `setAttribute()` method. This method accepts as the first argument the attribute name, then as the second argument the attribute value.
+
+```js
+const logo = document.querySelector(".nav__logo");
+logo.setAttibute("company", "bankist");
+```
+
+#### **HTML data attribute**
+
+We can add a special data attribute for a HTML element. We frequently use this attribute when we need to store some data in the UI in order to basically create a bridge between the frontend and the backend code.
+
+The name of this attribute should start with 'data-' and then we continue the name however we want. These attributes will then be accessible in JavaScript through the 'dataset' property of the element. Just notice how the dictation of the attributes name changes in JavaScript to cammelcase.
+
+```html
+<img class="nav__logo" data-verion-number="3.0" />
+```
+
+```js
+const logo = document.querySelector(".nav__logo");
+console.log(logo.dataset.versionNumber); //3.0
+```
+
+### **Manipulate classes**
+
+In order to interact with classes of an HTML element we can use 4 methods on the `classList` property of the element:
+
+1. `.add()`: adds a class name string to the classlist of the element.
+2. `.remove()`: removes a class name string from the classlist of the element.
+3. `.toggle()`: adds/removes a class name string to/from the classlist of the element if it doesn't/does alreadey exist.
+4. `.contains()`: returns boolean whether the specified class name string exists on the classlist of the element. (Don't mistake it with `includes()` in arrays)
+
+> **_Note_** | multiple class name strings can be passed into the `add()` and `remove()` methods separated by commas.
+
+## **Events**
+
 ## **Event delegation**
 
 In event delegation we use the fact that events _bubble up_. Utilizing this fact usually means to attach the event listener to a common parent of a series of elements. Now if the user clicks on any of the elements in that parent element, an event is emited and we can catch it at the parent level as it bubbles up. We can also identify where the event is originating from using the `e.target` property.
