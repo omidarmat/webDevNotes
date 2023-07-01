@@ -1,3 +1,46 @@
+# **Back-end theory**
+
+## **Web server**
+
+A web server is actually an application that can listen for requests and respond to them. The request is sent by a client (browser) when we enter a certain URL in it. Once the request hits the server, an event is fired, which triggers a response from the server. The server application is usually designed to respond in different ways to different request URLs (refer to [**Routing**](#routing)).
+
+### **Routing**
+
+Routing basically means implementing different actions for different URLs. So we should be able to detect differences in the request URL and act based on it.
+
+In huge applications, routing can become very complicated, and for these situations, we might use a NodeJS library called [**Express**](#express-module).
+
+For simpler routing in practice projects we can use NodeJS itself and also the [**URL**](#url-module) core module, which enables us to analyse the request URL.
+
+### **Query**
+
+Query is a series of characters inserted into the request URL after a `?` mark, determining different parameters in the URL that can be used by the server to decide and act upon.
+
+```
+Request URL:
+127.0.0.1:8000/product?id=0
+```
+
+## **API**
+
+An API is a service from which we can request some data.
+
+## **HTTP headers**
+
+an HTTP header is a piece of information about the response or the request. There are many different standard response headers that we can define to inform the client about the response and what should be done about it.
+
+### **Standard response headers**
+
+1. `'Content-type'`: defines the format of the response that is being sent to the client. 'text/html' or 'application/json'
+
+## **JSON**
+
+JSON is a text format that is very similar to a JavaScript object. It can include formats similar to JavaScript data structures, like arrays and objects. But in order for a JSON data to be usable in JavaScript, it should first be parsed into actual JavaScript data structures.
+
+```js
+const parsedData = JSON.parse(jsonData);
+```
+
 # **Introduction to NodeJS**
 
 NodeJS is a **JavaScript runtime** built on Google's open-source **V8 JavaScript engine**.
@@ -147,6 +190,16 @@ const textIn = fs.readFile("./txt/input.txt", "utf-8", (err, data) => {
 });
 ```
 
+> **_Note_** | the `./` characters at the beginning of the file path refers to the location where we are running the terminal. So if we run the terminal in the root folder of our project, everything is fine, but if we run it somewhere else, for instance, on the desktop, then `./` will represent the desktop location. The solution to this problem is a variable called `__dirname`. This variable always refer to the location where the script that is being executed is located.
+>
+> ```js
+> fs.readFile(`${__dirname}/txt/input.txt`);
+> ```
+>
+> Exception to this rule is the `require()` function. The `./` characters in the file path passed into this function always translates to the directory of the script that is being executed, and not to where we are running the terminal.
+
+> **_Note_** | in case the content of a file should be sent back as a response to a request sent by the client, it is more efficient to perform the reading process **synchronously** before the server is even created. We would read and store the content of the file into a variable, and the web server would simply send the content that is already read.
+
 ### **Writing files**
 
 In this situation, we usually produce or already have a data that we want to write into a file.
@@ -196,7 +249,7 @@ const http = require("http");
 
 ### **Creating a web server**
 
-A web server is actually an application that can listen for requests and respond to them. The request is sent by a client (browser) when we enter a certain URL in it. Once the request hits the server, an event is fired, which triggers the server to respond. The server application is usually designed to respond in different ways to different request URLs (refer to [**Routing**](#routing)).
+A web server is actually an application that can listen for requests and respond to them. (refer to [web server](#web-server) and [Routing](#routing))
 
 We should create a JavaScript file and in there, we create a web server. Creating a web server basically includes 2 steps:
 
@@ -239,17 +292,31 @@ Hello from the server!
 
 > **_Note_** | if now we change something in the code, we would have to use the terminal to stop the application from running (`Ctrl+c`), and then execute it again. This reset process can be done automatically by an NPM package called **nodemon**.
 
-### **Routing**
+### **Methods for sending response**
 
-Routing basically means implementing different actions for different URLs. In huge applications, routing can become very complicated, and for these situations, we might use a NodeJS library called [**Express**](#express-module).
+**`.writeHead()`**: used to set status code and setting response headers. (refer to [HTTP headers](#http-headers))
 
-For simpler routing in practice projects we can use NodeJS itself along with the [**URL**](#url-module) core module, which enables us to analyse the request URL.
+- Receives 2 arguments:
+
+  1. status code
+  2. response headers: should be passed into the method as an object.
+
+```js
+res.writeHead(404);
+res.writeHead(404, {
+  "Content-type": "text/html", // client will now expect an HTML response.
+});
+```
+
+> **_Note_** | headers should always be defined before the response is sent, for example using the `.end()` method.
+
+**`.end()`**: used to send plain text responses. Receives a string that will be sent to the client as response.
 
 ## **URL module**
 
 **`core`**
 
-This core module enables us to analyze the request URL.
+This core module enables us to analyze the request URL, in order to parse different paramteres from the URL into an object.
 
 In order to use URL module in a Node application, we first need to `require` it in a specific JavaScript file.
 
@@ -259,7 +326,9 @@ const url = require("url");
 
 ### **Inspecting the request URL**
 
-The URL module give us access to a `url` property on the request object. So we can inspect it wherever we have access to the request object, like in the callback function of the [`.createServer()`](#creating-a-web-server) method.
+Whenever a request hits the server, we have access to a `url` property on the request object. So we can inspect it wherever we have access to the request object, like in the callback function of the [`.createServer()`](#creating-a-web-server) method.
+
+`req.url` contains the piece of URL after the host address, starting with a slash character. For instance, `127.0.0.1:8000/overview` will be represented by `req.url` as `/overview`.
 
 ```js
 const server = http.createServer((req, res) => {
@@ -269,5 +338,23 @@ const server = http.createServer((req, res) => {
   // /favicon.ico
 });
 ```
+
+### **Parse URL parameters**
+
+In order capture URL paramaters and store them in variables in an object we can use the `.parse()` method from the `url` module. The method accepts first, the request URL, and second, a boolean value determining whether or not to parse the [query](#query) into an object.
+
+```
+Request URL:
+127.0.0.1:8000/product?id=0
+```
+
+```js
+const query = url.parse(req.url, true);
+console.log(query);
+// Query: {id: '0'}
+// pathname: '/product'
+```
+
+This returns an object in which there are many properties including a `Query` property, which itself is an object, containing the parameters specified in the URL. It also includes a `pathname` property containing the path after the host address.
 
 ## **Express module**
