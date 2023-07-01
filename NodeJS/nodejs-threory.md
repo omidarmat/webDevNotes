@@ -70,39 +70,9 @@ Having JavaScript outside of a browser in a stand-alone environment (NodeJS), we
 3. There is a huge library of open-source packages (NPM) available.
 4. NodeJS has a very active developer community.
 
-## **Introduction to NodeJS modules**
+## **Running JavaScript outside the browser**
 
-In NodeJS, we have 3 types of modules:
-
-**1. Core modules:** these are modules that are already installed on NodeJS and we can use them simply by requiring them into a script file.
-
-```js
-const <variable-name> = require('<module-name>');
-```
-
-**2. Our own modules:** Every single JavaScript file in a NodeJS application is treated as a module. Modules are used in NodeJS to export functionalities form one module and import them into another module.
-
-There are different ways of exporting from a module.
-
-- **`module.exports`:** in each module, we have access to a variable called `module`, and then we have access to a property called `exports` on that variable. We can then set this property to whatever we want to export.
-
-```js
-// Exporting from 'module-1.js'
-module.exports = (argument) => {
-  console.log(`function that acts on ${arguments}`);
-};
-```
-
-```js
-// Importing to 'index.js'
-const module1 = require("./modules/module-1");
-```
-
-**3. 3rd-Party modules:**
-
-# **Running JavaScript outside the browser**
-
-## **Interacting with Node in Terminal**
+### **Interacting with Node in Terminal**
 
 In order to start working with Node in the terminal (VS Code) we use the `node` command in the termina. This will open Node REPL (Read, Eval, Print, Loop).
 
@@ -142,7 +112,7 @@ By pressing the Tab key on the keyboard, Node lists all the global variables tha
 
 Also, by pressing the Tab key after writing a constructor function like `String.` in the terminal, a list of methods available on this constructor will be printed.
 
-## **Creating a Node application**
+### **Creating a Node application**
 
 We create a JavaScript file where we then write some JavaScript code. In order to execute this JavaScript file, we need to type the `node` command in the terminal, and after that, write the name of the file that we want to execute.
 
@@ -161,9 +131,39 @@ node index.js
 
 After the file is executed, the execution process is stopped, simply because there is nothing left to run in this file. (This will be explained in detail later)
 
-# **NodeJS core and 3rd-party modules**
+## **Introduction to NodeJS modules**
 
-## **FS module**
+In NodeJS, we have 3 types of modules:
+
+**1. Core modules:** these are modules that are already installed on NodeJS and we can use them simply by requiring them into a script file.
+
+```js
+const <variable-name> = require('<module-name>');
+```
+
+**2. Our own modules:** Every single JavaScript file in a NodeJS application is treated as a module. Modules are used in NodeJS to export functionalities form one module and import them into another module.
+
+There are different ways of exporting from a module.
+
+- **`module.exports`:** in each module, we have access to a variable called `module`, and then we have access to a property called `exports` on that variable. We can then set this property to whatever we want to export.
+
+```js
+// Exporting from 'module-1.js'
+module.exports = (argument) => {
+  console.log(`function that acts on ${arguments}`);
+};
+```
+
+```js
+// Importing to 'index.js'
+const module1 = require("./modules/module-1");
+```
+
+**3. 3rd-Party modules:**
+
+## **NodeJS core and 3rd-party modules**
+
+### **FS module**
 
 **`core`**
 
@@ -175,7 +175,7 @@ In order to use FS module in a Node application, we first need to `require` it i
 const fs = require("fs");
 ```
 
-### **Reading files**
+#### **Reading files**
 
 In order to read files with the FS module, we can use two FS functions:
 
@@ -222,7 +222,7 @@ const textIn = fs.readFile("./txt/input.txt", "utf-8", (err, data) => {
 
 > **_Note_** | in case the content of a file should be sent back as a response to a request sent by the client, it is more efficient to perform the reading process **synchronously** before the server is even created. We would read and store the content of the file into a variable, and the web server would simply send the content that is already read.
 
-### **Writing files**
+#### **Writing files**
 
 In this situation, we usually produce or already have a data that we want to write into a file.
 
@@ -257,7 +257,7 @@ fs.writeFile("./txt/output.txt", textOut, "utf-8", (err) => {
 });
 ```
 
-## **HTTP module**
+### **HTTP module**
 
 **`core`**
 
@@ -269,7 +269,7 @@ In order to use FS module in a Node application, we first need to `require` it i
 const http = require("http");
 ```
 
-### **Creating a web server**
+#### **Creating a web server**
 
 A web server is actually an application that can listen for requests and respond to them. (refer to [web server](#web-server) and [Routing](#routing))
 
@@ -314,7 +314,7 @@ Hello from the server!
 
 > **_Note_** | if now we change something in the code, we would have to use the terminal to stop the application from running (`Ctrl+c`), and then execute it again. This reset process can be done automatically by an NPM package called **nodemon**.
 
-### **Methods for sending response**
+#### **Methods for sending response**
 
 **`.writeHead()`**: used to set status code and setting response headers. (refer to [HTTP headers](#http-headers))
 
@@ -334,7 +334,7 @@ res.writeHead(404, {
 
 **`.end()`**: used to send plain text responses. Receives a string that will be sent to the client as response.
 
-## **URL module**
+### **URL module**
 
 **`core`**
 
@@ -346,7 +346,7 @@ In order to use URL module in a Node application, we first need to `require` it 
 const url = require("url");
 ```
 
-### **Inspecting the request URL**
+#### **Inspecting the request URL**
 
 Whenever a request hits the server, we have access to a `url` property on the request object. So we can inspect it wherever we have access to the request object, like in the callback function of the [`.createServer()`](#creating-a-web-server) method.
 
@@ -361,7 +361,7 @@ const server = http.createServer((req, res) => {
 });
 ```
 
-### **Parse URL parameters**
+#### **Parse URL parameters**
 
 In order capture URL paramaters and store them in variables in an object we can use the `.parse()` method from the `url` module. The method accepts first, the request URL, and second, a boolean value determining whether or not to parse the [query](#query) into an object.
 
@@ -379,4 +379,39 @@ console.log(query);
 
 This returns an object in which there are many properties including a `Query` property, which itself is an object, containing the parameters specified in the URL. It also includes a `pathname` property containing the path after the host address.
 
-## **Express module**
+### **Express module**
+
+Information will be added soon.
+
+## **HTML templating**
+
+HTML templating mainly includes updating parts of an HTML file based on data provided by a server. The updated HTML file is then sent back by the server to the client as a response to a specific request.
+
+In practice, we implement some placeholders in the HTML file that will get replaced dynamically by data coming from the server. The placeholder can be any set of characters. It just has to be something that is unique throughout the HTML code, so that it could be detected and replaced easily with code.
+
+For instance, If we have this HTML code:
+
+```html
+<h2 class="product__name">Fresh Avocados</h2>
+```
+
+We can implement placeholders like this:
+
+```html
+<h2 class="product__name">{%PRODUCTNAME}</h2>
+```
+
+> **_Note_** | replacements can be done all over the HTML file. There is no limit. It can also be done for class names. The HTML file is just a text file. So if we can detect a special string anywhere in the HTML, we can replace it with anything.
+
+### **Replacing class names**
+
+This is usually used to make an HTML element appear/disappear according to data coming from the server. In involves using placeholders for class names:
+
+```html
+<div class="product__organic"><h5>Organic</h5></div>
+<div class="product__organic {%NOT_ORGANIC%}"><h5>Organic</h5></div>
+```
+
+### **Templating for unknown amount of data**
+
+In case we want to render a webpage that presents a certain number of things, but we don't know how many things, we can make a template file for one single thing, and then implement a placeholder in the HTML file where all things are going to be rendered. This placeholder will be replaced by a string built through template-rendering one thing after another.
