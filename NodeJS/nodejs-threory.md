@@ -12,6 +12,14 @@ In huge applications, routing can become very complicated, and for these situati
 
 For simpler routing in practice projects we can use NodeJS itself and also the [**URL**](#url-module) core module, which enables us to analyse the request URL.
 
+### **HTTP headers**
+
+an HTTP header is a piece of information about the response or the request. There are many different standard response headers that we can define to inform the client about the response and what should be done about it.
+
+#### **Standard response headers**
+
+1. **`'Content-type'`**: defines the format of the response that is being sent to the client. 'text/html' or 'application/json'.
+
 ### **Query**
 
 Query is a series of characters inserted into the request URL after a `?` mark, determining different parameters in the URL that can be used by the server to decide and act upon.
@@ -24,14 +32,6 @@ Request URL:
 ## **API**
 
 An API is a service from which we can request some data.
-
-## **HTTP headers**
-
-an HTTP header is a piece of information about the response or the request. There are many different standard response headers that we can define to inform the client about the response and what should be done about it.
-
-### **Standard response headers**
-
-1. `'Content-type'`: defines the format of the response that is being sent to the client. 'text/html' or 'application/json'
 
 ## **JSON**
 
