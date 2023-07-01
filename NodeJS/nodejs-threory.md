@@ -50,7 +50,7 @@ NodeJS is a **JavaScript runtime** built on Google's open-source **V8 JavaScript
 
 Having JavaScript outside of a browser in a stand-alone environment (NodeJS), we can do things that are completely impossible when JavaScript is limited to the browser, like accessing the file system and networking capabilities. This makes NodeJS a great candidate to be used as a web server, and therefore on the server-side of web development.
 
-## **NodeJS pros**
+## **NodeJS advantages**
 
 1. NodeJS is **single-threaded** and based on an **event-driven**, **non-blocking I/O model**, making it very light-weight and efficient.
 
@@ -69,6 +69,36 @@ Having JavaScript outside of a browser in a stand-alone environment (NodeJS), we
 
 3. There is a huge library of open-source packages (NPM) available.
 4. NodeJS has a very active developer community.
+
+## **Introduction to NodeJS modules**
+
+In NodeJS, we have 3 types of modules:
+
+**1. Core modules:** these are modules that are already installed on NodeJS and we can use them simply by requiring them into a script file.
+
+```js
+const <variable-name> = require('<module-name>');
+```
+
+**2. Our own modules:** Every single JavaScript file in a NodeJS application is treated as a module. Modules are used in NodeJS to export functionalities form one module and import them into another module.
+
+There are different ways of exporting from a module.
+
+- **`module.exports`:** in each module, we have access to a variable called `module`, and then we have access to a property called `exports` on that variable. We can then set this property to whatever we want to export.
+
+```js
+// Exporting from 'module-1.js'
+module.exports = (argument) => {
+  console.log(`function that acts on ${arguments}`);
+};
+```
+
+```js
+// Importing to 'index.js'
+const module1 = require("./modules/module-1");
+```
+
+**3. 3rd-Party modules:**
 
 # **Running JavaScript outside the browser**
 
@@ -131,15 +161,7 @@ node index.js
 
 After the file is executed, the execution process is stopped, simply because there is nothing left to run in this file. (This will be explained in detail later)
 
-# **NodeJS modules**
-
-Regularly, modules should first be downloaded and installed using NPM. Then we `require` them in the JavaScript file where we want to use them. However, Node's core modules do not need NPM installation. They are already installed, and we only need to `require` them. The syntax for requiring a module in a JavaScript file is like:
-
-```js
-const <variable-name> = require('<module-name>');
-```
-
-This will return an object with a lot of functions in it.
+# **NodeJS core and 3rd-party modules**
 
 ## **FS module**
 
