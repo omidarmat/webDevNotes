@@ -14,6 +14,7 @@
     - [**Threads, the thread pool, and the event loop**](#threads-the-thread-pool-and-the-event-loop)
       - [**The thread pool**](#the-thread-pool)
       - [**The event loop**](#the-event-loop)
+      - [**The event-driven architecture**](#the-event-driven-architecture)
   - [**Running JavaScript outside the browser**](#running-javascript-outside-the-browser)
     - [**Interacting with Node in Terminal**](#interacting-with-node-in-terminal)
     - [**Creating a Node application**](#creating-a-node-application)
@@ -166,7 +167,7 @@ Having JavaScript outside of a browser in a stand-alone environment (NodeJS), we
 
 ## **NodeJS advantages**
 
-1. NodeJS is **single-threaded** and based on an **event-driven**, **non-blocking I/O model**, making it very light-weight and efficient.
+1. NodeJS is **single-threaded** and based on an [**event-driven**](#the-event-driven-architecture), **non-blocking I/O model**, making it very light-weight and efficient.
 
    - In NodeJS `process`, which is where our application runs, there is only one single thread (i.e. where our code is executed in the machine's processor). All users accessing our application will use the same single thread. In this situation, if one user make the application run a synchronous code, all other users would have to wait until that code is done executing before they could use the application. This is why we developers use lots of asynchronous code, and therefore, callbacks in NodeJS applications in order to implement the non-blocking I/O model. In this approach, we off-load heavy tasks to background processes, so that all users can use the application at the same time, without blocking each other. After the background processes are done, specified callbacks will be called to act in the main execution thread. This is what makes NodeJS applications hightly performant and scalable. However, while using lots of callbacks, we should always avoid **callback hell** using ES6 **promises** or ES8 **async/await**.
 
@@ -227,7 +228,7 @@ Thread pool gives us 4 additional threads completely separated from the main sin
 
 This is where all the application code that is inside **callback functions** run. Some of these codes might get offloaded to the thread pool, but that decision is up to the event loop.
 
-Since the event loop is actually the beating heart of a Node application, and considering the fact that the event loop is responsible for executing code inside callback functions, then we can say the NodeJS is built around callback functions. This is becasue Node uses an **Event-driven architecture**: events are emitted (for example, for HTTP requests, timers expired, files finished reading), event loop picks them up, and then callbacks are called. Event loop kind of **orchestrates** everything.
+Since the event loop is actually the beating heart of a Node application, and considering the fact that the event loop is responsible for executing code inside callback functions, then we can say the NodeJS is built around callback functions. This is becasue Node uses an [**Event-driven architecture**](#the-event-driven-architecture): events are emitted (for example, for HTTP requests, timers expired, files finished reading), event loop picks them up, and then callbacks are called. Event loop kind of **orchestrates** everything.
 
 The event loop has multiple **phases** and each phase has a **callback queue**. Here the 4 most important phases of the event loop:
 
@@ -247,6 +248,12 @@ Besides the callback queues of the four phases mentioned above, there are 2 othe
 - Don't perform complex calculations, for instance, loops inside loops.
 - Be carefu with JSON in large objects.
 - Don't use too complex **regular expressions**, for instance, nested quantifiers.
+
+#### **The event-driven architecture**
+
+In NodeJS there are special objects called **Event emitters** (instances of the `EventEmitter` class). These objects emit named events when important things happen (like a request hitting the server, or a timer expiring, or a file finished reading) in a Node application. These events can then be picked up by event listeners that we developers set up with callback functions. The event listeners will react to the named events by calling the callback functions we defined.
+
+> **_Note_** | The event emitter logic is called the **observer pattern** in JavaScript programming in general. It is a popular pattern with many use cases. The idea is that there is an **observer**, which is the event listener, that will observe the subject that is going to emit an event. The opposite of this pattern includes functions calling other functions. The benefit of this pattern is that everything is more **de-coupled**. Otherwise, for instance, functions from the `fs` module would call functions from the `http` module. Instead, these modules are de-coupled and self-contained, each emitting events that other functions even from other modules can respond to. The pattern also makes it easy to react to the same event multiple times. We would only have to set up multiple listeners.
 
 ## **Running JavaScript outside the browser**
 
