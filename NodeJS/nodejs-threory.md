@@ -1,13 +1,16 @@
 - [**Back-end theory**](#back-end-theory)
+  - [**How the web works**](#how-the-web-works)
   - [**Web server**](#web-server)
-    - [**Routing**](#routing)
-    - [**HTTP headers**](#http-headers)
-      - [**Standard response headers**](#standard-response-headers)
-    - [**Query**](#query)
-  - [**API**](#api)
-  - [**JSON**](#json)
+    - [**HTTP server**](#http-server)
+      - [**Routing**](#routing)
+        - [**_Query_**](#query)
+      - [**Static web server**](#static-web-server)
+      - [**Dynamic web server**](#dynamic-web-server)
+      - [**API**](#api)
+        - [**_JSON_**](#json)
 - [**Introduction to NodeJS**](#introduction-to-nodejs)
   - [**NodeJS advantages**](#nodejs-advantages)
+  - [**NodeJS behind the scenes**](#nodejs-behind-the-scenes)
   - [**Running JavaScript outside the browser**](#running-javascript-outside-the-browser)
     - [**Interacting with Node in Terminal**](#interacting-with-node-in-terminal)
     - [**Creating a Node application**](#creating-a-node-application)
@@ -25,6 +28,7 @@
     - [**HTTP module**](#http-module)
       - [**Creating a web server**](#creating-a-web-server)
       - [**Methods for sending response**](#methods-for-sending-response)
+        - [**Standard HTTP response headers**](#standard-http-response-headers)
     - [**URL module**](#url-module)
       - [**Inspecting the request URL**](#inspecting-the-request-url)
       - [**Parse URL parameters**](#parse-url-parameters)
@@ -39,11 +43,75 @@
 
 # **Back-end theory**
 
+## **How the web works**
+
+Everything starts from the URL bar of our browsers. When we type a URL in our browser, we are actually requesting some data from a server on which our intended website is hosted. The server will then respond to our request, and the response will contain the webpage that we requested. This process is called the **request-response model** or the **client-server architecture**. This is the fundamental concept of the whole web. But let's look deeper into this.
+
+Every URL (imagine `https://www.google.com/maps`) has its HTTP or HTTPS, which is the **protocol** used for the connection. The URL also contains the **domain name** which is `google.com`. It also has the **resource** name at the end `/maps`. The domain name is not the actual address of the server that we are trying to access. It is actually a name by which we can find the real **IP address** through **DNS lookup**.
+
+So here are the 5 steps involved in a request-response cycle:
+
+1. When we request a URL in the browser, the browser makes a request to a **DNS**. This special server will find the real IP address that matches the web address we typed in the URL bar of our browser. This happens through our **ISP**. The real IP address (something like `https://216.58.211.206:443`) is returned to our browser, and our browser will call it. This URL now contains, again, the protocol, the **IP address** and the **port number**. Remember that this port number is not about the resource that we request.
+2. A **TCP/IP** socket connection is established between the server and the client. This is a 2-way connection that will remain live until all the files of the website are transferred. TCP stands for **Transmission Control Protocol**, and IP stands for **Internet protocol**. Together, they are **communication protocols** that define how data should travel across the web.
+
+   - The job of TCP is to break the request/response into thousands of small chunks called packets before they are sent. Once these chunks arrive at their destination, TCP will re-assemble them into the original request/response. This makes the travel happen as fast as possible.
+   - The job of IP is to send and route all of the packets through the internet. It ensures that all of them arrive at a specific destination, using IP addresses on each packet.
+
+3. Our **HTTP request** is sent to the server through the TCP/IP connection. HTTP stands for **Hyper-Text Transfer Protocol**. So this is yet another communication protocol. A communication protocol is a set of rules that allows two or more parties to communicate. In the case of HTTP, it is a protocol that allows clients and web servers communicate by sending request and response messages. We also have HTTPS. It is basically the same as HTTP, but it is **encrypted** using **TLS** or **SSL**. This is how a request message looks like:
+
+```js
+Get /maps HTTP/1.1 // start line: HTTP method + request target + HTTP version
+// -------------------- request headers
+Host: www.google.com
+User-Agent: Chrome/4.7
+Accept-Language: en-US
+// ------------------------------------
+<BODY>
+```
+
+> **_Note_** | We, as developers, don't write these requests. However, it is important to know about them.
+
+> **_Note_** | There are many different types of HTTP methods. The most common ones are: GET, POST, PATCH, DELETE, etc.
+
+- The **request target** is what tells the server which resource we are asking. If the resource part of the URL is left empty, we will be leaded towards the website's root, which would be the homepage.
+
+- **Request headers** are some information that we send along with the request to the server. There are many different headers available.
+
+- **Request body** would also be available if we are sending some data to the server, for example, from an HTML form.
+
+4. Once the request hits the server, the server will start working on it and when the results are ready, it will send them back as a **HTTP response**. The HTTP response message is quite similar to the HTTP request:
+
+```js
+HTTP/1.1 200 OK // start line: HTTP version + status code + status message
+// -------------------- request headers
+Date: Fri, 18 Jan 2021
+Content-Type: text/html
+Transfer-Encoding: chunked
+// ------------------------------------
+<BODY>
+```
+
+- **Response headers** are actually written by backend developers and sent in the response.
+
+- **Response body** is also written and sent by backend developers. The body should usually contain the HTML of the website, or JSON data of an API.
+
+> **_Note_** | in reality, when we request a website, there will be lots of requests and responses between the server and the client. The first request will get responded by the initial HTML file. This file will get scanned for assets like JavaScript files, CSS files, images, etc. For each of these assets the browser will make a new HTTP request to the server. So the request-reponse cycle happens for every single file in the website. These requests can be inspected in the **Chrome dev tools**, on the **Network tab**.
+
+> **_Note_** | multiple responses can happen at the same time, but the amount is limited, since it can slow down the connection.
+
+5. When all the files have arrived at the client, the website is rendered according to the HTML, CSS, and JavaScript code.
+
 ## **Web server**
 
-A web server is actually an application that can listen for requests and respond to them. The request is sent by a client (browser) when we enter a certain URL in it. Once the request hits the server, an event is fired, which triggers a response from the server. The server application is usually designed to respond in different ways to different request URLs (refer to [**Routing**](#routing)).
+A web server is actually a computer connected to the internet. This server stores the files of a website (HTML, CSS, JavaScript, images, etc.), and runs a **HTTP server**.
 
-### **Routing**
+### **HTTP server**
+
+A HTTP server is an application capable of understanding URLs, listening to requests and delivering responses. It is the HTTP server that communicates with the browser through requests and responses. So it acts as the bridge between the frontend and the backend of a web application.
+
+Once the request hits the server, an event is fired, which triggers a response from the HTTP server. The HTTP server is usually designed to respond in different ways to different request URLs (refer to [**Routing**](#routing)).
+
+#### **Routing**
 
 Routing basically means implementing different actions for different URLs. So we should be able to detect differences in the request URL and act based on it.
 
@@ -51,15 +119,7 @@ In huge applications, routing can become very complicated, and for these situati
 
 For simpler routing in practice projects we can use NodeJS itself and also the [**URL**](#url-module) core module, which enables us to analyse the request URL.
 
-### **HTTP headers**
-
-an HTTP header is a piece of information about the response or the request. There are many different standard response headers that we can define to inform the client about the response and what should be done about it.
-
-#### **Standard response headers**
-
-1. **`'Content-type'`**: defines the format of the response that is being sent to the client. 'text/html' or 'application/json'.
-
-### **Query**
+##### **_Query_**
 
 Query is a series of characters inserted into the request URL after a `?` mark, determining different parameters in the URL that can be used by the server to decide and act upon.
 
@@ -68,11 +128,23 @@ Request URL:
 127.0.0.1:8000/product?id=0
 ```
 
-## **API**
+#### **Static web server**
 
-An API is a service from which we can request some data.
+A static web server only includes website **static files** and a **HTTP server**. It is only capable of serving these static files to the client via HTTP. So the content of the files, and therefore what is rendered on the page is the same whenever you go to the website. A static web server is all you need if you want to host a simple website. However, to create dynamic web applications that interact with databases, we should use a **dynamic web server**.
 
-## **JSON**
+#### **Dynamic web server**
+
+In websites that are backed by a dynamic web server, we no longer have static frontend files. Instead, we have some templates that will get populated with the up-to-date data coming from the server. In addition to these template files and a HTTP server, a dynamic server also includes our **web application**. All these three parts interact with each other and provide dynamic contents based on interaction with a **database**. NodeJS is capable of establishing a dynamic web server.
+
+In dynamically rendered wesites (also called **server-side rendered**), frontend files are generated dynamically on the server-side based on some templates, so the website is actually built on the server-side. Once front-end files are made ready according to the exact data received from the server, they will then be sent to the browser just to be rendered.
+
+#### **API**
+
+API stands for **Application Programming Interface**. An API is a service from which we can request some data. API-powered websites have a dynamic server on the backend that provides some data usually in the **JSON** format. Instead of generating frontend files on the server-side based on template files, the JSON data is directly sent to the browser. Once the browser receives this data, it renders the data based on the template files provided beforehand and builds the website. These websites are also called **client-side rendered**. In these systems, what is done on the backend is called _building the API_, and what is done on the frontend is called _consuming the API_.
+
+The huge Advantage of making websites API-powered is that endless number of apps can be created to consume the same API. So we would not be limited to only one context, like the browser.
+
+##### **_JSON_**
 
 JSON is a text format that is very similar to a JavaScript object. It can include formats similar to JavaScript data structures, like arrays and objects. But in order for a JSON data to be usable in JavaScript, it should first be parsed into actual JavaScript data structures.
 
@@ -109,7 +181,11 @@ Having JavaScript outside of a browser in a stand-alone environment (NodeJS), we
 3. There is a huge library of open-source packages (NPM) available.
 4. NodeJS has a very active developer community.
 
+## **NodeJS behind the scenes**
+
 ## **Running JavaScript outside the browser**
+
+NodeJS, as a JavaScript runtime, actually enables us to run JavaScript outside the browser. So we are no longer limited to the browser as JavaScript runtime.
 
 ### **Interacting with Node in Terminal**
 
@@ -416,7 +492,7 @@ Hello from the server!
 - Receives 2 arguments:
 
   1. status code
-  2. response headers: should be passed into the method as an object.
+  2. [response headers](#standard-http-response-headers): should be passed into the method as an object.
 
 ```js
 res.writeHead(404);
@@ -428,6 +504,10 @@ res.writeHead(404, {
 > **_Note_** | headers should always be defined before the response is sent, for example using the `.end()` method.
 
 **`.end()`**: used to send plain text responses. Receives a string that will be sent to the client as response.
+
+##### **Standard HTTP response headers**
+
+1. **`'Content-type'`**: defines the format of the response that is being sent to the client. 'text/html' or 'application/json'.
 
 ### **URL module**
 
