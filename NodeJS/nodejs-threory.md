@@ -10,7 +10,10 @@
         - [**_JSON_**](#json)
 - [**Introduction to NodeJS**](#introduction-to-nodejs)
   - [**NodeJS advantages**](#nodejs-advantages)
-  - [**NodeJS behind the scenes**](#nodejs-behind-the-scenes)
+  - [**Node architecture**](#node-architecture)
+    - [**Threads, the thread pool, and the event loop**](#threads-the-thread-pool-and-the-event-loop)
+      - [**The thread pool**](#the-thread-pool)
+      - [**The event loop**](#the-event-loop)
   - [**Running JavaScript outside the browser**](#running-javascript-outside-the-browser)
     - [**Interacting with Node in Terminal**](#interacting-with-node-in-terminal)
     - [**Creating a Node application**](#creating-a-node-application)
@@ -181,7 +184,69 @@ Having JavaScript outside of a browser in a stand-alone environment (NodeJS), we
 3. There is a huge library of open-source packages (NPM) available.
 4. NodeJS has a very active developer community.
 
-## **NodeJS behind the scenes**
+## **Node architecture**
+
+The NodeJS runtime has several dependencies. But the most important ones are _V8 JavaScript engine_ and **Libuv**.
+
+- **V8 JavaScript engine:** The V8 engine is written in JavaScript and C++. Without V8, Node would have no way of understanding JavaScript.
+- **Libuv:** a C++ open-source library focused on asynchronous I/O, providing Node with access to the underlying computer operating system, file system, networking, etc. Libuv is also responsible for the implementation of the **event loop** and the **thread pool**.
+
+  - Event loop is responsible for handling easy tasks, like executing callbacks and network I/O.
+  - Thread pool is for more heavy work, like file access or compression etc.
+
+* **HTTP-Parser**
+* **c-ares:** for DNS request stuff.
+* **OpenSSL:** for cryptography.
+* **Zlib:** for compression.
+
+Therefore, NodeJS is actually written in both JavaScript and C++, but it enables a nice layer of abstraction, so that we developers would be able to write Node applications in pure JavaScript.
+
+### **Threads, the thread pool, and the event loop**
+
+When we use Node on a computer, it means that there is a Node **process** running on that computer. A process is a program in execution. Actually, in Node, we have access to a `process` variable. In this process, NodeJS runs in a **single thread** (i.e sequence of instructions). We can think of a thread as a box where our code is executed in a computer's processor. Since Node runs in a single thread regardless of the number of users, it is very easy to block this thread.
+
+In other languages like PHP running on an Apache server, a new thread is created for each user. This would be a very resource-intensive solution, but it eliminates the risk of blocking the execution thread.
+
+Here are the steps involved when we start a Node application:
+
+1. **Top-level code**, which is all the code not inside any callback function is executed.
+2. All the required **modules** are actually imported.
+3. Event **callback functions** are registered.
+4. Finally, the **event loop** starts running. Event loop is where most of the work is done in a Node application. However, some tasks are too heavy to be executed in the event loop, and they will block the event loop. This is where the thread pool comes in.
+
+#### **The thread pool**
+
+Thread pool gives us 4 additional threads completely separated from the main single thread. We can configure it up to 128 threads, but usually 4 is enough. The event loop automatically offloads heavy tasks to the thread pool. Heavy tasks that are usually offloaded to the thread pool include:
+
+- File system APIs
+- Cryptography
+- Compressions
+- DNS lookups
+
+#### **The event loop**
+
+This is where all the application code that is inside **callback functions** run. Some of these codes might get offloaded to the thread pool, but that decision is up to the event loop.
+
+Since the event loop is actually the beating heart of a Node application, and considering the fact that the event loop is responsible for executing code inside callback functions, then we can say the NodeJS is built around callback functions. This is becasue Node uses an **Event-driven architecture**: events are emitted (for example, for HTTP requests, timers expired, files finished reading), event loop picks them up, and then callbacks are called. Event loop kind of **orchestrates** everything.
+
+The event loop has multiple **phases** and each phase has a **callback queue**. Here the 4 most important phases of the event loop:
+
+1. **Expired timer callbacks:** if there are callback functions attached to timers that just expired, like `setTimeout()`, these are the first ones to be processed by the event loop. If a timer expires later during the time when other phases of the event loop are in progress, then its callback would have to wait until the event loop returns to this phase again. It works like this in all 4 phases.
+2. **I/O polling and callbacks:** polling means looking for new I/O events that are ready to be processed and putting them into the callback queue. In the context of a Node application, I/O is related to stuff like networking and file access. Most of our code will probably get executed in this phase.
+3. **`setImmediate` callbacks:** `setImmediate` is a special type of timer that we can use if we want to process callbacks immediately after the I/O polling phase.
+4. **Close callbacks:** in this phase, all close events are processed, for instance, when a web server shuts down. At this stage, the even loop checks whether there are any expired timers (at phase 1) or any I/O task pending, and if there are not any, it will simply exit the program. But if there are any, it will go on to the next cycle and start from the related phase.
+
+Besides the callback queues of the four phases mentioned above, there are 2 other queues. If there are any callbacks in any of these two queues, they would be executed right after the current phase of the event loop, instead of watining for the next entire cycle of the event loop.
+
+- **`process.nexttick()` queue:** `process.nexttick()` is a function that we can use when we really need to execute a certain callback right after the current event loop phase.
+- **Other microtasks queue:** mainly for resolved promises
+
+**_In conclusion:_** The event loop is what makes asynchronous programming possible in NodeJs. It takes care of all incoming events and orchestration by offloading heavy tasks to the thread pool. We also need the event loop, becasue a Node application runs in a single thread. This makes Node so light-weight and scalable, but at the same time it has the risk of blocking the single thread. As a NodeJS developer, it is your responsibility to avoid blocking the event loop. Here are a few guidelines on how to achieve that:
+
+- Don't use the **synchronous** version of functions in `fs`, `crypto`, and `zlib` modules in callback functions. Remember that it is ok to use synchronous code as top-level code, since it is executed before event loop starts.
+- Don't perform complex calculations, for instance, loops inside loops.
+- Be carefu with JSON in large objects.
+- Don't use too complex **regular expressions**, for instance, nested quantifiers.
 
 ## **Running JavaScript outside the browser**
 
@@ -244,7 +309,7 @@ console.log(hello);
 node index.js
 ```
 
-After the file is executed, the execution process is stopped, simply because there is nothing left to run in this file. (This will be explained in detail later)
+After the file is executed, the execution process is stopped, simply because there is nothing left to run in this file. It is the event loop that decides to shut down the application after executing all there is to execute. (refer to [event loop](#the-event-loop).)
 
 ## **Introduction to NodeJS modules**
 
