@@ -41,6 +41,8 @@
     - [**Nodemon module**](#nodemon-module)
     - [**Express module**](#express-module)
   - [**Streams**](#streams)
+    - [**Streams in practice**](#streams-in-practice)
+      - [**The best solution**](#the-best-solution)
   - [**HTML templating**](#html-templating)
     - [**Implementing placeholders**](#implementing-placeholders)
       - [**Placeholders for templating unknown amount of data**](#placeholders-for-templating-unknown-amount-of-data)
@@ -321,6 +323,8 @@ After the file is executed, the execution process is stopped, simply because the
 
 ## **Introduction to NodeJS modules**
 
+<!-- TODO review 'how requiring modules really work' form 4th section-->
+
 In NodeJS, we have 3 types of modules:
 
 ### **1. Core modules**
@@ -576,7 +580,24 @@ res.writeHead(404, {
 
 > **_Note_** | headers should always be defined before the response is sent, for example using the `.end()` method.
 
+**`.write()`**: usually used in streams in order to write a chunk of data received from a readable stream. (refer to [Streams](#streams-in-practice) and consider the **back pressure** problem.)
+
+```js
+const readable = fs.createReadStream("test-file.txt");
+readable.on("data", (chunk) => {
+  res.write(chunk);
+});
+```
+
 **`.end()`**: used to send plain text responses. Receives a string that will be sent to the client as response.
+
+```js
+const server = http.createServer((req, res) => {
+  res.end("Hello from the server!");
+});
+```
+
+It can also be used with streams in order to end a request-response cycle after the steam is finished. (refer to [Streams](#streams-in-practice) and consider the **back pressure** problem.)
 
 ##### **Standard HTTP response headers**
 
@@ -713,14 +734,71 @@ Note that streams are instances of the `EventEmitter` class, meaning that they c
 
 In NodeJS there are 4 fundamental types of streams:
 
-| Type              | Description                                   | Example                               | Events           | Functions               |
-| ----------------- | --------------------------------------------- | ------------------------------------- | ---------------- | ----------------------- |
-| Readable streams  | we can read (consume) data from               | `http` requests, `fs` read streams    | `data` `end`     | **`.pipe()`** `.read()` |
-| Writable streams  | we can write data to                          | `http` responses, `fs` write streams  | `drain` `finish` | `.write()` `.end()`     |
-| Duplex streams    | both readable and writable                    | `net` web sockets, `fs` write streams |                  |                         |
-| Transform streams | duplex that transform data as written or read | `zlib` Gzip creation                  |                  |                         |
+| Type              | Description                                   | Example                               | Events            | Functions                |
+| ----------------- | --------------------------------------------- | ------------------------------------- | ----------------- | ------------------------ |
+| Readable streams  | we can read (consume) data from               | `http` requests, `fs` read streams    | `data`, `end`     | **`.pipe()`**, `.read()` |
+| Writable streams  | we can write data to                          | `http` responses, `fs` write streams  | `drain`, `finish` | `.write()`, `.end()`     |
+| Duplex streams    | both readable and writable                    | `net` web sockets, `fs` write streams |                   |                          |
+| Transform streams | duplex that transform data as written or read | `zlib` Gzip creation                  |                   |                          |
 
 > **_Note_** | events and functions mentioned in the table above are for **consuming** streams that are already implemented like the ones mentioned in the _Examples_ column. For instance, Node implemented HTTP requests and responses as streams, so we can consume them. We could implement our own streams and consume them the same events and functions.
+
+### **Streams in practice**
+
+To understand how to work with steams in practice, we are going to follow a simple example. In this example, we want to serve a huge text file to the client as a request hits the server.
+
+First, we are going to implement this without using streams. So we read the file into a variable, and send it to the client once the reading is done.
+
+```js
+const fs = require("fs");
+const server = require("http").createServer();
+
+server.on("request", (req, res) => {
+  fs.readFile("test-file.txt", (err, data) => {
+    if (err) console.log(err);
+    res.end(data);
+  });
+});
+
+server.listen(8000, "127.0.0.1", () => {
+  console.log("Listening to requests on port 8000");
+});
+```
+
+As the second solution, we are going to use streams. So in this case, we don't actually need to read the file into a variable. Instead, we will create a readable stream. Then as we receive each chunk of data, we send it to the client as a response, which is a writable stream.
+
+```js
+server.on("request", (req, res) => {
+  const readable = fs.createReadStream("test-file.txt");
+  readable.on("data", (chunk) => {
+    res.write(chunk);
+  });
+
+  readable.on("end", () => {
+    res.end();
+  });
+
+  // on readable streams, we also have access to an 'error' event:
+  readable.on("error", (err) => {
+    console.log(err);
+    res.statusCode = 500;
+    res.end("File not found!");
+  });
+});
+```
+
+There is a problem with this approach. The readable stream is much faster than sending the response writable stream over the network. This will lead to a problem called **back pressure**. Back pressure happens when the response cannot send the data nearly as fast as it is receiving it. So here comes the third solution, involving the use of the `.pipe()` method.
+
+#### **The best solution**
+
+The `.pipe()` method is available on all readable streams, allowing us to pipe the output of a readable stream into the input of a writable stream. The method accepts as an argument, a writable (or duplex or transform) stream which, in this case, is the `response` object.
+
+```js
+server.on("request", (req, res) => {
+  const readable = fs.createReadStream("test-file.txt");
+  readable.pipe(res);
+});
+```
 
 ## **HTML templating**
 
