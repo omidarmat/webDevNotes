@@ -103,7 +103,7 @@ Transfer-Encoding: chunked
 
 ## **Web server**
 
-A web server is actually a computer connected to the internet. This server stores the files of a website (HTML, CSS, JavaScript, images, etc.), and runs a **HTTP server**.
+A web server is actually a computer connected to the internet. This server stores the files of a website (HTML, CSS, JavaScript, images, etc.), and runs a **HTTP server**. It can also include a web application. There are 2 types of servers: static and dynamic.
 
 ### **HTTP server**
 
