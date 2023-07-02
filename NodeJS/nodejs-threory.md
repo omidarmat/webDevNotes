@@ -40,6 +40,7 @@
       - [**Using slugify**](#using-slugify)
     - [**Nodemon module**](#nodemon-module)
     - [**Express module**](#express-module)
+  - [**Streams**](#streams)
   - [**HTML templating**](#html-templating)
     - [**Implementing placeholders**](#implementing-placeholders)
       - [**Placeholders for templating unknown amount of data**](#placeholders-for-templating-unknown-amount-of-data)
@@ -699,6 +700,27 @@ This will execute our script file and keep watching for any changes that we impl
 ### **Express module**
 
 Information will be added soon.
+
+## **Streams**
+
+Streams are used to process (i.e. read and write) data piece by piece (chunks), without completing the whole read or write operation, and therefore, without keeping all the data in memory.
+
+For example, the action of reading a file using streams includes reading part of the data, do something with it, free up the memory, and repeat this until the entire file has been processed. This is the principle that companies like YouTube and Netflix has based their services upon.
+
+Streams are perfect for handling large amounts of data, for instance, videos. Streaming makes data processing more efficient in terms of memory. Steams are every where in Node core modules.
+
+Note that streams are instances of the `EventEmitter` class, meaning that they can emit and listen to named events mentioned in the table below.
+
+In NodeJS there are 4 fundamental types of streams:
+
+| Type              | Description                                   | Example                               | Events           | Functions               |
+| ----------------- | --------------------------------------------- | ------------------------------------- | ---------------- | ----------------------- |
+| Readable streams  | we can read (consume) data from               | `http` requests, `fs` read streams    | `data` `end`     | **`.pipe()`** `.read()` |
+| Writable streams  | we can write data to                          | `http` responses, `fs` write streams  | `drain` `finish` | `.write()` `.end()`     |
+| Duplex streams    | both readable and writable                    | `net` web sockets, `fs` write streams |                  |                         |
+| Transform streams | duplex that transform data as written or read | `zlib` Gzip creation                  |                  |                         |
+
+> **_Note_** | events and functions mentioned in the table above are for **consuming** streams that are already implemented like the ones mentioned in the _Examples_ column. For instance, Node implemented HTTP requests and responses as streams, so we can consume them. We could implement our own streams and consume them the same events and functions.
 
 ## **HTML templating**
 
