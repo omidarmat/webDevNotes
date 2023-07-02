@@ -1,5 +1,8 @@
 # **Data structures**
 
+<!-- TODO review 'working with strings' of 9th section -->
+<!-- TODO review maps and sets of 9th section -->
+
 ## **Arrays**
 
 An array acts a container into which we can store variables and then reference them.
