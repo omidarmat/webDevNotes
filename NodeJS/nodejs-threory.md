@@ -324,7 +324,8 @@ After the file is executed, the execution process is stopped, simply because the
 ## **Introduction to NodeJS modules**
 
 <!-- TODO review 'how requiring modules really work' form 4th section-->
-<!-- TODO review Express -->
+<!-- TODO review Express and middlewares -->
+<!-- TODO review different Databases -->
 
 In NodeJS, we have 3 types of modules:
 
