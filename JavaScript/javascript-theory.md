@@ -25,6 +25,12 @@
       - [**The `while` loop**](#the-while-loop)
   - [**Statements and Expressions**](#statements-and-expressions)
   - [**Strict mode**](#strict-mode)
+- [**JavaScript behind the scenes**](#javascript-behind-the-scenes)
+  - [**JavaScript engine and runtime**](#javascript-engine-and-runtime)
+    - [**JavaScript runtime**](#javascript-runtime)
+    - [**JavaScript engine's structure**](#javascript-engines-structure)
+    - [**Just-In-Time compilation of JavaScript**](#just-in-time-compilation-of-javascript)
+      - [**Compilation vs. Interpretation vs. JIT compilation**](#compilation-vs-interpretation-vs-jit-compilation)
 - [**Functions**](#functions)
   - [**Defining functions**](#defining-functions)
     - [**Function declarations**](#function-declarations)
@@ -390,6 +396,69 @@ We write our programs as a sequence of actions, and these actions are statements
 JavaScript expects statements and expressions in different places. For example, in a template literal, we can only insert expressions, but not statements.
 
 ## **Strict mode**
+
+# **JavaScript behind the scenes**
+
+Here is a list of JavaScript features which kind of forms the whole definition of the language:
+
+- **High-level:** JavaScript has a layer of abstraction that takes hardware management away from us.
+- **Prototype-based object-oriented:** almost everything in JavaScript are objects. Each of these objects inherit certain methods from their prototypes. Refer to [object-oriented programming](#object-oriented-programming).
+- **Multi-paradigm:** a paradigm is an approach of structuring our code, which directs the coding style and technique. Three popular paradigms are **procedural**, **object-oriented**, and **functional** programming. JavaScript supports all of these.
+- **Interpreted or just-in-time compiled:** JavaScript syntax needs to be converted into machine code. Refer to...
+- **Dynamically-typed:** We don't need to define data types as we declare variables. We also don't need to change data types when we mutate variables.
+- **Garbage-collected:** Automatically removes old, unused objects from the computer memory. One of the powerful tools that takes memory management away from us.
+- **With first-class functions:** functions are treated as variables. We can pass them into other functions, and return from functions. This allows us to use functional programming in JavaScript.
+- **Single-threaded:** JavaScript runs in one single thread, meaning that it can only do one thing at a time. A thread is a sequence of instructions executed in the CPU. If one of the instructions is a long-running task (like fetching data from a server), it would hold our single thread. So we would need a way of taking it out of this thread, and process it somewhere else, thus the non-blocking event loop.
+- **Non-blocking event loop concurrency model:** concurrency model means how JavaScript engine handles multiple tasks hapenning at the same time. The event loop takes long-running tasks, executes them in the background, and puts them back in the main thread once they are done processing.
+
+## **JavaScript engine and runtime**
+
+A JavaScript runtime is like a big box that includes all the things we need in ourder to use JavaScript in a browser. The heart of any JavaScript runtime, is the JavaScript engine. In addition to the engine, JavaScript runtime includes Web APIs. A runtime also includes a callback queue.
+
+A JavaScript **engine** is a program that executes JavaScript code. There are a lot of steps in doing so. Every browser has its own JavaScript engine, but the most well-known engine is Google's **V8**. Let's dive deeper into the engine's structure.
+
+### **JavaScript runtime**
+
+As mentioned above, a JavaScript runtime includes:
+
+1. **JavaScript engine**
+2. **Web APIs:** include DOM, timers, fetch API, and many more. Web APIs are functionalities provided to the engine, but are not part of the JavaScript language itself. JavaScript has access to these APIs through the **global window object**.
+3. **Callback quque:** It is a data structure containing all the callback functions that are ready to be executed. For instance, we attach event listeners to DOM elements to react to certain events. The reaction itself is defined as a callback function. When the event occures, the callback function is put in the callback queue. Then when the engine's call stack gets empty, the callback function is passed into the call stack where it will be executed. The execution is done by the **event loop**.
+
+> **_Note_** | JavaScript can also run outside the browser. If that is the case, for example with NodeJS, the JavaScript runtime will no longer have the web APIs, simply because these are provided by the browser. Instead, we have multiple C++ bindings and a **thread pool**.
+
+### **JavaScript engine's structure**
+
+Every JavaScript engine contains a **call stack** and a **heap**.
+
+- **Call stack:** this is where our code is executed using **execution contexts**.
+- **Heap:** this is an unstructured memory pool, which stores all the **objects** that our application needs.
+
+### **Just-In-Time compilation of JavaScript**
+
+As a JavaScript code enters the engine, there are some steps ahead of this code:
+
+1. The code is parsed: the code is parsed into **AST** which stands for Abstract Syntax Tree. It involves first splitting up each line of code into pieces that are meaningful to the language, and saving all these pieces into the tree in a structured way. It also involves checking for any syntax errors. This tree will later be used to generate the machine code.
+2. The AST is compiled into machine code.
+3. The machine code gets executed right away because of [Just-In-Time compilation](#compilation-vs-interpretation-vs-jit-compilation). This execution step happens in the engine's call stack.
+4. Optimization strategies are carried out. Up to the 3rd step above, a very unoptimized version of machine code is produced, so that the program can start executing as fast as possible. Afterwards, in this 4th step, the machine code gets optimized and recompiled while the program is already running. This can be done multiple times, and each time, the unoptimized code is swept away and replaced by the more optimized code. This makes modern JavaScript engine like V8 so fast.
+
+> **_Note_** | all these 4 steps happen in special threads of the engine that we cannot access from our code. It is completely separated from the main thread where our code is being executed.
+
+#### **Compilation vs. Interpretation vs. JIT compilation**
+
+The computers CPU only understands 0s and 1s. So any computer program ultimately needs to be converted into machine code. This is done through **compilation** or **interpretation**.
+
+- Compilation: The entire source code is converted into machine code at once. The machine code is then written into a portable file that can be executed on any computer. So there are 2 steps here:
+
+  - **Compilation:** machine code is built
+  - **Execution:** machine code is executed in CPU. This step can happen way after the srouce code was compiled.
+
+- Interpretation: There would be an interpretter that runs through the source code and executes it line by line. So there is only one step involved here which is execution line by line. The point is that the conversion source code into machine code is done just before the execution.
+
+> **_Note_** | JavaScript used to be a purely interpretted language. The problem with interpretted languages is that they are much slower than compiled languages. However, low performance is no longer acceptible today. Modern JavaScript now uses a mixture of compilation and interprettation which is called Just-In-Time compilation.
+
+- **JIT compilation**: This approach compiles the entire code into machine code and executes it right away. So we still have the two steps, but there would be no portable file to be executed later. It executes right away.
 
 # **Functions**
 
