@@ -1,3 +1,470 @@
+- [**A brief JavaScript history**](#a-brief-javascript-history)
+- [**JavaScript releases**](#javascript-releases)
+- [**JavaScript fundamentals**](#javascript-fundamentals)
+  - [**Values and variables**](#values-and-variables)
+    - [**Naming variables**](#naming-variables)
+    - [**Declaring variables**](#declaring-variables)
+  - [**Data types**](#data-types)
+    - [**Inspecting the data type**](#inspecting-the-data-type)
+    - [**Dynamic typing in JavaScript**](#dynamic-typing-in-javascript)
+    - [**Type conversion and coercion**](#type-conversion-and-coercion)
+      - [**Type conversion**](#type-conversion)
+      - [**Type coercion**](#type-coercion)
+    - [**Truthy and Falsy values**](#truthy-and-falsy-values)
+  - [**Basic operators**](#basic-operators)
+    - [**Mathematical operators**](#mathematical-operators)
+    - [**Assignment operators**](#assignment-operators)
+    - [**Comparison operators**](#comparison-operators)
+    - [**Boolean logic**](#boolean-logic)
+  - [**Control structures**](#control-structures)
+    - [**if/else statement**](#ifelse-statement)
+    - [**switch statement**](#switch-statement)
+    - [**Ternary operator**](#ternary-operator)
+    - [**Loops**](#loops)
+      - [**The `for` loop**](#the-for-loop)
+      - [**The `while` loop**](#the-while-loop)
+  - [**Statements and Expressions**](#statements-and-expressions)
+  - [**Strict mode**](#strict-mode)
+- [**Functions**](#functions)
+  - [**Defining functions**](#defining-functions)
+    - [**Function declarations**](#function-declarations)
+    - [**Function expressions**](#function-expressions)
+    - [**Arrow functions**](#arrow-functions)
+  - [**Calling functions**](#calling-functions)
+- [**Data structures**](#data-structures)
+  - [**Arrays**](#arrays)
+    - [**Retrieve elements from array**](#retrieve-elements-from-array)
+    - [**Mutate elements of array**](#mutate-elements-of-array)
+    - [**Length of array**](#length-of-array)
+    - [**Array methods**](#array-methods)
+      - [**Add elements**](#add-elements)
+      - [**Remove elements**](#remove-elements)
+      - [**Find elements**](#find-elements)
+      - [**Check element existence**](#check-element-existence)
+      - [**Looping over arrays**](#looping-over-arrays)
+        - [**Data transformation methods**](#data-transformation-methods)
+      - [**Other array methods**](#other-array-methods)
+    - [**Destructuring arrays**](#destructuring-arrays)
+    - [**Spread operator for arrays**](#spread-operator-for-arrays)
+    - [**Rest pattern in arrays**](#rest-pattern-in-arrays)
+  - [**Objects**](#objects)
+    - [**Retrieve data from obejct**](#retrieve-data-from-obejct)
+    - [**Object methods**](#object-methods)
+    - [**Destructuring objects**](#destructuring-objects)
+    - [**Spread operator for objects**](#spread-operator-for-objects)
+    - [**Rest pattern in objects**](#rest-pattern-in-objects)
+- [**Object-Oriented Programming**](#object-oriented-programming)
+  - [**Traditional OOP (classes and instances)**](#traditional-oop-classes-and-instances)
+    - [**Four fundamental OOP principles**](#four-fundamental-oop-principles)
+  - [**OOP in JavaScript**](#oop-in-javascript)
+    - [**Prototype \& prototypal inheritance**](#prototype--prototypal-inheritance)
+    - [**Implementing prototypal inheritance in JavaScripts**](#implementing-prototypal-inheritance-in-javascripts)
+      - [**1. Constructor function and the `prototype` property:**](#1-constructor-function-and-the-prototype-property)
+        - [**_Creating a construtor function_**](#creating-a-construtor-function)
+        - [**_Defining methods on prototype_**](#defining-methods-on-prototype)
+        - [**_Defining properties on prototype_**](#defining-properties-on-prototype)
+        - [**_Defining static methods_**](#defining-static-methods)
+        - [**_Creating an object (instance)_**](#creating-an-object-instance)
+        - [**_Prototype chain_**](#prototype-chain)
+        - [**_Inheritance between constructor functions (classes)_**](#inheritance-between-constructor-functions-classes)
+      - [**2. ES6 Classes:**](#2-es6-classes)
+        - [**_Defining a class and instance properties_**](#defining-a-class-and-instance-properties)
+        - [**_Defining methods_**](#defining-methods)
+        - [**_Creating an object (instance)_**](#creating-an-object-instance-1)
+        - [**_Defining getters and setters_**](#defining-getters-and-setters)
+        - [**_Defining static methods_**](#defining-static-methods-1)
+        - [**_Inheritance between ES6 classes_**](#inheritance-between-es6-classes)
+        - [**_Data Encapsulation_**](#data-encapsulation)
+        - [**_Making class methods chainable_**](#making-class-methods-chainable)
+      - [**3. `Object.create()`:**](#3-objectcreate)
+        - [**_Defining a prototype object and instance methods_**](#defining-a-prototype-object-and-instance-methods)
+        - [**_Creating an object (instance)_**](#creating-an-object-instance-2)
+- [**MVC architecture**](#mvc-architecture)
+  - [**Publisher-subscriber pattern**](#publisher-subscriber-pattern)
+- [**Working with the DOM**](#working-with-the-dom)
+  - [**A detailed look into the DOM**](#a-detailed-look-into-the-dom)
+    - [**DOM organization**](#dom-organization)
+  - [**Selecting elements**](#selecting-elements)
+    - [**Select document, head and body**](#select-document-head-and-body)
+    - [**Select elements with `querySelector()`**](#select-elements-with-queryselector)
+    - [**Select elements with `querySelectorAll()`**](#select-elements-with-queryselectorall)
+    - [**Select elements with `getElementById()`**](#select-elements-with-getelementbyid)
+    - [**Select elements with `getElementsByTagName()`**](#select-elements-with-getelementsbytagname)
+    - [**Select elements with `getElementsByClassName()`**](#select-elements-with-getelementsbyclassname)
+  - [**Creating and inserting elements**](#creating-and-inserting-elements)
+    - [**Create elements with `insertAdjacentHTML()`**](#create-elements-with-insertadjacenthtml)
+    - [**Create elements with `createElement()`**](#create-elements-with-createelement)
+    - [**Insert element with `prepend()`**](#insert-element-with-prepend)
+    - [**Insert element with `append()`**](#insert-element-with-append)
+    - [**Insert element with `before()`**](#insert-element-with-before)
+    - [**Insert element with `after()`**](#insert-element-with-after)
+    - [**Delete element with `remove()`**](#delete-element-with-remove)
+  - [**Manipulating styles, attributes and classas**](#manipulating-styles-attributes-and-classas)
+    - [**Manipulate styles**](#manipulate-styles)
+    - [**Manipulate CSS custom properties**](#manipulate-css-custom-properties)
+    - [**Manipulate HTML attributes**](#manipulate-html-attributes)
+      - [**HTML data attribute**](#html-data-attribute)
+    - [**Manipulate classes**](#manipulate-classes)
+  - [**Events**](#events)
+  - [**Event delegation**](#event-delegation)
+
+# **A brief JavaScript history**
+
+# **JavaScript releases**
+
+JavaScript has a unique feature called **backwards compatibility**. It means that if write old JavaScript code syntax, it will successfully be understood by modern JavaScript engines that we have today, so it will work in modern browsers. So no matter how far JavaScript goes in its future releases, old websites will still keep working.
+
+This feature is based on a JavaScript development principle which is **Dont' break the web!** It means that there is almost never anything removed from the language, but only added to it in new releases (**incremental updates**).
+
+The problem arises when we want to execute modern JavaScript code in old browsers, so with old engines. The solution comes with the last of the two stages of creating a website: **development** and **production**.
+
+- Development phase: this is when you are building the site or application on your computer. We use the latest version of the Chrome browser to make sure that we can use JavaScript latest features.
+- Production phase: when developing the application is finished, you deploy it on the internet where it will run on users' browsers. This is where things get out of developers' control. We cannot control which browsers the users use. Some users certainly use old browsers that cannot understand our code. The solution is to use **transpiling** (with _Babel_) and **polyfillying**, in order convert modern JavaScript (ES6 and later) to ES5. This is only done after your app is developed, and you want to ship it to your users.
+
+Here is an overview of how different realses of JavaScript are supported:
+
+- **ES5:** fully supported in all browsers (down to IE9 from 2011). It is why we use ES5 as transpiling target.
+- **ES6 to ES2023:** also called altogether **ES6+**. These releases are weill supported by all modern browsers, but not supported by older browsers.
+- **ESNext:** related to releases after the current release. Most browsers start implementing new features even before they enter the official ECMAScript specification. This is possible becasue any new feature that is requested to be added to the language, it has to pass through 4 stages. When features arrive at stage 3, browser companies can be pretty sure that they will pass to stage 4 and therfore, will be included in the language.
+
+# **JavaScript fundamentals**
+
+## **Values and variables**
+
+A value is a piece of data. It is the most fundamental unit of information in programming. For example, the string `'jonas'` is a value, or `23` is another value.
+
+We can store values in variables. This enables us to use certain values whenever we need. To assign a value to a variable we use either `let`, `const`, or `var`. This is called **declaring a variable**. By assigning a value to a variable, anywhere in our code that refers to that variable will be updated if we change the value of the variable.
+
+```js
+const name = "omid";
+const age = 30;
+```
+
+### **Naming variables**
+
+1. Variable names cannot start with numbers.
+2. Variable names can only contain numbers, letters, underscores, or the dollar sign.
+3. Variables cannot have the name of some reserved JavaScript keywords (`new`, `function`).
+4. Keyword `name` is a reserved JavaScript keyword. However, it is possible to use it as a variable name, but we had better not.
+5. Variable names that are written all in uppercase, are reserved for constants that we know will never change.
+
+```js
+const PI = 3.1415;
+```
+
+### **Declaring variables**
+
+We can declare variables with `let`, `const`, and `var`. There are differences between them.
+
+1. `let`: we declare variables with `let` if we want to reasign another value or mutate them during the execution of our program. This means that variables can be declared empty using `let`.
+2. `const`: we declare variables with `const` if they are not to be changed at any point in future. Any attempt to mutate a variable defined with const will result in error. This means that variables cannot be declared empty with `const`.
+3. `var`: this is the old way of declaring variables, prior to ES6. It appears to work pretty similar to `let`, but behind the scenes they are very different.
+
+> **_Note_** | we can declare multiple empty variables using `let`.
+
+```js
+let x, y;
+```
+
+## **Data types**
+
+Every value in JavaScript is either an **object** or a **primitive** value. It would only be primitive if it is not an object.
+
+Primitive values can 7 different data types.
+
+| Data type       | Description                                                              | Example                   |
+| --------------- | ------------------------------------------------------------------------ | ------------------------- |
+| Number          | floating point numbers used for decimals and integers                    | `let age = 23;`           |
+| String          | sequence of characters used for text                                     | `let firstName = 'omid';` |
+| Boolean         | logical type, can be either `true` or `false`, used for taking decisions | `let fullAge = true;`     |
+| Undefined       | value taken by a variable that is not yet defined (empty value)          | `let children;`           |
+| Null            | means empty value                                                        |
+| Symbol (ES2015) | unique value and cannot be changed                                       |
+| BigInt (ES2020) | larger integers than the Number type                                     |
+
+### **Inspecting the data type**
+
+Using the `typeof` operator, we can see the data type of a value or a variable containing a value.
+
+```js
+console.log(typeof 32); // number
+console.log(typeof true); // boolean
+
+const firstName = "omid";
+console.log(typeof firstName); // string
+
+let year;
+console.log(year); // undefined
+console.log(typeof year); // undefined
+
+console.log(typeof null); // object (!!!)
+```
+
+### **Dynamic typing in JavaScript**
+
+When declaring variables, we don't need to define the data type that the variable is going to hold. JavaScript determines the data type of the value automatically. Also, when assigining a new value with a different data type to the same variable, JavaScript will automatically change the data type.
+
+### **Type conversion and coercion**
+
+**Type conversion** is when we _manually_ convert one type to another. But **type coercion** is when JavaScript _automatically_ converts one type to another.
+
+#### **Type conversion**
+
+We can use `String`, `Number`, and `Boolean` to convert value types.
+
+```js
+const inputYear = "1991";
+console.log(inputYear + 18); // 199118 (type coercion)
+console.log(Number(inputYear) + 18); // 2009 (type conversion)
+```
+
+#### **Type coercion**
+
+This happens whenever an operator deals with two values of different types. JavaScript will automatically convert one of the values to match the other one. Look at the code example above.
+
+Whenever there is a `+` math operation between a string and a number, the number is converted into a string. However, when there is a `-` operation between a string and a number, the string is converted to number.
+
+```js
+console.log("23" - "10" - 3); // 10
+console.log("23" + "10" + 3); // 23103
+console.log("23" * "2"); // 46
+```
+
+### **Truthy and Falsy values**
+
+Truthy and Falsey values are not actually `true` or `false`, but they will translate to these if we attempt to convert the values to boolean.
+
+In JavaScript, we have 5 falsey values, and everything else is a truthy value.
+
+1. zero (0)
+2. empty string ('')
+3. `undefined`
+4. `NaN` (returned whenever an operation that involves numbers fails to produce a new number.)
+
+```js
+console.log(Boolean(0)); // false
+console.log(Boolean(undefined)); // false
+console.log(Boolean("omid")); // true
+console.log(Boolean({})); // true
+```
+
+> **_Note_** | in practice, the conversion to boolean is always done automatically and implicitly. We almost never manually convert a value to boolean. JavaScript performs automatic type coercion to booleans in two situations:
+>
+> 1. When we use logical operators
+> 2. In a logical context, for example, in the condition of an if/else statement.
+
+## **Basic operators**
+
+An operator allows us to transform or combine values. There are many categories of operators: **mathematical** operators, **comparison** operators, **logical** operators, **assignment** operators, and many more.
+
+### **Mathematical operators**
+
+Execution of mathematical operators have precendence over assignment operators and comaprison operators.
+
+**`+`**: used to add numeric values together. Also used to join two strings together.
+
+> **_Note_** | in mathematical operators, division (`/`) has a higher precedence than plus and minus.
+
+### **Assignment operators**
+
+**`=`**: used to assign values to variables or to mutate variables.
+
+**`+=` and `*=`**: used to reassign values to variables, instead of writing the two operators separately.
+
+```js
+x += 10; // x = x + 10
+x *= 10; // x = x * 10
+```
+
+**`x++` and `x--`**: used to increase the numeric value of a variable by one.
+
+```js
+x++; // x = x + 1
+x--; // x = x - 1
+```
+
+### **Comparison operators**
+
+These operators are used to produce boolean values. These operators include `>`, `<`, `>=`, `<=`, `==`, `===`.
+
+Comparison operators can be used along with assignment operators to store the boolean result in a variable. They can also be used along with mathematical operators.
+
+```js
+const isFullAge = age >= 18;
+console.log(now - 1992 > now - 2018);
+```
+
+> **_Note_** | the strict equality operator (`===`) checks the value and the value type, so it does not perform type coercion. The loose equality (`==`), however, does type coercion.
+
+```js
+console.log(18 === 18); // true
+console.log(18 === "18"); // false
+console.log(18 == "18"); // true
+```
+
+### **Boolean logic**
+
+Boolean logic uses true and false values to solve complex logical problems. It does so by combining true and false values using logical operators.
+
+The most basic and important logical operators are **`&&` (AND)**, **`||` (OR)**, **`!==` (NOT)**.
+
+## **Control structures**
+
+### **if/else statement**
+
+### **switch statement**
+
+### **Ternary operator**
+
+### **Loops**
+
+This is a funcdamental aspect of every programming language. It allows us to automate repetitive tasks.
+
+#### **The `for` loop**
+
+The for loop syntax starts with the `for` keyword followed by `()`. This is the **for** loop statement. The loop statement contains 3 parts separated with a `;` character:
+
+1. The inital value of a **counter variable** that will just be defined using `let`. It can be any number, but it usually starts at 0 or 1.
+2. **Logical condition** that will be evaluated before each iteration of the loop, so before each time that the code in the loop is executed. Therefore, the for loop will keep runing while this condition is true.
+3. **updating the counter** value. We usually increment the counter value by 1 after each iteration of the loop.
+
+```js
+for (let rep = 1; rep <= 10; rep++) {
+  console.log(`Lifting weights repetition ${rep}`);
+}
+```
+
+> **_Note_** | notice how the `rep` variable is accessible in the `for` loop code block.
+
+> **_Note_** | there are some situations when we would need to exit the current iteration of the loop or even exit the whole loop. For these situations we can use `continue` and `break` respectively.
+
+```js
+const arr = [1300, 500, 200, 150, 340, 650, 800];
+
+for (let i = 0; i < arr.length; i++) {
+  if (arr[i] < 300) continue; // if the current element value is less then 300, it will skip this iteration and not log the value to the console.
+  console.log(arr[i]);
+}
+
+//or
+
+for (let i = 0; i < arr.length; i++) {
+  if (arr[i] > 1000) break; // if the current element value is greater than 1000, it will terminate the whole loop and not go to the next iteration.
+  console.log(arr[i]);
+}
+```
+
+#### **The `while` loop**
+
+This is mostly used when we want to implement a loop that needs no counter variable. This is particularly useful when we don't know how many loops are needed before achieving a desired result.
+
+We can still implement loops with counter variable using the `while` loop. Unlike the `for` loop, we can only specify a condition in a `while` loop. To use the `while` loop to implement a loop with a counter, we must define the counter variable outside the loop. We also have to update this counter manually at the end of each loop.
+
+```js
+let rep = 1;
+while (rep <= 10) {
+  console.log(`Lifting weights repetition ${rep}`);
+  rep++;
+}
+```
+
+As mentioned above, a `while` loop can also be used in situations where the looping action is not based on a counter variable.
+
+```js
+let dice = Math.trunc(Math.random() * 6) + 1;
+while (dice !== 6) {
+  console.log(`Dice: ${dice}`);
+  dice = Math.trunc(Math.random() * 6) + 1;
+  if (dice === 6) console.log(`finally a 6!`);
+}
+```
+
+## **Statements and Expressions**
+
+An expression is a piece of code that produces a value. For instance, `3 + 4`, `2003`, or `true && false` are expressions.
+
+A statement is a bigger piece of code that is executed and does not produce a value on itself. For instance, an if/else code block is a statement.
+
+We write our programs as a sequence of actions, and these actions are statements. Basically whenever something ends with a semicolon, it is a statement.
+
+JavaScript expects statements and expressions in different places. For example, in a template literal, we can only insert expressions, but not statements.
+
+## **Strict mode**
+
+# **Functions**
+
+A function is a piece of code that we can use over and over in our code. It is a bit similar to a variable, but while a vairable holds a value, a function can hold one or more complete lines of code. So functions help us write more maintainable code and follow the DRY principle.
+
+Functions can receive and return data. They receive data as **arguments**, do some process on it, create some new data, and then `return` the new data. Note that functions do not necessarily have to receive arguments, and they do not necessarily have to return anything.
+
+In practice, we first define functions, and then call, run, or invoke them whenever we need them.
+
+## **Defining functions**
+
+### **Function declarations**
+
+We simply use the `function` keyword and then set a name to declare a function.
+
+```js
+function calcAge1(birthYear) {
+  return 2037 - birthYear;
+}
+```
+
+> **_Note_** | Although, it is generally not recommended, we can call function declarations even before they are defined in the code. This is becasue function declarations or [**hoisted**]().
+
+### **Function expressions**
+
+First remember that expressions are pieces of code that produces values. Now to define a function expression, instead of writing a name for the function, we store the function in a variable, so we then have to give the variable a name:
+
+```js
+const calcAge2 = function (birthYear) {
+  return 2037 - birthYear;
+};
+```
+
+> **_Note_** | the function defined here is also called an **anonymous function**.
+
+> **_Note_** | using function expressions or function declarations is oftentimes just a matter of personal preference. Using function expressions will inevitably lead to cleaner and more structured code writing.
+
+### **Arrow functions**
+
+Arrow functions were introduced to JavaScript in ES6. Arrow functions are simply a special form of function expressions. It is just shorter and therefore, faster to write.
+
+This is how we define arrow functions:
+
+```js
+const calcAge3 = (birthyear) => {
+  return 2037 - birthYear;
+};
+```
+
+> **_Note_** | in case the functionality only contains one line of code, it is not necessary to put it inside `{}`, and you will then be able to omit the `return` keyword.
+
+> **_Note_** | arrow functions do not get their own `this` keyword. Instead, they will get the `this` keyword of their parent function. This is called the **lexical `this`**.
+
+```js
+const calcAge3 = (birthYear) => 2037 - birthYear;
+```
+
+## **Calling functions**
+
+No matter a function is defined as a function declaration or a function expression or even an arrow function, to call the function, we write the name of the function declaration or the name of the variable of the function expression with `()` at the end. If the function receives arguments, we can pass them into the `()`.
+
+To call the functions from the code example above:
+
+```js
+calcAge1(1992);
+calcAge2(1992);
+```
+
+We can capture the returned value of the function by calling the function and storing its result in a variable:
+
+```js
+const age1 = calcAge1(1992);
+const age2 = calcAge2(1992);
+```
+
 # **Data structures**
 
 <!-- TODO review 'working with strings' of 9th section -->
@@ -149,7 +616,19 @@ const movements = [200, 450, -400, 3000, 650];
 console.log(movements.every((mov) => mov > 500)); //false
 ```
 
-#### **Looping over array**
+#### **Looping over arrays**
+
+We can use the `for` loop to loop over arrays.
+
+```js
+const arr = [1300, 200, -340, -650];
+
+for (let i = 0; i < arr.length; i++) {
+  console.log(arr[i]);
+}
+```
+
+However, there are much better ways to loop over arrys. We can use special array methods:
 
 **`.forEach()`**: used to loop over an array. It receives a callback function in order to tell it what to do. So it is the `forEach()` method that will call the callback function, not us. The method loops over the array and in each iteration, it will call the callback function.
 
@@ -624,7 +1103,7 @@ Object-oriented programming is a programming paradigm based on the concept of ob
 1. Creating objects programmatically
 2. Being able to reuse some code (methods)
 
-## Traditional OOP (classes and instances)
+## **Traditional OOP (classes and instances)**
 
 In OOP, in order to create objects programmatically, we use classes. A **class** contains some rules and it will act as a blueprint from which instances (new objects) can be created.
 
@@ -650,7 +1129,7 @@ User {
 
 An object created from this class is called an **instance**. Many instances can be created from a class. Instances of the same class may have different data as properties, but they share the same functionalities.
 
-### Four fundamental OOP principles
+### **Four fundamental OOP principles**
 
 There are four important principles that can guide us toward a good class implementation:
 
@@ -659,7 +1138,7 @@ There are four important principles that can guide us toward a good class implem
 3. **Inheritance:** making all properties and methods of a certain class accessible to a child class. In such cases, a child class `extends` a parent class. This allows common logic to be reused and also to model real-world relationships between features.
 4. **Polymorphism:** a child class can overwrite a method it inherited from a parent class.
 
-## OOP in JavaScript
+## **OOP in JavaScript**
 
 Unlike classical or traditional OOP with its 'class' and 'instance' terminology that is used in other programming languages, in JavaScript we have **Constructor functions**, **Prototypes** and **Objects**. JavaScript does not really have classes. In JavaScript, we create objects from constructor functions. So constructor functions in JavaScript somehow simulate classes in traditional OOP.
 
