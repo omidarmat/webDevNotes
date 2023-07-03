@@ -26,11 +26,16 @@
   - [**Statements and Expressions**](#statements-and-expressions)
   - [**Strict mode**](#strict-mode)
 - [**JavaScript behind the scenes**](#javascript-behind-the-scenes)
-  - [**JavaScript engine and runtime**](#javascript-engine-and-runtime)
+  - [**JavaScript runtime and engine**](#javascript-runtime-and-engine)
     - [**JavaScript runtime**](#javascript-runtime)
-    - [**JavaScript engine's structure**](#javascript-engines-structure)
+    - [**JavaScript engine**](#javascript-engine)
     - [**Just-In-Time compilation of JavaScript**](#just-in-time-compilation-of-javascript)
       - [**Compilation vs. Interpretation vs. JIT compilation**](#compilation-vs-interpretation-vs-jit-compilation)
+    - [**Execution contexts and the call stack**](#execution-contexts-and-the-call-stack)
+    - [**Execution context structure**](#execution-context-structure)
+      - [**Scope and the scope chain**](#scope-and-the-scope-chain)
+        - [**Scope chain**](#scope-chain)
+      - [**Variable environments: hoisting and TDZ**](#variable-environments-hoisting-and-tdz)
 - [**Functions**](#functions)
   - [**Defining functions**](#defining-functions)
     - [**Function declarations**](#function-declarations)
@@ -411,7 +416,7 @@ Here is a list of JavaScript features which kind of forms the whole definition o
 - **Single-threaded:** JavaScript runs in one single thread, meaning that it can only do one thing at a time. A thread is a sequence of instructions executed in the CPU. If one of the instructions is a long-running task (like fetching data from a server), it would hold our single thread. So we would need a way of taking it out of this thread, and process it somewhere else, thus the non-blocking event loop.
 - **Non-blocking event loop concurrency model:** concurrency model means how JavaScript engine handles multiple tasks hapenning at the same time. The event loop takes long-running tasks, executes them in the background, and puts them back in the main thread once they are done processing.
 
-## **JavaScript engine and runtime**
+## **JavaScript runtime and engine**
 
 A JavaScript runtime is like a big box that includes all the things we need in ourder to use JavaScript in a browser. The heart of any JavaScript runtime, is the JavaScript engine. In addition to the engine, JavaScript runtime includes Web APIs. A runtime also includes a callback queue.
 
@@ -427,11 +432,11 @@ As mentioned above, a JavaScript runtime includes:
 
 > **_Note_** | JavaScript can also run outside the browser. If that is the case, for example with NodeJS, the JavaScript runtime will no longer have the web APIs, simply because these are provided by the browser. Instead, we have multiple C++ bindings and a **thread pool**.
 
-### **JavaScript engine's structure**
+### **JavaScript engine**
 
 Every JavaScript engine contains a **call stack** and a **heap**.
 
-- **Call stack:** this is where our code is executed using **execution contexts**.
+- **Call stack:** this is where our code is executed using [**execution contexts**](#execution-contexts-and-the-call-stack). There is one global execution context for top-level code, and one execution context for each function call. In a real-world program, there are hundreds of execution contexts. These execution contexts are stacked on top of each other in the call stack. So the call stack is actually what helps the JavaScript engine to keep track of the order in which functions are called, and also to know where it currently is in the execution. Execution starts from the global execution context, and each function call will stack another execution context on top of it and pause the previous execution context. Once one execution context is finished running, it will be removed from the stack, and execution will go back to the previous execution context that was paused. This process is kept on until there is nothing left in the call stack except the global execution context. The global execution context will remain there until the whole program is finished, for instance, when we close the browser.
 - **Heap:** this is an unstructured memory pool, which stores all the **objects** that our application needs.
 
 ### **Just-In-Time compilation of JavaScript**
@@ -439,8 +444,8 @@ Every JavaScript engine contains a **call stack** and a **heap**.
 As a JavaScript code enters the engine, there are some steps ahead of this code:
 
 1. The code is parsed: the code is parsed into **AST** which stands for Abstract Syntax Tree. It involves first splitting up each line of code into pieces that are meaningful to the language, and saving all these pieces into the tree in a structured way. It also involves checking for any syntax errors. This tree will later be used to generate the machine code.
-2. The AST is compiled into machine code.
-3. The machine code gets executed right away because of [Just-In-Time compilation](#compilation-vs-interpretation-vs-jit-compilation). This execution step happens in the engine's call stack.
+2. The AST is compiled into **machine code**.
+3. The machine code gets **executed** right away because of [**Just-In-Time compilation**](#compilation-vs-interpretation-vs-jit-compilation). This execution step happens in the engine's call stack.
 4. Optimization strategies are carried out. Up to the 3rd step above, a very unoptimized version of machine code is produced, so that the program can start executing as fast as possible. Afterwards, in this 4th step, the machine code gets optimized and recompiled while the program is already running. This can be done multiple times, and each time, the unoptimized code is swept away and replaced by the more optimized code. This makes modern JavaScript engine like V8 so fast.
 
 > **_Note_** | all these 4 steps happen in special threads of the engine that we cannot access from our code. It is completely separated from the main thread where our code is being executed.
@@ -459,6 +464,70 @@ The computers CPU only understands 0s and 1s. So any computer program ultimately
 > **_Note_** | JavaScript used to be a purely interpretted language. The problem with interpretted languages is that they are much slower than compiled languages. However, low performance is no longer acceptible today. Modern JavaScript now uses a mixture of compilation and interprettation which is called Just-In-Time compilation.
 
 - **JIT compilation**: This approach compiles the entire code into machine code and executes it right away. So we still have the two steps, but there would be no portable file to be executed later. It executes right away.
+
+### **Execution contexts and the call stack**
+
+First of all, JavaScript code always runs inside an execution context. An execution context is an environment that stores all the necessary information for some code to be executed, such as local variables, arguments passed into a function, etc.
+
+Let's now see what exactly happens when our code is executed. So after our code is finished compiling, we have these steps for execution:
+
+1. As the first stage of execution, a **global execution context** is created for top-level code. Top-level code is code that is not inside any function. Obviously, functions should only be excuted when they are called. In any JavaScript project, there is only one global execution context. It is always there.
+2. The global execution context is put into the call stack, and top level code is executed, also functions are declared so that they could be called later.
+3. Functions are now executed and the program waits for callback functions. For each function call, one execution context is created. This execution context will contain all the necessary information for executin exactly that function.
+
+All these execution contexts together, make up the call stack. When all functions are executed, the engine will keep waiting for callback functions to arrive. For instance, a callback function attached to a click event.
+
+### **Execution context structure**
+
+Inside an execution context we have:
+
+1. **Variable environment object:** it contains
+
+   - `let`, `const`, and `var` declarations inside and outside function.
+   - functions
+   - `arguments` object
+
+2. **Scope chain:** makes it possible for the function to have access to variables declared outside the function
+3. **`this` keyword**
+
+> **_Note_** | the content of an execution context is created in the **creation** phase, which is right before execution. This is also the phase where hoisting happens.
+
+> **_Note_** | execution contexts of arrow functions don't get their own `this` keyword and `arguments` object. Instead, they will use `this` and `arguments` of their closest regular function parent.
+
+#### **Scope and the scope chain**
+
+Scope is an environment in which a certain variable is declared. In case of functions, the scope is basically the variable environment. There are 3 types of scopes:
+
+- **Global scope:** outside of any function or code block. Variables declared in global scope are accessible everywhere. They are also called global variables.
+- **Function scope:** also called **local scope**. Each function, no matter it is function declaration, expression or arrow function, has its own scope. Variables declared in a function are only accessible inside the function, not outside.
+- **Block scope:** starting in ES6, code blocks `{}` (for exmple, of if statements or for loops) also create scopes. Variables declared inside blocks are not accessible from outside the scope. Note that this only applies to variables declared with `let` and `const`. So variables declared with `var` in a block, will be accessible outside the scope, so from an outer function scope or the global scope. Also note that functions are also block scoped in `strict` mode.
+
+Scoping determines how our program variables are organized and accessed. Scoping is controlled by the placement of functions and code blocks in our program. This is called **lexical scoping**. For instance, a function defined in another function, has access to the variables of the parent function.
+
+The scope of a variable is the entire region of our code that a certain variable can be accesed.
+
+##### **Scope chain**
+
+Every scope has access to all the variables from its **parent scopes**. If one scope needs to use a certain variable, but cannot find it in the current scope, it will look up in the scope chain to find it in one of the parent scopes.
+
+> **_Note_** | a certain scope will never have access to variables inside child scopes. Also sibling scopes don't have access to each other's variables.
+
+#### **Variable environments: hoisting and TDZ**
+
+**Hositing** is the mechanism that makes some types of variables accessible before they are actually declared in the code. The mechanism actually involves scanning the code before execution. This scanning process looks for variable declarations, and for each variable, a new property is created in the **variable environment object**. This happens during the **creation phase** of the execution context.
+
+Let's now take a look at how hoisting behaves with different types of variables:
+
+| Type                            | Hoisted?                                         | Initial value         | Scope    |
+| ------------------------------- | ------------------------------------------------ | --------------------- | -------- |
+| function declarations           | yes                                              | actual function       | block    |
+| `var` variables                 | yes                                              | undefined             | function |
+| `let` and `const` variables     | no                                               | TDZ <`uninitialized`> | block    |
+| function expressions and arrows | depends if defined with `let`, `const`, or `var` |
+
+> **_Note_** | TDZ for a `let` or `const` variables starts from the beginning of the scope until the line where the variable is actually declared. TDZ was introduced to JavaScript in ES6, in order to make it easier to avoid and catch errors. Accessing variables before declaration is bad practice and should be avoided. TDZ also makes `const` variables behave as they do.
+
+> **_Note_** | Hoisting was implemented in JavaScript in order to make it possible to use functions before they are declared. This is essential for some programming techniques such as **mutual recursion**.
 
 # **Functions**
 
@@ -510,7 +579,7 @@ const calcAge3 = (birthyear) => {
 
 > **_Note_** | in case the functionality only contains one line of code, it is not necessary to put it inside `{}`, and you will then be able to omit the `return` keyword.
 
-> **_Note_** | arrow functions do not get their own `this` keyword. Instead, they will get the `this` keyword of their parent function. This is called the **lexical `this`**.
+> **_Note_** | The execution context of an arrow function does not get its own `this` keyword and `arguments` object. Instead, it will use `this` and `arguments` of its closest regular function parent. Refer to **lexical `this`**..
 
 ```js
 const calcAge3 = (birthYear) => 2037 - birthYear;
@@ -2156,5 +2225,3 @@ document.querySelector(".nav__links").addEventListener("click", function (e) {
 ```
 
 > **_Note_** | Event delegation is a nice solution for situations where we want to work with elements that are not yet on the page in the runtime. This is a common use case of event delegation, especially with buttons that are added dynamically to the webpage while using the application.
-
-Renamed master to branch on GitHub.
