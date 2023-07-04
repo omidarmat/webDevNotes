@@ -607,6 +607,7 @@ const age2 = calcAge2(1992);
 
 <!-- TODO review 'working with strings' of 9th section -->
 <!-- TODO review maps and sets of 9th section -->
+<!-- TODO add notes for regular expressions -->
 
 ## **Arrays**
 
