@@ -22,12 +22,14 @@
     - [**Interacting with Node in Terminal**](#interacting-with-node-in-terminal)
     - [**Creating a Node application**](#creating-a-node-application)
   - [**Introduction to NodeJS modules**](#introduction-to-nodejs-modules)
-    - [**1. Core modules**](#1-core-modules)
-    - [**2. Our own modules**](#2-our-own-modules)
-      - [**Different ways of exporting**](#different-ways-of-exporting)
-    - [**3. 3rd-Party modules**](#3-3rd-party-modules)
-      - [**Installing 3rd-party modules**](#installing-3rd-party-modules)
-    - [**Package versioning and updating**](#package-versioning-and-updating)
+    - [**The `require` mechanism**](#the-require-mechanism)
+    - [**NodeJS module types**](#nodejs-module-types)
+      - [**1. Core modules**](#1-core-modules)
+      - [**2. Our own modules**](#2-our-own-modules)
+        - [**Different ways of exporting**](#different-ways-of-exporting)
+      - [**3. 3rd-Party modules**](#3-3rd-party-modules)
+        - [**Installing 3rd-party modules**](#installing-3rd-party-modules)
+      - [**Package versioning and updating**](#package-versioning-and-updating)
   - [**NodeJS core and 3rd-party modules**](#nodejs-core-and-3rd-party-modules)
     - [**Process module**](#process-module)
     - [**Dotenv module**](#dotenv-module)
@@ -66,6 +68,7 @@
     - [**Morgan**](#morgan)
   - [**Creating custom middleware**](#creating-custom-middleware)
   - [**Param middleware**](#param-middleware)
+- [**Database**](#database)
 
 # **Back-end theory**
 
@@ -445,13 +448,59 @@ After the file is executed, the execution process is stopped, simply because the
 
 ## **Introduction to NodeJS modules**
 
-<!-- TODO review 'how requiring modules really work' form 4th section-->
+In a NodeJS module system, each JavaScript file is treated as a module. NodeJS uses the **CommonJS** module system which does the import/export operations using `require()`, `exports.`, and `module.exports` syntax.
 
-<!-- TODO review different Databases -->
+### **The `require` mechanism**
 
-In NodeJS, we have 3 types of modules:
+First remember that in NodeJS, every single JavaScript file is treated as a module.
 
-### **1. Core modules**
+When we use the `require()` function to require a module, a couple of steps happen:
+
+1. Path to the required module is resolved and the file is loaded. In order to decide which module should be loaded, Node takes a few steps:
+
+   - When the require function receieves the module's name, it will first try to load a core module with that name. It will automatically find the path to that module and then load it.
+   - If the path starts with `./` or `../` it means that it is a relative path to a developer module, so Node will try to load that.
+   - If there is no file with that name (remember that we don't write the `js` extention at the end of file name), Node will try to find a folder with `index.js` and load it.
+   - Finally, if the required module is neither a core nor a developer module, Node will assume it is a module from NPM and go to `node_modules/` path and try to find the module there.
+   - If the module cannot be found anywhere, an error is returned and the execution of our application will stop.
+
+2. Wrapping: after the module is loaded, it will be wrapped in an IIFE that will provide us access to a couple of special objects.
+
+```js
+(function (exports, require, module, __filename, __dirname) {
+  // argument [require]: function to require other modules
+  // argument [module]: reference to the current module
+  // argument [exports]: reference to module.exports, used to export object from a module
+  // argument [__filename]: abs path of the current module's file
+  // argument [__dirname]: directory name of the current module
+  // -----------------------------------------------------
+  // module code lives here
+});
+```
+
+We can prove the existence of this wrapper function by inspecting the `arguments` in any module. So we would be able to see the 5 arguments of the wrapper function:
+
+```js
+console.log(arguments);
+```
+
+We can also inspect the wrapper function in the console in any module. To do this we should require the `module` module, and look at the `wrapper` property.
+
+```js
+console.log(require("module").wrapper);
+```
+
+This has two advantages: first, important objects like `require` are accessible in all modules. Second, all top-level variables in each module remains private and scoped only to the current module.
+
+3. Executing the module's code: code put in the modules wrapper function is executed.
+4. Returning exports: the `require` function returns **exports** of the required module as the `module.exports` object. Refer to [different ways of exporting](#different-ways-of-exporting) from a module.
+5. The entire module gets cached. If you require the same module multiple times, you will always get the same result. The code in the module is only executed in the first call. In subsequent calls the results are retrieved from cache.
+
+The `require()` function is not a native JavaScript function. So how do we have access to it all over our Node application?
+
+### **NodeJS module types**
+
+#### **1. Core modules**
 
 these are modules that are already installed on NodeJS and we can use them simply by requiring them into a script file.
 
@@ -459,34 +508,58 @@ these are modules that are already installed on NodeJS and we can use them simpl
 const <variable-name> = require('<module-name>');
 ```
 
-### **2. Our own modules**
+#### **2. Our own modules**
 
 Every single JavaScript file in a NodeJS application is treated as a module. Modules are used in NodeJS to export functionalities form one module and import them into another module.
 
-#### **Different ways of exporting**
+##### **Different ways of exporting**
 
-- **`module.exports`:** in each module, we have access to a variable called `module`, and then we have access to a property called `exports` on that variable. We can then set this property to whatever we want to export.
+- **`module.exports`:** If you want to export only one single variable, like one class or one function, you can use this syntax:
 
 ```js
 // Exporting from 'module-1.js'
 module.exports = (argument) => {
-  console.log(`function that acts on ${arguments}`);
+  // function expression code
 };
 ```
 
+To import, we actually import the whole module into another file, and give it a name there. We then have acceess to what this module returns on that variable.
+
 ```js
-// Importing to 'index.js'
-const module1 = require("./modules/module-1");
+const variable1 = require("./<module-path>");
 ```
 
-### **3. 3rd-Party modules**
+- **`exports.`:** If you want to export multiple named variables, like multiple functions, you can add them as properties to the `exports` object. you can use this syntax:
+
+```js
+exports.variableName1 = (argument) => {
+  //function expression code
+};
+
+exports.variableName2 = (argument) => {
+  //function expression code
+};
+```
+
+To import, we actually import the whole module into another file, and give it a name there. We then have access to each of these variables as properties on that variable.
+
+```js
+const variable2 = require("./<module-path>");
+
+variable2.variableName1(argument);
+variable2.variableName2(argument);
+```
+
+We can also use **destructuring** as we rqeuire the module.
+
+#### **3. 3rd-Party modules**
 
 These are modules that are not installed on NodeJS by default. We can use these modules either as **regular dependencies** or **development dependencies**.
 
 - Regular dependencies are a package of code upon which we build our own application, and our application needs it to work. For example, [Express](#express-framework) is a regular dependency.
 - Development dependencies are packages that we use to make the development process easier. For example, [Nodemon](#nodemon) is a dev dependency. Our application does not rely on this type of package to run correctly.
 
-#### **Installing 3rd-party modules**
+##### **Installing 3rd-party modules**
 
 In order to be able to install and use NPM packages, we should first initialise NPM using this command in the terminal:
 
@@ -522,7 +595,7 @@ After installing the 3rd-party module, we would have to `require` it into any fi
 const <variable-name> = require('<module-name>');
 ```
 
-### **Package versioning and updating**
+#### **Package versioning and updating**
 
 [empty]
 
@@ -1311,3 +1384,5 @@ router.param("id", (req, res, next, val) => {
   next();
 });
 ```
+
+# **Database**
