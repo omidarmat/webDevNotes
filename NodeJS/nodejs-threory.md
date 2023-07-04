@@ -7,6 +7,7 @@
       - [**Static web server**](#static-web-server)
       - [**Dynamic web server**](#dynamic-web-server)
       - [**API**](#api)
+        - [**REST architecture**](#rest-architecture)
         - [**_JSON_**](#json)
 - [**Introduction to NodeJS**](#introduction-to-nodejs)
   - [**NodeJS advantages**](#nodejs-advantages)
@@ -39,7 +40,6 @@
     - [**Slugify module**](#slugify-module)
       - [**Using slugify**](#using-slugify)
     - [**Nodemon module**](#nodemon-module)
-    - [**Express module**](#express-module)
   - [**Streams**](#streams)
     - [**Streams in practice**](#streams-in-practice)
       - [**The best solution**](#the-best-solution)
@@ -47,6 +47,20 @@
     - [**Implementing placeholders**](#implementing-placeholders)
       - [**Placeholders for templating unknown amount of data**](#placeholders-for-templating-unknown-amount-of-data)
     - [**Replacing placeholders**](#replacing-placeholders)
+- [**Express framework**](#express-framework)
+  - [**Middleware and request-response cycle**](#middleware-and-request-response-cycle)
+    - [**Implementing middleware**](#implementing-middleware)
+  - [**Starting a server**](#starting-a-server)
+  - [**Defining routes**](#defining-routes)
+    - [**Implementing Routers and mounting**](#implementing-routers-and-mounting)
+  - [**Methods on response**](#methods-on-response)
+  - [**Responding to URL parameters**](#responding-to-url-parameters)
+    - [**Optional parameter**](#optional-parameter)
+  - [**Popular middleware**](#popular-middleware)
+    - [**Body parser**](#body-parser)
+    - [**Morgan**](#morgan)
+  - [**Creating custom middleware**](#creating-custom-middleware)
+  - [**Param middleware**](#param-middleware)
 
 # **Back-end theory**
 
@@ -120,9 +134,9 @@ Once the request hits the server, an event is fired, which triggers a response f
 
 #### **Routing**
 
-Routing basically means implementing different actions for different URLs. So we should be able to detect differences in the request URL and act based on it.
+Routing basically means implementing different actions for different requests. Requests are actually composed of 2 parts: URL, and HTTP method. So we should be able to analyze the request URL and act based on it.
 
-In huge applications, routing can become very complicated, and for these situations, we might use a NodeJS library called [**Express**](#express-module).
+In huge applications, routing can become very complicated, and for these situations, we might use a NodeJS library called [**Express**](#express-framework).
 
 For simpler routing in practice projects we can use NodeJS itself and also the [**URL**](#url-module) core module, which enables us to analyse the request URL.
 
@@ -147,13 +161,48 @@ In dynamically rendered wesites (also called **server-side rendered**), frontend
 
 #### **API**
 
-API stands for **Application Programming Interface**. An API is a service from which we can request some data. API-powered websites have a dynamic server on the backend that provides some data usually in the **JSON** format. Instead of generating frontend files on the server-side based on template files, the JSON data is directly sent to the browser. Once the browser receives this data, it renders the data based on the template files provided beforehand and builds the website. These websites are also called **client-side rendered**. In these systems, what is done on the backend is called _building the API_, and what is done on the frontend is called _consuming the API_.
+API stands for **Application Programming Interface**. An API is a service from which we can request some data. It is a piece of sotware that can be used by another piece of software to allow applications to talk to each other.
+
+The word **application** in API can include many things such as:
+
+- NodeJS `fs` or `http` APIs, also known as Node APIs
+- Browser's DOM API
+- Methods exposed to the public in OOP
+- Web APIs
+
+API-powered websites have an API (a dynamic server) on the backend that provides some data usually in the **JSON** format. Instead of generating frontend files on the server-side based on template files, the JSON data is directly sent to the browser. Once the browser receives this data, it renders the data based on the template files provided beforehand and builds the website. These websites are also called **client-side rendered**. In these systems, what is done on the backend is called _building the API_, and what is done on the frontend is called _consuming the API_.
 
 The huge Advantage of making websites API-powered is that endless number of apps can be created to consume the same API. So we would not be limited to only one context, like the browser.
 
+There is a popular API architecture called REST.
+
+##### **REST architecture**
+
+REST stands for Representational States Transfer is way of building web APIs in a logical way making them easy to consume. REST architecture is used to making the usage of the API easy and smooth.
+
+To build a REST API we need to follow some principles:
+
+1. Separate API into logical resources: all data that is going to be shared in the API, should be divided into logical resources. A **resource** is an object or any representation of something which has data associated to it. Any information that can be _named_ (not verb) can be a resource. Example: foods, users, reviews.
+2. Expose structured, resource-based URLs: we need to expose the APIs data using some URLs that clients can send requests to. For example, `https://www.roos.com/foods` is a URL and `/foods` at the end is called an **endpoint**.
+3. Use HTTP methods (verbs): endpoints should only contain resource names and not the actions that can be performed on them. The verbs or actions (CRUD) are already defined by HTTP methods.
+
+   - `GET`: used to perform _read_ operation on data. It is usually responded with data retrieved from database. If the endpoint only contains the name of the resource, the response would contain all the data from that resource. But if a certain document is needed, usually an identifier is inserted with a `/` after the resource name. The identifier can be an ID or a name (`roos.com/foods/4`)
+   - `POST`: used to perform _create_ operation. It enables the user to send data to server, so to create a document in our database. In this case no ID should be sent. The server should figure out an ID for the new document.
+   - `PATCH` or `PUT`: both used to update documents. The URL should contain an identifier for the specific document that is going to be updated. With PUT, the client is supposed to send the entire updated object, but with PATCH they should only send the specific part of the document that is changed.
+   - `DELETE`: used to delete a documents. The URL should contain an identifier for the specific document that is going to be deleted. Usually, users have to be **authenticated** to be able to do this request.
+
+> **_Note_** | sometimes we need to perform operations that are not CRUD. In these cases, we should be creative with naming our endpoints. This applies to, for example, login or search operations.
+
+> **_Note_** | REST architecture is also capable of performing CRUD operations that combine two or more resources.
+
+1. Send Data as JSON: JSON is a very light-weight data interchange format which is heavily used by Web APIs. The JSON data is usually formatted as JSend before being sent as a response to the client. The JSend format wraps the JSON data in another object, in which `status` and `data` fields are added. The status field contains a string that informs the client whether the request was a success or not. The data field will be an object containing the JSON data in it. This is done for some security issues and is called enveloping.
+2. Must be stateless: all state is handled on the client. It means that each request must contain all the information necessary to be processed. The server should not have to remember previous requests. Example: `loggedIn` or `currentPage`.
+
 ##### **_JSON_**
 
-JSON is a text format that is very similar to a JavaScript object. It can include formats similar to JavaScript data structures, like arrays and objects. But in order for a JSON data to be usable in JavaScript, it should first be parsed into actual JavaScript data structures.
+JSON is a very light-weight data interchange format which is heavily used by Web APIs. The strucure in which data is written into a JSON file is very similar to a JavaScript object. The only difference is that in JSON, keys must be strings. It is also very typical for values to be strings, but they can actually be also numbers, boolean, other objects or even arrays of values.
+
+But in order for a JSON data to be usable in JavaScript, it should first be parsed into actual JavaScript data structures.
 
 ```js
 const parsedData = JSON.parse(jsonData);
@@ -324,7 +373,7 @@ After the file is executed, the execution process is stopped, simply because the
 ## **Introduction to NodeJS modules**
 
 <!-- TODO review 'how requiring modules really work' form 4th section-->
-<!-- TODO review Express and middlewares -->
+
 <!-- TODO review different Databases -->
 
 In NodeJS, we have 3 types of modules:
@@ -361,7 +410,7 @@ const module1 = require("./modules/module-1");
 
 These are modules that are not installed on NodeJS by default. We can use these modules either as **regular dependencies** or **development dependencies**.
 
-- Regular dependencies are a package of code upon which we build our own application, and our application needs it to work. For example, [Express](#express-module) is a regular dependency.
+- Regular dependencies are a package of code upon which we build our own application, and our application needs it to work. For example, [Express](#express-framework) is a regular dependency.
 - Development dependencies are packages that we use to make the development process easier. For example, [Nodemon](#nodemon) is a dev dependency. Our application does not rely on this type of package to run correctly.
 
 #### **Installing 3rd-party modules**
@@ -652,7 +701,7 @@ This returns an object in which there are many properties including a `Query` pr
 
 ### **Slugify module**
 
-**`3rd party`**
+**`3rd-party`**
 
 It is used to make more readable URLs based on names.
 
@@ -688,7 +737,7 @@ console.log("Fresh Avocados", {
 
 ### **Nodemon module**
 
-**`3rd party`**
+**`3rd-party`**
 
 It is used to automatically restart the NodeJS application as we save any changes that we implemented in our code. This package is usually installed globally since it is used in all projects.
 
@@ -719,10 +768,6 @@ This will execute our script file and keep watching for any changes that we impl
 > ```
 >
 > This will execute the `start` script implemented in the `package.json` file.
-
-### **Express module**
-
-Information will be added soon.
 
 ## **Streams**
 
@@ -854,3 +899,302 @@ const replaceTemplate = (template, product) => {
 ```
 
 > **_Note_** | notice how we use a regular expression to specify the placeholder that should be replaced. This will make it so that all occurences of the placeholder will be replaced by the specified data. Ohterwise, only the first occurence would be replaced and the rest would be left unchanged. The `g` flag in the regular expression stands for **global**.
+
+# **Express framework**
+
+**`3rd-party module`**
+
+Express is a minmal NodeJS framework written completely in NodeJS, which means that it is built on top of NodeJS as a higher level of abstraction. This allows rapid development of NodeJS applications. It also makes it easier to organize our application into the MVC architecture.
+
+Express has a very useful set of features:
+
+- complex routing
+- easier handling of requests and responses
+- middleware
+- server-side rendering, etc.
+
+The essence of express development is to understand and utilize the [request-response cycle](#middleware-and-request-response-cycle).
+
+As a 3rd-party module, we first need to install Express using NPM.
+
+```
+npm install express
+```
+
+We then have to `require` it in any file where we want to use it:
+
+```js
+const express = require("express");
+```
+
+## **Middleware and request-response cycle**
+
+Once our Express app receives a request, it will create a **request** and a **response** object. These objects are then used and processed to generate a meaningful response, which will be eventually sent back to the client.
+
+The process mentioned above invloves middleware manipulating the request and the response object or execute any code we want. So middleware does not always work on the two objects, but they are usually intended to do so. It is called middleware because it is executed between receiving a request and sending the response.
+
+In Express, nearly everything is a middleware. Because nearly all the functionalities that we define are executed between receiving a request and sending the response. So even in route definitions, our route handler functions are middleware. They are middleware that are only executed for ceratin routes.
+
+All the middleware together that we use in our application is called the **middleware stack**. The order of middleware execution is defined by the order in which middleware are defined in the code. We can think of the middleware stack as if the request and the response objects go through each middleware, where they are processed or where some other code is executed. At the end of each middleware, a `.next()` function is called, passing the request and response objects on to the next middleware. This happens with all the middleware until we reach the last one. The last middleware function is usually a **route handler function**. This middleware will not call the `.next()` function at the end. Instead, it finally sends the response data back to the client. This is where a request-response cycle is finished.
+
+You can checkout available middleware on the Express website at the _Resrouces_ tab.
+
+### **Implementing middleware**
+
+In order to implement a middleware in Express, we use the `.use()` method on the `app` variable. The method can accept two arguments:
+
+- A route: if a route is defined in the method, then the middleware will only apply to requests hitting that specific route. If no route is defined, the middleware will simply apply to all requests hitting the server.
+- A callback function that has access to the request and response objects, and also the `next()` function.
+
+```js
+app.use();
+```
+
+## **Starting a server**
+
+To start a server with Express, we first need to call `express()` and store it into a variable, usually called `app`.
+
+```js
+const app = express();
+```
+
+Then to start listening to requests:
+
+```js
+const port = 3000;
+app.listen(port, () => {
+  console.log(`App running on port ${port}...`);
+});
+```
+
+> **_Note_** | It is a good practice to have one separated file for all server configuration code, and another file as the main application file which is mainly concerned with our middleware stack.
+>
+> In this structure, the `app` variable should be exported from the `app.js` file, and it should be imported in the `server.js` file.
+>
+> Note that the server file will also include database configurations, error handling stuff, and environment variables. Keep in mind that with this file structure, the entry point of our program execution will be the `server.js` file. So the script inserted into the `package.json` file would be updated to `nodemon server.js`.
+
+**`server.js`:**
+
+```js
+const app = require("./app");
+
+const port = 3000;
+app.listen(port, () => {
+  console.log(`App running on port ${port}...`);
+});
+```
+
+Next, we should define routes for our application.
+
+## **Defining routes**
+
+In order to implement routing, we should determine URL and the HTTP method.
+
+- The HTTP method is defined by a method that we use on the `app` variable according to the HTTP method that we are aiming for. We can choose between `.get()`, `.post()`, `.patch()`, `.delete()`.
+- The URl is then defined in the HTTP method as the first argument. The second argument would a callback function that would be executed as a response. This callback function, again, has access to the request and the response object.
+
+```js
+app.get("/", (req, res) => {
+  res.status(200).send("Hello from the server-side");
+});
+```
+
+> **_Note_** | The request and response objects are a bit different in Express. They have a lot more data and methods available on them.
+
+We can also define the route in the `.route()` method, and then attach and chain HTTP methods to it.
+
+```js
+app.route("api/v1/foods").get().post();
+app.route("api/v1/foods/:id").get().patch().delete();
+```
+
+### **Implementing Routers and mounting**
+
+This is mainly done in order to nicely separate our codes into different files that would fit into the **MVC architecture**, so that we would have separate files only containing routes for different resources, and then also separate files that only contain route handler functions, and one main file, usually called `app.js` that is mainly responsible for our middelware stack and routers mounting for each resource.
+
+We first need to implement a separate router for each resource.
+
+To create a new router:
+
+```js
+const foodRouter = express.Router();
+```
+
+Now to connect this new router to our application (`app`), we use a middleware.
+
+```js
+app.use("api/foods", foodRouter);
+```
+
+So this new router in this example, will only run if a request comes to `/api/foods`.
+
+The new router can then be used instead of the `app` variable for the route handler functions that relate to a specific resource. Notice how the `api/foods` route is now the root URL for the new router. Therefore, the routes for the new router should be updated to the new root. The new router is actually a sub-application. This process of joining new routers to the main router is called **mounting**.
+
+```js
+foodRouter.route("/").get().post();
+foodRouter.route("/:id").get().patch().delete();
+```
+
+> **_Note_** | normally, new routers are created in different files, for instance `foodRoutes.js`, and they are imported in the main `app.js` file, where they are mounted to the main router. In the separate files, the new routers are usually called just `router` and not something like `foodRouter`. This way, the `app.js` file is mainly used for middleware implementation. Keeping this file structure, we would also have to separate route handler functions in different files, for example `foodController.js`. This file structure would fit into the MVC architecture.
+
+**`foodController.js:`**
+
+```js
+exports.getAllFoods = (req, res) => {
+  // retrieving logic
+};
+```
+
+**`foodRoutes.js:`**
+
+```js
+const express = require("express");
+const foodController = require("./controllers/foodController");
+const router = express.Router();
+
+router.route("<route>").get(foodController.getAllFoods);
+// other defined routes
+
+module.exports = router;
+```
+
+**`app.js:`**
+
+```js
+const foodRouter = require("./routes/foodRoutes");
+```
+
+> **_Note_** | an HTTP method can accept more than one handler function. They just have to be separated from each other with a comma.
+
+```js
+router.route("<route>").get(foodController.checkId, foodController.getFood);
+```
+
+## **Methods on response**
+
+**`.status`:** used to determine the status code of the response. Accepts number as status code.
+
+**`.send`:** used to send back plain text responses. Accepts a string.
+
+**`.json`:** used to send back JSON data in the response. Accepts a regular JavaScript object. It will be automatically converted to JSON. This method automatically sets the `Content-Type` header to `application/json`.
+
+## **Responding to URL parameters**
+
+When attempting to retrieve a special data and not just all the data of a resource, the user would determine a parameter in the URL, and we should be able to detect and react to it.
+
+For instance, the request URL would look like this:
+
+```
+127.0.0.1:3000/api/foods/5/10/2
+```
+
+In order to be able to detect the `/5` at the end of the URL, we should implement the routing as displayed below. Then the detected parameters would be accessible on the `params` property of the request object.
+
+```js
+app.route("/api/foods/:id/:x/:y").get((req, res) => {
+  console.log(req.params); // { id: '5', x: '10', y: '2' }
+});
+```
+
+### **Optional parameter**
+
+The previous way of route implementation would make it so that the URL must contain these identifiers, otherwise the request would be responded with error. But in order to make it optional, we can use a `?` mark at the end of each parameter in the URL.
+
+```
+127.0.0.1:3000/api/foods/5
+```
+
+```js
+app.route("/api/foods/:id?/:x?").get((req, res) => {
+  console.log(req.params); // { id: '5', x: undefined }
+});
+```
+
+## **Popular middleware**
+
+### **Body parser**
+
+This Express middleware is used because Express does not put the body data in the request object automatically. We use this middleware to do so.
+
+```js
+app.use(express.json());
+```
+
+Now the data that the user sends with their request is available on the `body` property of the request object.
+
+```js
+app.route("/api/foods").post((req, res) => {
+  console.log(req.body);
+});
+```
+
+### **Morgan**
+
+This is a 3rd-party middleware used to perform some logging operation. It enables us to see request data right in the console.
+
+In order to use this middleware, we first need to install it using NPM. Although the middleware is used to make developing easier, we use its code in our program, so it is not to be installed as a development dependency.
+
+```
+npm install morgan
+```
+
+We should then require it into the file where we want to implement it:
+
+```js
+const morgan = require("morgan");
+```
+
+We can then implement the middleware as:
+
+```js
+app.use(morgan("dev"));
+```
+
+The morgan function can accept a string argument, determining the format of the log. There are a couple of options available: `combined`, `dev`, `common`, `short`, `tiny`.
+
+Logs produced by this middleware can also be saved into a file and used as a history.
+
+## **Creating custom middleware**
+
+To implement custom middleware, we still need to use the `.use()` method on the `app` variable. As mentioned before, the method accepts a route and a callback function that has access to the request and response objects, along with the `next()` function. If no route is defined, the middleware will apply to all incoming requests.
+
+At the end of each middleware, the `next()` function should be called. Otherwise, the request-response cycle would get stuck in the current middleware, and the request would never be responded.
+
+```js
+app.use((req, res, next) => {
+  console.log("Hello from the middleware");
+  next();
+});
+```
+
+This example middleware will apply to all the requests because we did not define any route for it.
+
+Obviously, since we have access to the request and response objects, we can manipulate them in our middleware.
+
+```js
+app.use((req, res, next) => {
+  req.requestTime = new Date().toISOString();
+  next();
+});
+```
+
+Now as the request object is passed on to the next middleware and route handler functions, it will carry this new property that we added to it.
+
+## **Param middleware**
+
+Param middleware only runs when we certain parameters are present in the URL. For example, if we receive a request on this URL:
+
+```
+127.0.0.1:3000/api/foods/:id?
+```
+
+Param middleware is usually used to take the task of checking certain parameters away from route handler functions which are mainly concerned with other functionalities.
+
+> **_Note_** | since it is a middleware, we should be careful about its placement in our code. Additionally, as a middleware, it has access to the 3 arguments that all middleware have, but also yet another argument which is the value of the parameter.
+
+```js
+router.param("id", (req, res, next, val) => {
+  console.log(`Food id: ${val}`);
+  next();
+});
+```
