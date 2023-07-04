@@ -9,6 +9,8 @@
       - [**API**](#api)
         - [**REST architecture**](#rest-architecture)
         - [**_JSON_**](#json)
+  - [**MVC architecture**](#mvc-architecture)
+    - [**MVC in an Express application**](#mvc-in-an-express-application)
 - [**Introduction to NodeJS**](#introduction-to-nodejs)
   - [**NodeJS advantages**](#nodejs-advantages)
   - [**Node architecture**](#node-architecture)
@@ -69,6 +71,9 @@
   - [**Creating custom middleware**](#creating-custom-middleware)
   - [**Param middleware**](#param-middleware)
 - [**Database**](#database)
+  - [**MongoDB**](#mongodb)
+    - [**MongoDB key features**](#mongodb-key-features)
+    - [**MongoDB BSON vs Relational Database**](#mongodb-bson-vs-relational-database)
 
 # **Back-end theory**
 
@@ -215,6 +220,33 @@ But in order for a JSON data to be usable in JavaScript, it should first be pars
 ```js
 const parsedData = JSON.parse(jsonData);
 ```
+
+## **MVC architecture**
+
+MVC stands for Model, View, Controller. These are the three parts of this architecture, each assigned to hold certain functionalities.
+
+- **Model:** concerned with everything about **application's data** and the **business logic**.
+
+  - Business logic is all the code that solves the actual business problem. It is the code directly related to business rules, how the business should work, and business needs. For example, in a restaurant website, business logic will be concerned with creating orders, adding or removing foods from the menu, allowing users to write reviews about their orders, ensuring only authenticated users can access certain pages, etc.
+
+- **Controller:** concerned with handling application's requests, interact with models, and send back responses to the client. All this is called **application logic**.
+
+  - application logic is the code that is only concerned with the application implementation, not the underlying business problem that we are attempting to solve. Application logic is the logic that makes the application work. For exmaple, most of application logic is concerned with managing requests and responses. It is more about the technical stuff. Or if we have the View layer, application logic will act as a bridge between business logic and presentation logic.
+
+- **View:** The view layer is necessary if we have a graphical interface, which is the case if we are doing frontend development or if we are building a server-side rendered website. In the last case, the view layer will contain the templates used to generate the website pages that we are going to send back to the client as response. This is called the **presentation logic**.
+
+Using the MVC architecture allows us to write a more modular application, which makes our application easier to maintain and scale.
+
+> **_Note_** | There is principle in MVC architecture called **fat models/thin controllers**, meaning that we should offload as myuch logic as possible to the models, and keep controllers as simple as possible.
+
+### **MVC in an Express application**
+
+As always, everything starts with a request. Then:
+
+1. The request will hit one of our routers. Remember that we have one router for each resource. The goal of a router is to delegate the request to the correct handler function, which is stored in one of the controllers. We have one controller for each resource.
+2. Depending on the request, the controller might need to interact with one of the models, for example, to retrieve certain documents from the database or to create a new one. And there is one model for each resource. After the interaction with the model is finished, the controller might be ready to send back a response to the client, maybe containing the data. But if we want to render a website on the server, there is one more step involved here.
+3. Controller will select one of the view templates and inject the data into it. We have one view for each page.
+4. The rendered website will then be sent back to the client as a response.
 
 # **Introduction to NodeJS**
 
@@ -1386,3 +1418,37 @@ router.param("id", (req, res, next, val) => {
 ```
 
 # **Database**
+
+There are two types of databases:
+
+1. NoSQL
+2. Relational: this is the more traditional type of database.
+
+## **MongoDB**
+
+In MongoDB, each database can contain one or more **collections** (similar to **tables** in relational databases). Each collection can contain one or more data structures called **documents** (similar to **rows** of a table in relational data bases).
+
+Each document contains data about one single entity (e.g one food, one user, one review, etc.) and it stores data in BSON format (similar to JSON) which makes it easy to work with. The collection is like a parent structure that contains all these entities.
+
+### **MongoDB key features**
+
+1. Document based: stores data as documents with field-value pair structure (NoSQL).
+2. Scalable: easy to distribute data across multiple machines as your users and amount of data grows.
+3. Flexible: No document data schema required before filling it with data. Each document can have different number and type of fields.
+4. Performant: because of embedded data models, indexing, sharding, flexible documents, native duplication, etc.
+5. Free and open-source, published under SSPL license.
+
+### **MongoDB BSON vs Relational Database**
+
+BSON is the data format that MongoDB uses for data storage. It is basically like JSON, but it is typed, meaning that all values will have a data type. So all MongoDB documents will be typed, which is different from JSON. But similar to JSON, BSON documents has fields, and they store value in key-value pairs.
+
+Here are a set of features available in MongoDB due to BSON that relational databases don't have:
+
+- **Multiple values for one field:** In a relational database, each field is called a **column**. Each column can have only 1 value. In BSON, however, we can have multiple values stored in an array for only one field.
+
+- **Embedding/De-normalizing:** In MongoDB we have the concept of embedded documents, which we don't have in relational databases. For instance, we can have multiple review documents in an array, all stored in one _reviews_ field. So embedding means to include related data into a single document. This allows for quicker access and easier data models. We might, of course, need to **normalize** data in some situations. This is how data is always modeled in relational databases. In relational databases we can never embed data. The solution would be to create a whole new table for the related data.
+
+Here are 2 more things about the BSON format:
+
+1. Maximum size for each document is currently 16 mb.
+2. Each document contains a unique ID which acts as the primary key of the document. This ID is of type `ObjectID` and it is automatically generated when it is created.
