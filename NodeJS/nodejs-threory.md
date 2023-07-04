@@ -58,6 +58,7 @@
     - [**Optional parameter**](#optional-parameter)
   - [**Popular middleware**](#popular-middleware)
     - [**Body parser**](#body-parser)
+    - [**Static**](#static)
     - [**Morgan**](#morgan)
   - [**Creating custom middleware**](#creating-custom-middleware)
   - [**Param middleware**](#param-middleware)
@@ -1114,6 +1115,8 @@ app.route("/api/foods/:id?/:x?").get((req, res) => {
 
 ### **Body parser**
 
+**`Express`**
+
 This Express middleware is used because Express does not put the body data in the request object automatically. We use this middleware to do so.
 
 ```js
@@ -1128,7 +1131,27 @@ app.route("/api/foods").post((req, res) => {
 });
 ```
 
+### **Static**
+
+**`Express`**
+
+This is another built-in Express middleware that enables us to serve static files, like HTML files.
+
+```js
+app.use(express.static(`${__dirname}/public`));
+```
+
+With this middleware, we are now able to access static files stored in a `public` folder in this case. For example, if not want to access the `overview.html` file in this directory, we would have to type this URL in the browser:
+
+```
+127.0.0.1:3000/overview.html
+```
+
+Notice how we omited the `public` directory in the URL. It is because when we open up a URL that the application cannot find in any of our defined routes, it will look for it in the `public` folder because we have told it to do so in the static middleware. Then it kind of sets the `public` directory as the root.
+
 ### **Morgan**
+
+**`3rd-party`**
 
 This is a 3rd-party middleware used to perform some logging operation. It enables us to see request data right in the console.
 
