@@ -16,6 +16,8 @@
       - [**The thread pool**](#the-thread-pool)
       - [**The event loop**](#the-event-loop)
       - [**The event-driven architecture**](#the-event-driven-architecture)
+  - [**Environment variables**](#environment-variables)
+    - [**Environment variables and Express**](#environment-variables-and-express)
   - [**Running JavaScript outside the browser**](#running-javascript-outside-the-browser)
     - [**Interacting with Node in Terminal**](#interacting-with-node-in-terminal)
     - [**Creating a Node application**](#creating-a-node-application)
@@ -27,6 +29,8 @@
       - [**Installing 3rd-party modules**](#installing-3rd-party-modules)
     - [**Package versioning and updating**](#package-versioning-and-updating)
   - [**NodeJS core and 3rd-party modules**](#nodejs-core-and-3rd-party-modules)
+    - [**Process module**](#process-module)
+    - [**Dotenv module**](#dotenv-module)
     - [**FS module**](#fs-module)
       - [**Reading files**](#reading-files)
       - [**Writing files**](#writing-files)
@@ -308,6 +312,74 @@ In NodeJS there are special objects called **Event emitters** (instances of the 
 
 > **_Note_** | The event emitter logic is called the **observer pattern** in JavaScript programming in general. It is a popular pattern with many use cases. The idea is that there is an **observer**, which is the event listener, that will observe the subject that is going to emit an event. The opposite of this pattern includes functions calling other functions. The benefit of this pattern is that everything is more **de-coupled**. Otherwise, for instance, functions from the `fs` module would call functions from the `http` module. Instead, these modules are de-coupled and self-contained, each emitting events that other functions even from other modules can respond to. The pattern also makes it easy to react to the same event multiple times. We would only have to set up multiple listeners.
 
+## **Environment variables**
+
+NodeJS or Express applications can run in different environments. The most important ones are **development** and **production** environments. Based on the environment, we might use different databases, or turn logging on or off, or activate debugging or such stuff. These different settings will be based on environment variables. So environment variables are **global variables** that are used to define the environment in which the application is running.
+
+By default, [Express](#express-framework) sets the environment to development. We can take a look at it:
+
+```js
+console.log(app.get("env")); // development
+```
+
+NodeJS itself sets a lot of environment variables:
+
+```js
+console.log(process.env);
+```
+
+These environment variables are accessible in any file, and they come from the [**Process**](#process-module) core module.
+
+### **Environment variables and Express**
+
+Many packages in Express depend on an environment variables called `NODE_ENV`. It is a conventional name for a variable that should determine in which environment the application is currently running.
+However, Express does not define this variable automatically. We have to do it manually. We have 2 ways of doing this:
+
+1. Using the terminal: just as we start our application using a command like `nodemon server.js`, we should prepend the variable and its value to the command in the terminal:
+
+```
+NODE_ENV=development nodemon server.js
+```
+
+> **_Note_** | this solution seems not to work on Windows
+
+2. Create a configuration file: we create a file called `config.env` in the root directory of our project. In this file we can store any environment variables we need:
+
+```
+NODE_ENV=development
+PORT=3000
+USERNAME=omid
+PASSWORD=12345
+```
+
+To connect this config file to the NodeJS application, we use the [**dotenv**](#dotenv-module) module. We should install it using NPM:
+
+```
+npm install dotenv
+```
+
+and then require it, usually, in the `server.js` file since that is where we deal with environment variables.
+
+```js
+const dotenv = require("dotenv");
+```
+
+Then to establish the connection we use the `config()` method on the `dotenv` object. The method accepts an object in which we should define the `path` variable and set it to the directory of the `config.env` file.
+
+```js
+dotenv.config({ path: "./config.env" }); //EXTREMELY IMPORTANT: this connection should be established before requiring the app.js into server.js
+
+const app = require("./app");
+```
+
+This will finally read our variables from the config file and save them into NodeJS environment variables. So these variables will also be accessible from any file without having to require or define anything anywhere.
+
+> **_Note_** | it is a convention to use all uppercase variable names.
+
+> **_Note_** | in order to add some syntax highlighting to the config file text, you can install a VS Code extension called **dotENV**.
+
+> **_Note_** | we usually use environment variables as configuration settings for our application. For stuff that might change based on the environment, we might add variables environments. We might also store some sensitiv data like passwords and usernames using environment variables in the config file.
+
 ## **Running JavaScript outside the browser**
 
 NodeJS, as a JavaScript runtime, actually enables us to run JavaScript outside the browser. So we are no longer limited to the browser as JavaScript runtime.
@@ -452,7 +524,25 @@ const <variable-name> = require('<module-name>');
 
 ### **Package versioning and updating**
 
+[empty]
+
 ## **NodeJS core and 3rd-party modules**
+
+### **Process module**
+
+**`core`**
+
+This module sets a lot of variable environments for NodeJS. This core modules does not even need to be required into any file. We have access to it everywhere. We can take a look at the environment variables it sets:
+
+```js
+console.log(process.env);
+```
+
+### **Dotenv module**
+
+**`3rd-party`**
+
+Used to connect a `config.env` file to the Node application. Refer to [environment variables](#environment-variables).
 
 ### **FS module**
 
