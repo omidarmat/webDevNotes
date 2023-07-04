@@ -121,6 +121,8 @@
 
 # **A brief JavaScript history**
 
+<!-- TODO add history notes -->
+
 # **JavaScript releases**
 
 JavaScript has a unique feature called **backwards compatibility**. It means that if write old JavaScript code syntax, it will successfully be understood by modern JavaScript engines that we have today, so it will work in modern browsers. So no matter how far JavaScript goes in its future releases, old websites will still keep working.
