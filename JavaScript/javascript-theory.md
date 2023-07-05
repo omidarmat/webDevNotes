@@ -26,6 +26,7 @@
     - [**Loops**](#loops)
       - [**The `for` loop**](#the-for-loop)
       - [**The `while` loop**](#the-while-loop)
+      - [**The `for-of` loop**](#the-for-of-loop)
   - [**Statements and Expressions**](#statements-and-expressions)
   - [**Strict mode**](#strict-mode)
 - [**JavaScript behind the scenes**](#javascript-behind-the-scenes)
@@ -505,6 +506,31 @@ while (dice !== 6) {
   console.log(`Dice: ${dice}`);
   dice = Math.trunc(Math.random() * 6) + 1;
   if (dice === 6) console.log(`finally a 6!`);
+}
+```
+
+#### **The `for-of` loop**
+
+Introduced in ES6, allows us to loop over arrays in a new way. This will automatically loop over the entire array, and in each iteration, it gives us access to the current array element (`friend` in the example below).
+
+```js
+const friends = ["Hooman", `Amirhossein`, `Behzad`, `Maryam`];
+
+for (const friend of friends) {
+  console.log(friend);
+}
+```
+
+> **_Note_** | `continue` and `break` keywords can be used in this loop.
+
+> **_Note_** | in order to have access to the current element's index in this loop, we would have to use the `.entries()` method on the array over which we are looping.
+
+```js
+for (const friend of friends.entries) {
+  console.log(friend);
+  // [0, 'Hooman']
+  // [1, 'Amirhossein']
+  // ...
 }
 ```
 
