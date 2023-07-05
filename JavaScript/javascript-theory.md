@@ -139,7 +139,16 @@
 
 # **A brief JavaScript history**
 
-<!-- TODO add history notes -->
+Right after the internet was invented, and the first browsers were developed, developers wanted to start making websites more interactive. Therefore they needed a programming language for the browser. So here are a couple of historical notes that you should know:
+
+| Time     | What happened?                                                                                                                                                                                                                                                                                                                                                                |
+| -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1995     | Brendan Eich created the **first version** of JavaScript in 10 days. It was called _Mocha_. It had many fundamental features of modern JavaScript.                                                                                                                                                                                                                            |
+| 1996     | Mocha was renamed first to LiveScript and then to JavaScript, in order to attract Java developers, since Java was the most popular programming language at that time. But JavaScript has nothing to do with Java. People started to realise that they need a standard JavaScript language. So the language was submitted to an independant standard organization called ECMA. |
+| 1997     | ECMA released **ECMAScript 1 (ES1)**, which was the first official standard for JavaScript. Now every browser could implement the same standard of JavaScript.                                                                                                                                                                                                                |
+| 2009     | After a lot of controversy about where the language should be headed, ES5 was released with lots of new features.                                                                                                                                                                                                                                                             |
+| 2015     | ES6/ES2015 was released. This was the biggest update to the language ever. The reason why releases were also announced with the year number starting from ES6, was that in 2015, ECMAScript changed to an annual release cycle in order to shil less features per update, and therefore, avoiding breaking changes in the language.                                           |
+| 2016 - ∞ | Releases of ES7/ES2016, ES8/ES2017, ...                                                                                                                                                                                                                                                                                                                                       |
 
 # **JavaScript releases**
 
@@ -737,10 +746,6 @@ const age2 = calcAge2(1992);
 ```
 
 # **Data structures**
-
-<!-- TODO review 'working with strings' of 9th section -->
-
-<!-- TODO add notes for regular expressions -->
 
 ## **Arrays**
 
