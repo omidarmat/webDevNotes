@@ -69,6 +69,13 @@
     - [**Destructuring objects**](#destructuring-objects)
     - [**Spread operator for objects**](#spread-operator-for-objects)
     - [**Rest pattern in objects**](#rest-pattern-in-objects)
+  - [**Sets**](#sets)
+    - [**Creating sets**](#creating-sets)
+      - [**Set properties and methods**](#set-properties-and-methods)
+  - [**Maps**](#maps)
+    - [**Creating maps**](#creating-maps)
+    - [**Populating maps**](#populating-maps)
+    - [**Map methods**](#map-methods)
 - [**Object-Oriented Programming**](#object-oriented-programming)
   - [**Traditional OOP (classes and instances)**](#traditional-oop-classes-and-instances)
     - [**Four fundamental OOP principles**](#four-fundamental-oop-principles)
@@ -1346,6 +1353,147 @@ Use cases:
 ```js
 const { sat, ...weekDays } = restaurant.openingHours;
 ```
+
+## **Sets**
+
+Introduced in ES6, it is a collection of unique values. Its main use case is to remove duplicate values from arrays.
+
+### **Creating sets**
+
+To create a set, we use the `new` operator with the `Set` constructor. We then pass an iterable (array, string, etc.) into the constructor. If the iterable contains duplicate values, the constructor will remove them and only keep one.
+
+```js
+const rolesSet = new Set(["user", "user", "author", "admin", "admin"]);
+console.log(roleSet); // {'user', 'author', 'admin'}
+```
+
+> **_Note_** | Just like arrays, sets are iterables. Unlike array, however, the order of elements in a set does not matter.
+
+#### **Set properties and methods**
+
+**Property `size`:** To inspect the set's size.
+
+```js
+console.log(rolesSet.size); // 3
+```
+
+**Method `.has()`:** To check if an element exists in a set.
+
+```js
+console.log(rolesSet.has("user")); // true
+```
+
+**Method `.add()`:** To add an element to a set.
+
+```js
+rolesSet.add("editor");
+```
+
+**Method `.delete()`:** To delete an element from a set.
+
+```js
+rolesSet.delete("author");
+```
+
+**Method `.clear()`:** To clear all elements of a set.
+
+```js
+rolesSet.clear();
+```
+
+> **_Note_** | Since sets are iterables, we can loop over them using the `for/of` loop.
+
+> **_Note_** | The spread operator (`***`) works on sets.
+
+```js
+const roles = ["user", "user", "author", "admin", "admin"];
+const rolesUnique = [...new Set(roles)];
+```
+
+> **_Note_** | There is no way of retrieving a certain value from a set. There is no point in doing so. All we need to know, is whether a certain element exists in a set or not.
+
+## **Maps**
+
+Introduced in ES6, it is data structure that we can use to map values to keys, just like objects. The big difference here is that in maps, keys can have any type, even objects or arrays, while in objects, keys can only be strings. And also note that even DOM elements, which are another type of objects, can be used as keys.
+
+### **Creating maps**
+
+To create a map we use the `new` operator with the `Map` constructor function.
+
+```js
+const me = new Map();
+```
+
+### **Populating maps**
+
+**`.set()`:** The method accepts two arguments: first, the key. Second, the value. The method updates the map and also returns the updated map. This allows us to chain multiple `.set()` methods.
+
+```js
+me
+  .set("name", "Omid")
+  .set(1, "Mashhad, Ahmadabad")
+  .set(2, "Karaj, Mehrshahr")
+  .set('startWork', 7);
+  .set('stopWork', 20);
+  .set(true, 'Working');
+  .set(false, 'Not working')
+```
+
+**Passing array into map:** we can populate a map right when we create it. We would pass in an array of key-value pairs, each stored in another array.
+
+```js
+const me = new Map([
+  ["name", "Omid"],
+  [1, "Mashhad, Ahmadabad"],
+  [2, "Karaj, Mehrshahr"],
+  ["startWork", 7],
+  ["stopWork", 20],
+  [true, "Working"],
+  [false, "Not working"],
+]);
+```
+
+> **_Note_** | An array of arrays is actually what we get when we use `Object.entries()` on an object. This shows us that we can easily convert an object to a map.
+
+```js
+const meMap = new Map(Object.entries(meObject));
+```
+
+> **_Note_** | Maps are iterables. So we can use `for/of` to loop over them.
+
+### **Map methods**
+
+**`.get()`**: accepts a value as key, and retrieves the related value.
+
+```js
+console.log(me.get(true)); // Working
+```
+
+**`.has()`**: checks if a certain key-value pair exists in the map. Accepts a value as key.
+
+```js
+console.log(me.has("name")); // true
+```
+
+**`.delete()`**: deletes a key-value pair from map. Accepts a value as key.
+
+```js
+me.delete(true);
+```
+
+**Property `size`**: to inspect the size of a map.
+
+```js
+console.log(me.size); // 7
+```
+
+**`.clear()`**: deletes all key-value pairs from map.
+
+```js
+me.clear();
+```
+
+> **_Note_** | when inserting arrays or objects (reference types) as keys in a map, in order to be able to retrieve data based on these keys, we should store them in a variable before putting them in the map.
 
 # **Object-Oriented Programming**
 
