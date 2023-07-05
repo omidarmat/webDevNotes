@@ -76,6 +76,12 @@
     - [**Creating maps**](#creating-maps)
     - [**Populating maps**](#populating-maps)
     - [**Map methods**](#map-methods)
+- [**Strings**](#strings)
+  - [**String methods**](#string-methods)
+    - [**Finding positions of characters**](#finding-positions-of-characters)
+    - [**Extract parts of strings**](#extract-parts-of-strings)
+    - [**Transforming strings**](#transforming-strings)
+    - [**Checking characters existence**](#checking-characters-existence)
 - [**Object-Oriented Programming**](#object-oriented-programming)
   - [**Traditional OOP (classes and instances)**](#traditional-oop-classes-and-instances)
     - [**Four fundamental OOP principles**](#four-fundamental-oop-principles)
@@ -733,7 +739,7 @@ const age2 = calcAge2(1992);
 # **Data structures**
 
 <!-- TODO review 'working with strings' of 9th section -->
-<!-- TODO review maps and sets of 9th section -->
+
 <!-- TODO add notes for regular expressions -->
 
 ## **Arrays**
@@ -1494,6 +1500,181 @@ me.clear();
 ```
 
 > **_Note_** | when inserting arrays or objects (reference types) as keys in a map, in order to be able to retrieve data based on these keys, we should store them in a variable before putting them in the map.
+
+# **Strings**
+
+We are going to introduce some methods and properties that are available on strings. To do so, we need to work on some examples:
+
+```js
+const airline = "TAP Air Portugal";
+const plane = "A320";
+```
+
+**`[<index>]`:** used to retrieve a character at a certain position.
+
+```js
+console.log(plane[0]); // A
+```
+
+> **_Note_** | remember that spaces also count as a character, and therefore indexes are assigned to them.
+
+**Property `length`:** used to get the length of a string.
+
+```js
+console.log(airline.length); // 16
+```
+
+## **String methods**
+
+First of all, we should know that when we use methods on strings, behind the scenes, JavaScript will convert the string primitive to a string **object** with the same content. Then we can have access to methods. This process is called **boxing**. After the method's operation is done, the obejct is converted back to a regular string primitive.
+
+### **Finding positions of characters**
+
+```js
+// behind the scenes
+const stringObj = new String("TAP Airline Portugal");
+```
+
+**`.indexOf()`:** used to get the index of a given character. This returns the index of the first occurence.
+
+```js
+console.log(airline.indexOf("r")); // 6
+```
+
+> **_Note_** | the method can also be used to look for an entire word, not just a character. It will return the index of the starting character. Remember that this specific search will be case sensitive.
+
+**`.lastIndexOf()`:** used to get the index of a given character. This returns the index of the last occurence.
+
+```js
+console.log(airline.lastIndexOf("r")); // 10
+```
+
+> **_Note_** | The two methods mentioned above will return `-1` if they can't find the given character or word.
+
+### **Extract parts of strings**
+
+**`.slice()`:** used to extract part of a string.
+
+- Accepts two indexes as arguments, one for the starting position and one for the ending position. Remember that the character related to the ending index will not be included in the returned sliced string. If only one argument passed, that would be considered as the starting index, and slicing will be performed from that index until the end of the string.
+- Returns the sliced part of the string as a new string.
+- Does not mutate the original string. Strings are primitives.
+
+```js
+console.log(airline.slice(4)); // Air Portugal (sub-string)
+```
+
+> **_Note_** | passing a negative start and end index into the method will make the method count from the end of the string and perform the slicing.
+
+```js
+console.log(airline.slice(-2)); // al
+```
+
+> **_Note_** | in order not to hard-code the index value into this method, we can use it with the `.indexOf()` methods.
+
+### **Transforming strings**
+
+**`.toLowerCase()` and `.toUpperCase()`:** used to convert strings to lowercase and uppercase. Accepts no argument.
+
+- Accepts no argument.
+- Returns a new string.
+- Does not mutate the original string.
+
+**`.trim()`:** used to delete all white spaces from a string. `\n` is considered a white space too.
+
+- Accepts no argument.
+- Returns a new string.
+- Does not mutate the original string.
+
+```js
+const trimmedEmail = email.trim();
+```
+
+> **_Note_** | there are also `.trimStart()` and `.trimEnd()` methods available.
+
+> **_Note_** | nearly all string methods can be chained together.
+
+```js
+const normalizedEmail = loginEmail.toLowerCase().trim();
+```
+
+**`.replace()`:** used to replace parts of strings. Note that this will only replace the first occurence of the first argument.
+
+- Accepts 2 arguments: first, the character that should be found. Second, the character that should be placed instead of the found character.
+- Returns a new string.
+- Does not mutate the original string.
+
+```js
+const priceUS = priceGB.replace("£", "$").replace(",", ".");
+```
+
+> **_Note_** | the method can also replace whole words, not only single characters.
+
+**`.replaceAll()`:** used to replace parts of strings. Note that this will only replace all occurences of the first argument.
+
+**`.split()`:** used to split a string into multiple parts based on a divider string that it receives as argument.
+
+- Accpets string as argument.
+- Returns an array containing multiple string elements.
+
+```js
+console.log("omid+armat+programming".split("+")); // ['omid', 'armat', 'programming'];
+```
+
+**`.join()`:** used to join string elements stored in an array into one whole string value, each separated by a separator argument from the next element.
+
+- Accepts a string as argument.
+- Returns a new string.
+
+```js
+const name = ["Mr.", "Omid", "Armat"];
+console.log(name.join(" ")); // Mr. Omid Armat
+```
+
+**`.padStart()` and `.padEnd()`:** padding means to add a number of characters to a string until the final string has a desired length. This method adds some characters to the beginning of any given string.
+
+- Accepts two arguments: first, the desired length of the returned string. Second, the character that should be added until reaching the desired number of characters.
+- Returns a new string.
+
+```js
+const message = "Go to gate 23!";
+console.log(message.padStart(25, "+"));
+// ++++++++++++++Go to gate 23!
+console.log(message.padEnd(25, "+"));
+// Go to gate 23!++++++++++++++
+```
+
+> **_Note_** | this method can be useful when we need to mask a series of numbers from a sensitive data, like creadit card numbers.
+
+**`.repeat()`:** allows us to repeat a given string multiple times.
+
+- Accpets a number as argument, determining how many times the string should be repeated.
+- Returns a new string.
+
+```js
+const message2 = "Bad weather... All flights delayed... ";
+console.log(message2.repeat(5));
+```
+
+### **Checking characters existence**
+
+**`.includes()`:** used to check if a certain character exists in a given string.
+
+- Accepts a string as argument.
+- Returns boolean.
+
+```js
+console.log(plane.includes("A3")); // true
+```
+
+**`.startsWith()`:** used to check if a given string starts with certain characters.
+
+- Accepts a string as argument.
+- Returns boolean.
+
+**`.endsWith()`:** used to check if a given string ends with certain characters.
+
+- Accepts a string as argument.
+- Returns boolean.
 
 # **Object-Oriented Programming**
 
