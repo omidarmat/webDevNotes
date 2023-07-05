@@ -5,6 +5,9 @@
     - [**Naming variables**](#naming-variables)
     - [**Declaring variables**](#declaring-variables)
   - [**Data types**](#data-types)
+    - [**Different primitive types**](#different-primitive-types)
+    - [**Different object types**](#different-object-types)
+    - [**Primitives vs. Objects**](#primitives-vs-objects)
     - [**Inspecting the data type**](#inspecting-the-data-type)
     - [**Dynamic typing in JavaScript**](#dynamic-typing-in-javascript)
     - [**Type conversion and coercion**](#type-conversion-and-coercion)
@@ -36,6 +39,8 @@
       - [**Scope and the scope chain**](#scope-and-the-scope-chain)
         - [**Scope chain**](#scope-chain)
       - [**Variable environments: hoisting and TDZ**](#variable-environments-hoisting-and-tdz)
+      - [**The `this` keyword**](#the-this-keyword)
+      - [**The `arguments` keyword**](#the-arguments-keyword)
 - [**Functions**](#functions)
   - [**Defining functions**](#defining-functions)
     - [**Function declarations**](#function-declarations)
@@ -183,7 +188,9 @@ let x, y;
 
 Every value in JavaScript is either an **object** or a **primitive** value. It would only be primitive if it is not an object.
 
-Primitive values can 7 different data types.
+### **Different primitive types**
+
+Primitive values can have 7 different data types:
 
 | Data type       | Description                                                              | Example                   |
 | --------------- | ------------------------------------------------------------------------ | ------------------------- |
@@ -194,6 +201,93 @@ Primitive values can 7 different data types.
 | Null            | means empty value                                                        |
 | Symbol (ES2015) | unique value and cannot be changed                                       |
 | BigInt (ES2020) | larger integers than the Number type                                     |
+
+### **Different object types**
+
+These are different types of objects in JavaScript:
+
+1. Object literal
+2. Arrays
+3. Functions
+4. Many more things...
+
+### **Primitives vs. Objects**
+
+In terms of memory and memory management, it is common to call primitives as _primitive types_, and objects as _reference types_, because these two are stored differently in the memory.
+
+All reference types are stored in the JavaScript engine's [heap](#javascript-engine). All primitive types are stored in the [execution contexts](#execution-contexts-and-the-call-stack) in the [call stack](#javascript-engine).
+
+Let's perform the comparison based on a code example:
+
+```js
+let age = 30;
+let oldAge = age;
+age = 31;
+console.log(age); // 31
+console.log(oldAge); // 30
+```
+
+When we declare a variable like `age`, JavaScipt will first create a unique **identifier** with the variable name. Then a piece of memory, with a certain **address** (like `0001`) will be allocated to the identifier. **Keep in mind that the identifier points to the address and not to the value**. So we say that age is equal to 30, but in fact, age is equal to `0001` memory address. Finally, the value will be stored in the memory. So what we will have in the engine's call stack is:
+
+| Identifier | Address | Value |
+| ---------- | ------- | ----- |
+| age        | 0001    | 30    |
+
+In the next code line, we declare `oldAge` to be equal to `age`. So what will happen in the call stack, is that another unique identifier will be created and it will point to the same memory address as the `age` identifier. JavaScript will not allocate another piece of memory.
+
+| Identifier | Address | Value |
+| ---------- | ------- | ----- |
+| age        | 0001    | 30    |
+| oldAge     | 0001    |       |
+
+In the next line, we set `age` to 31. Certainly, the value at `0001` will not become 31. If it would, `oldAge` would be changed too. But a **value at a certain memory address is immutable**. What happens instead, is that a new piece of memory with address `0002` is allocated and the `age` identifier now points to this new address that holds 31.
+
+| Identifier | Address | Value |
+| ---------- | ------- | ----- |
+| oldAge     | 0001    | 30    |
+| age        | 0002    | 31    |
+
+With reference values, things work a bit differently. Let's inspect another code example:
+
+```js
+const me = {
+  name: "Omid",
+  age: 30,
+};
+
+const friend = me;
+friend.age = 27;
+
+console.log(friend.age); // 27
+console.log(me.age); // 27
+```
+
+When a new object is created, it is stored in the heap. Like in the call stack, there will be a memory address (like `D30F`), and then the value itslef, which in this case is an object. What happened to the identifier? The `me` identifier is also created in the call stack, which has a memory address for itself (like `0003`), and its value will be the memory address stored in the heap (D30F). So the piece of memory in the call stack will reference another piece of memory in the heap. That is why we call objects _reference types_. Objects are stored in this way because they could potentially become too large to be stored in the stack. Instead, the heap is like an unlimited memory pool.
+
+**HEAP:**
+
+| Address | Value                       |
+| ------- | --------------------------- |
+| D30F    | `{ name: 'Omid', age: 30 }` |
+
+**CALL STACK:**
+
+| Identifier | Address | Value |
+| ---------- | ------- | ----- |
+| me         | 0003    | D30F  |
+
+In the next line, we create a new variable called `friend` and set it equal to `me`. Just like with what happened with primitives, a new identifier (`frined`) is created in the call stack, pointing to the same memory address as `me` identifier, so to `0003`, and then to the `D30F` memory address in the heap.
+
+**CALL STACK:**
+
+| Identifier | Address | Value |
+| ---------- | ------- | ----- |
+| me         | 0003    | D30F  |
+| friend     | 0003    |       |
+
+So what has happened is that the `friend` object is essentially the same as `me` object. So in the next line, when we change the `age` property of `friend`, the object is found in the heap and the age value is changed to 27.
+
+> **_Note_** | this is why we can change values in objects although we declare them with `const`. When we change a value in an object, we are not actually changing the value of the allocated memory address in the call stack. All we do is to change a value in the heap. So when we say variables declared with `const` are immutable, it is actually concerned with primitive types, not reference types.
 
 ### **Inspecting the data type**
 
@@ -531,6 +625,28 @@ Let's now take a look at how hoisting behaves with different types of variables:
 
 > **_Note_** | Hoisting was implemented in JavaScript in order to make it possible to use functions before they are declared. This is essential for some programming techniques such as **mutual recursion**.
 
+#### **The `this` keyword**
+
+It is a special variable that is created for every execution context (every function). It refers to the **owner** of the function in which the `this` keyword is used.
+
+Note that the value of `this` is not static. It depends on how the function is called, and its value is only assigned when the function is actually called.
+
+The `this` keyword in different ways of calling functions:
+
+1. function called as a method: `this` = object that is calling the method
+2. function called normally: `this` = undefined (only in strict mode, otherwise refers to global `window` object)
+3. [Arrow functions](#arrow-functions): `this` = `this` of the parent function (lexical `this`)
+4. function called as event listener: `this` = the dom element that the handler is attached to.
+5. calling function with `new`, `call`, `apply`, `bind`:
+
+> **_Note_** | The `this` keyword never points to the function itself, it also never points to the function's variable environment.
+
+#### **The `arguments` keyword**
+
+Regular functions (function delcarations and expressions) have access to the `arguments` keyword. This keyword holds an array of the arguments passed into a function. We can inspect them inside the scope of a function. Even if passing more parameters than a function can accept, the arguments will still be stored in the `arguments` array.
+
+Arrow functions do not have access to this keyword. If we attempt to inspect it, an error would be returned telling us that the keyword is not defined.
+
 # **Functions**
 
 A function is a piece of code that we can use over and over in our code. It is a bit similar to a variable, but while a vairable holds a value, a function can hold one or more complete lines of code. So functions help us write more maintainable code and follow the DRY principle.
@@ -581,7 +697,9 @@ const calcAge3 = (birthyear) => {
 
 > **_Note_** | in case the functionality only contains one line of code, it is not necessary to put it inside `{}`, and you will then be able to omit the `return` keyword.
 
-> **_Note_** | The execution context of an arrow function does not get its own `this` keyword and `arguments` object. Instead, it will use `this` and `arguments` of its closest regular function parent. Refer to **lexical `this`**..
+> **_Note_** | The execution context of an arrow function does not get its own `this` keyword and `arguments` object. Instead, it will use `this` and `arguments` of its closest regular function parent. Refer to **lexical `this`**.
+>
+> This special feature of arrow functions make them especially useful in situations where we need to use a function inside an obejct method, and we need the `this` keyword to point to the object. So we will implement the inner function as an arrow function, so that its `this` keyword will get the `this` keyword of its parent function, which in turn refers to the object.
 
 ```js
 const calcAge3 = (birthYear) => 2037 - birthYear;
