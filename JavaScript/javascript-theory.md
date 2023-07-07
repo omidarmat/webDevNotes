@@ -83,6 +83,20 @@
     - [**Extract parts of strings**](#extract-parts-of-strings)
     - [**Transforming strings**](#transforming-strings)
     - [**Checking characters existence**](#checking-characters-existence)
+- [**Asynchronous programming**](#asynchronous-programming)
+  - [**JavaScript pre-defined asynchronous functionalities**](#javascript-pre-defined-asynchronous-functionalities)
+    - [**AJAX calls**](#ajax-calls)
+      - [**`XMLHttpRequest()`**](#xmlhttprequest)
+      - [**Fetch API**](#fetch-api)
+  - [**Promises**](#promises)
+    - [**A promise lifecycle**](#a-promise-lifecycle)
+    - [**Working with promises**](#working-with-promises)
+      - [**Consuming a promise**](#consuming-a-promise)
+        - [**Consuming with `.then()`**](#consuming-with-then)
+        - [**Consuming with `async` and `await`**](#consuming-with-async-and-await)
+      - [**Creating a promise**](#creating-a-promise)
+      - [**Error handling**](#error-handling)
+      - [**Finally!**](#finally)
 - [**Object-Oriented Programming**](#object-oriented-programming)
   - [**Traditional OOP (classes and instances)**](#traditional-oop-classes-and-instances)
     - [**Four fundamental OOP principles**](#four-fundamental-oop-principles)
@@ -571,7 +585,7 @@ A JavaScript **engine** is a program that executes JavaScript code. There are a 
 As mentioned above, a JavaScript runtime includes:
 
 1. **JavaScript engine**
-2. **Web APIs:** include DOM, timers, fetch API, and many more. Web APIs are functionalities provided to the engine, but are not part of the JavaScript language itself. JavaScript has access to these APIs through the **global window object**.
+2. **Web APIs:** include DOM, timers, fetch API, Geolocation and many more. Web APIs are functionalities provided to the engine, but are not part of the JavaScript language itself. JavaScript has access to these APIs through the **global window object**.
 3. **Callback quque:** It is a data structure containing all the callback functions that are ready to be executed. For instance, we attach event listeners to DOM elements to react to certain events. The reaction itself is defined as a callback function. When the event occures, the callback function is put in the callback queue. Then when the engine's call stack gets empty, the callback function is passed into the call stack where it will be executed. The execution is done by the **event loop**.
 
 > **_Note_** | JavaScript can also run outside the browser. If that is the case, for example with NodeJS, the JavaScript runtime will no longer have the web APIs, simply because these are provided by the browser. Instead, we have multiple C++ bindings and a **thread pool**.
@@ -1707,6 +1721,203 @@ console.log(plane.includes("A3")); // true
 - Accepts a string as argument.
 - Returns boolean.
 
+# **Asynchronous programming**
+
+Asynchronous programming is all about coordinating the behavior of our program over a period of time.
+
+Synchornous code refers to a code that is executed line by line, in the exact order that they are defined in the code. Most of the time, synchronous code is fine, but in some cases, a heavy or time-consuming task should be performed, for which the whole program would have to stop until it is finished. In such cases, we can use asynchoronous code.
+
+Some functionalities are implemented, by default, in an asynchronous way in JavaScript. For instance, the `setTimeout()` timer does its job asynchronously. But we can also implement our own asynchronous functionalities. Asynchronous code is normally coupled with callback functions. It means that when the heavy task is done processing in the background, a callback function would be called. But this does not mean that using callback functions will turn our code to an asynchronous one.
+
+## **JavaScript pre-defined asynchronous functionalities**
+
+1. `setTimeout()` function.
+2. Changing the `src` attribute of an image element. Once it is done, a `load` event is emited to which we can listen to using an event listener.
+3. Geolocation API
+4. AJAX calls: stands for Asynchronous JavaScript And XML and allows us to communicate with remote web servers. With AJAX calls, we can request data from web servers dynamically.
+
+### **AJAX calls**
+
+There are multiple ways of doing AJAX calls.
+
+#### **`XMLHttpRequest()`**
+
+To perform an AJAX call in this method, we first need to create a request object.
+
+```js
+const request = new XMLHttpRequest();
+```
+
+We then have to `.open()` the request by specifying the HTTP method and the URL. Afterwards, we would have to `.send()` the request. Sending the request will start performing the asynchronous task of sending the request and waiting for the server's respond. So we cannot expect the resulting data to be immediately available on the request object.
+
+Once the respond from the server arrives, which means the requested data is ready, the request object will emit a `load` event, to which we can listen. The event listener would receive a callback function that will actually be called once the `load` event is detected. Note that the actualy data comming from the server will be stored on the `responseText` property of the request object.
+
+```js
+request.open("GET", "<URL>");
+request.send(); // Asynchronous
+
+request.addEventListener("load", function () {
+  console.log(this.responseText); // this = request,
+});
+```
+
+> **_Note_** | Data received from an API is usually in JSON format and we would probably need to convert it to meaningful JavaScript data structures before we can use them. This is done using `JSON.parse()` method.
+
+```js
+const data = JSON.parse(this.responseText);
+```
+
+#### **Fetch API**
+
+To perform an AJAX call in this method, we create a request by calling the `fetch()` function which receives a URL. There are multiple options that can be specified in the fetch function, but to perform a simple `GET` response, we just need to pass in a URL.
+
+If we immediately attempt to log the request result to the console, we would see a **pending promise**.
+
+```js
+const request = fetch("<URL>"); // Asynchronous
+console.log(request); // Promise {<pending>}
+```
+
+## **Promises**
+
+Promise (introduced in ES6) is an object that is used as a placeholder for the future result of an asynchronous operation. In more simple terms, a promise is a container for a value that would become available some time in future. Response comming from an AJAX call is the perfect example of a future value.
+
+Using promises for asynchronous programming has 2 advantages:
+
+- We no longer need to rely on events and callbacks passed into asynchronous functions to handle asynchronous results.
+- Instead of nesting callbacks which leads to **callback hell**, we can chain promises for a sequence of asynchronous operations.
+
+### **A promise lifecycle**
+
+Once a promise is created, we say the promise is **pending**. While the promise is pending, the asynchronous task is doing its job in the background. When this background task is done, we say the promise is **settled**. But settled promises have two types. If the promise has successfully resulted in the expected value, it would be a **fulfilled** promise. If an error happened during the asynchronous task in the background, the promise would still be settled, but **rejected**.
+
+> **_Note_** | In the case of an AJAX call using the fetch API, the `fetch()` function will only reject a promise when users lose their internet connection. In other cases, for example, when a bad request is sent to the server, the promise will still be considered as fulfilled, although the response will not contain the intended data. This is important to keep in mind when handling errors.
+
+When using promises, or in other words, when we **consume** promisses, we can handle the promise's state to perform different actions. We can consume a promise if there is a promise. In the case of the fetch API, the promise is automatically created by the `fetch()` function. If there is no promise, it should first be built.
+
+### **Working with promises**
+
+Working with promises basically involves creating promises, consuming promises, handling errors that happen during the execution of promises, etc.
+
+#### **Consuming a promise**
+
+##### **Consuming with `.then()`**
+
+In this case, we simply consume an alreadty-existing promise by using the `.then()` method on the promise. This method accepts a callback function that has access to the response of the promise. The result is actually returned as a `Response` object. Remember that the callback function will only be executed once the promise is fulfilled.
+
+For example, when we use the fetch API to request data from a remote server, the `fetch` function returns a promise and we can consume it.
+
+```js
+const getCountryData = function (country) {
+  fetch("<URL>").then(function (response) {
+    console.log(response);
+  });
+};
+```
+
+The response object contains, in addition to the requested data, some information about the request itself, including the `status`, `ok`, `body`, etc. The actual data that we have requested is stored in the `body` property. At this stage, we cannot look at the actual data. It just says `ReadableStream`. To be able to access the data, we should call the `.json()` method on the response object. The problem is that the `.json()` method itself as an asynchronous function. So it returns another promise that should, again, be consumed using yet another `.then()` method.
+
+```js
+const getCountryData = function (country) {
+  fetch("<URL>")
+    .then((response) => response.json())
+    .then((data) => conssole.log(data));
+};
+```
+
+> **_Note_** | notice how callback functions in the `.then()` methods can be converted into simple arrow functions.
+
+> **_Note_** | the `.then()` method always return a promise, no matter if we return anything from it or not. If we do return a value, that would be the fulfillment value of the promise that it returns. If we return a promise in the method, the fullfilment value of that promise would be the fullfilment value of the promise that the method returnes. This is particularly useful when we want to make multiple AJAX calls where one call depends on the result of the previous call. Using promises and the `.then()` method will help us avoid callback hell.
+
+Up until this point we have only handled fullfilment values. If the promise is rejected, an error saying _Uncaught error_ will occur, and we would have to capture the error using the `.catch()` method, usually attached to the final `.then()` method. Refer to [error handling](#error-handling).
+
+##### **Consuming with `async` and `await`**
+
+#### **Creating a promise**
+
+To create a new promise, we use the `new` operator and then the call the `Promise()` constructor. The Promise constructor function accepts one argument, and that is the **executor function**. The executor function is called as soon as the Promise constructor is executed. The executor has access to 2 other arguments: `resolve` and `reject` functions. Calling the resolve function in the executor will mark the promise as fulfilled, while calling the reject function will mark it as rejected. Also, the value that we pass into the resolve function will be the fulfillment value of the promise, while the value that we pass into the reject function will be the error message that will then be accessible in the `.catch()` method.
+
+The executor function is where we implement the asynchronous behavior that we are trying to handle using a promise. So the executor function should eventually produce a value. That would be the future value of the promise.
+
+```js
+const promise = new Promise(function (resolve, reject) {
+  if (Math.random() >= 0.5) {
+    resolve("You won!"); // will resolve the promise
+  } else {
+    reject("You lost!"); // will reject the promise
+  }
+});
+```
+
+We can now consume the promise that we just created.
+
+```js
+promise
+  .then((resolved) => console.log(resolved))
+  .catch((errMsg) => console.log(errMsg));
+```
+
+> **_Note_** | The promise in the mentioned example does not contain any asynchronous operation. It just shows how a promise can be created and consumed.
+
+> **_Note_** | Normally we just consume promises. We only build promises when we need to wrap callback-based functions into promises. This is called promisifying. It means to convert callback-based asynchronous behavior to promise-based. For instance, to promisify the `setTimeout()` function. Notice how we don't need the `reject()` function in the executor function in the case of promisifying the timer. A timer cannot fail.
+
+```js
+const wait = function (seconds) {
+  return new Promise(function (resolve) {
+    setTimeout(resolve, seconds * 1000);
+  });
+};
+```
+
+Now to consume this promise:
+
+```js
+wait(2)
+  .then(() => {
+    console.log("Waited for 2 seconds.");
+    return wait(1);
+  })
+  .then(`Waited for 1 second.`);
+```
+
+#### **Error handling**
+
+Actually, there are two ways of handling errors. We can pass a second callback function into the `.then()` method. This callback function will have access to the error object.
+
+```js
+const getCountryData = function (country) {
+  fetch("<URL>").then(
+    (response) => response.json(),
+    (err) => alert(err)
+  );
+};
+```
+
+But this is not a good way of handling errors. Because if there are multiple promises chained together, then we would have to define another error handling callback function in the next promise. So instead of passing a second callback function into the `.then()` method, we can implement a central error handling strategy using the `.catch()` method.
+
+```js
+const getCountryData = function (country) {
+  fetch("<URL>")
+    .then((response) => response.json())
+    .catch((err) => console.log(err));
+};
+```
+
+This way, any error that happens in any of the promises, will propagate down the chain and will be caught by the `.catch()` method.
+
+#### **Finally!**
+
+In addition to methods that we have been using on promises up until now (`.then()` and `.catch(d)`) we can also chain the `.finally()` method. This method also accepts a callback function which will be called no matter what happens with the response. So this would be a functionality that will always be performed after the chain of promises are executed.
+
+```js
+const getCountryData = function (country) {
+  fetch("<URL>")
+    .then((response) => response.json())
+    .catch((err) => console.log(err))
+    .finally(() => console.log("Hide loading spinner"));
+};
+```
+
 # **Object-Oriented Programming**
 
 Object-oriented programming is a programming paradigm based on the concept of obejcts. It was developed with the goal of organazing code (paradigm), to make code more flexible and easier to maintain. Here are some tips to be added on this general definition.
@@ -2376,7 +2587,7 @@ The DOM has more than just element nodes. It also has nodes for each group of te
 
 > **_Note_** | the rule is that whatever is in the HTML document, also has to be in the DOM.
 
-> **_Note_** | DOM is not part of the JavaScript language. DOM allows us to make JavaScript code impact the appearance of webpages. **Web APIs** make it possible to work with DOM and DOM methods. Web APIs are libraries written in JavaScript and implemented by browsers, which we can access from our JavaScript code. Besides the DOM, there are many other web APIs like timers, fetch API, and so on.
+> **_Note_** | DOM is not part of the JavaScript language. DOM allows us to make JavaScript code impact the appearance of webpages. **Web APIs** make it possible to work with DOM and DOM methods. Web APIs are libraries written in JavaScript and implemented by browsers, which we can access from our JavaScript code. Besides the DOM, there are many other web APIs like timers, fetch API, Geolocation and so on.
 
 ## **A detailed look into the DOM**
 
