@@ -96,6 +96,8 @@
         - [**Consuming with `async` and `await`**](#consuming-with-async-and-await)
       - [**Creating a promise**](#creating-a-promise)
       - [**Error handling**](#error-handling)
+        - [**Handling with `.then()` or `.catch()`**](#handling-with-then-or-catch)
+        - [**Handling with `try/catch` blocks**](#handling-with-trycatch-blocks)
       - [**Finally!**](#finally)
 - [**Object-Oriented Programming**](#object-oriented-programming)
   - [**Traditional OOP (classes and instances)**](#traditional-oop-classes-and-instances)
@@ -1801,6 +1803,8 @@ Working with promises basically involves creating promises, consuming promises, 
 
 #### **Consuming a promise**
 
+We can consume a promise using either the `.then()` method along with `.catch()` error handler, or the `async` and `await` statements.
+
 ##### **Consuming with `.then()`**
 
 In this case, we simply consume an alreadty-existing promise by using the `.then()` method on the promise. This method accepts a callback function that has access to the response of the promise. The result is actually returned as a `Response` object. Remember that the callback function will only be executed once the promise is fulfilled.
@@ -1832,6 +1836,19 @@ const getCountryData = function (country) {
 Up until this point we have only handled fullfilment values. If the promise is rejected, an error saying _Uncaught error_ will occur, and we would have to capture the error using the `.catch()` method, usually attached to the final `.then()` method. Refer to [error handling](#error-handling).
 
 ##### **Consuming with `async` and `await`**
+
+Since ES2017, we can consume promises using `async` and `await` statements. In this syntax, we start by creating an async function. This will make the function immediately return a prom ise and start running in the background. So an async function can be consumed since what it returns is a promise. Now if the async function returns a value, that value will be the fulfilled value of the promise returned by the function.
+
+Inside any async function, we can have one or more await statements. Await will stop the code execution at the point where it is typed until the related promise is fulfilled.
+
+```js
+const whereAmI = async function (country) {
+  const response = await fetch("<URL>");
+  console.log(response); // response object, containing data as ReadableStream
+  const data = await response.json();
+  console.log(data); // actual requested data
+};
+```
 
 #### **Creating a promise**
 
@@ -1882,6 +1899,8 @@ wait(2)
 
 #### **Error handling**
 
+##### **Handling with `.then()` or `.catch()`**
+
 Actually, there are two ways of handling errors. We can pass a second callback function into the `.then()` method. This callback function will have access to the error object.
 
 ```js
@@ -1904,6 +1923,33 @@ const getCountryData = function (country) {
 ```
 
 This way, any error that happens in any of the promises, will propagate down the chain and will be caught by the `.catch()` method.
+
+##### **Handling with `try/catch` blocks**
+
+Using the try/catch block to handle errors is not something limited to the use of asynchronous programming in JavaScript. We can actually use try/catch everywhere. But if we want to use try/catch to handle asynchronous programming errors, we must use it for the async/await syntax.
+
+This is how we use try/catch block in general:
+
+```js
+try {
+  // actual functionality
+} catch (err) {
+  // handling logic for errors in the try block
+}
+```
+
+In order to handle errors in async functions using the try/catch block:
+
+```js
+const whereAmI = async function () {
+  try {
+    const pos = await getPosition();
+    console.log(pos);
+  } catch (err) {
+    console.log(err);
+  }
+};
+```
 
 #### **Finally!**
 
