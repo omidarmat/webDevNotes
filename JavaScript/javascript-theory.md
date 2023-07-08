@@ -573,8 +573,10 @@ Here is a list of JavaScript features which kind of forms the whole definition o
 - **Dynamically-typed:** We don't need to define data types as we declare variables. We also don't need to change data types when we mutate variables.
 - **Garbage-collected:** Automatically removes old, unused objects from the computer memory. One of the powerful tools that takes memory management away from us.
 - **With first-class functions:** functions are treated as variables. We can pass them into other functions, and return from functions. This allows us to use functional programming in JavaScript.
-- **Single-threaded:** JavaScript runs in one single thread, meaning that it can only do one thing at a time. A thread is a sequence of instructions executed in the CPU. If one of the instructions is a long-running task (like fetching data from a server), it would hold our single thread. So we would need a way of taking it out of this thread, and process it somewhere else, thus the non-blocking event loop.
-- **Non-blocking event loop concurrency model:** concurrency model means how JavaScript engine handles multiple tasks hapenning at the same time. The event loop takes long-running tasks, executes them in the background, and puts them back in the main thread once they are done processing.
+- **Single-threaded:** JavaScript runs in one single thread, meaning that it can only do one thing at a time. A thread is a sequence of instructions executed in the CPU. If one of the instructions is a long-running task (like fetching data from a server, or a timer), it would block our single thread. So we would need a way of taking it out of this thread, and process it somewhere else (Web API environment of the browser runtime), thus the non-blocking event loop.
+- **Non-blocking event loop concurrency model:** concurrency model means how JavaScript engine handles multiple tasks hapenning at the same time. The event loop takes long-running tasks, executes them in the Web API environment, and when they are done, it takes their callback functions from the callback queue and puts them in the main thread so they can be executed.
+
+> **_Note_** | The callback queue also contains callbacks coming from DOM event. Although DOM events are not asynchronous behavior, they still use the callback queue to run the callbacks attached to them. So for example, when a click happens on a button with an event listener attached to it, the associated callback function will be put in the callback queue, waiting to be executed by the event loop.
 
 ## **JavaScript runtime and engine**
 
@@ -588,7 +590,11 @@ As mentioned above, a JavaScript runtime includes:
 
 1. **JavaScript engine**
 2. **Web APIs:** include DOM, timers, fetch API, Geolocation and many more. Web APIs are functionalities provided to the engine, but are not part of the JavaScript language itself. JavaScript has access to these APIs through the **global window object**.
-3. **Callback quque:** It is a data structure containing all the callback functions that are ready to be executed. For instance, we attach event listeners to DOM elements to react to certain events. The reaction itself is defined as a callback function. When the event occures, the callback function is put in the callback queue. Then when the engine's call stack gets empty, the callback function is passed into the call stack where it will be executed. The execution is done by the **event loop**.
+3. **Callback quque:** It is a data structure containing all the callback functions attached to certain events and other asynchronous behavior. Once those events are emited or once an asynchronous behavior is done, callback functions attached to them will be inserted into the callback, so that the event loop will take them and put them into the call stack in order to be executed. For instance, when image source attribute loading is done, a _load_ event is emited and the callback queue attached to this event will be put into the callback queue.
+
+> **_Note_** | Although DOM events are not asynchronous behavior, they still use the callback queue. So for example, we attach event listeners to DOM elements to react to certain events like a click. The reaction itself is defined as a callback function. When the event occures, the callback function is put in the callback queue. Then when the engine's call stack gets empty, the callback function is passed into the call stack where it will be executed. The execution is done by the **event loop**.
+
+4. **Microtasks quque:** It is another callback queue which is only concerned with callbacks (microtasks) associated with promises. This queue has priority over the callback queue, meaning that after each tick, the event loop will check this queue if there are any callbacks ready to be executed. If there are, all callbacks in this queue will be executed before going back to the callback queue.
 
 > **_Note_** | JavaScript can also run outside the browser. If that is the case, for example with NodeJS, the JavaScript runtime will no longer have the web APIs, simply because these are provided by the browser. Instead, we have multiple C++ bindings and a **thread pool**.
 
@@ -1729,7 +1735,13 @@ Asynchronous programming is all about coordinating the behavior of our program o
 
 Synchornous code refers to a code that is executed line by line, in the exact order that they are defined in the code. Most of the time, synchronous code is fine, but in some cases, a heavy or time-consuming task should be performed, for which the whole program would have to stop until it is finished. In such cases, we can use asynchoronous code.
 
-Some functionalities are implemented, by default, in an asynchronous way in JavaScript. For instance, the `setTimeout()` timer does its job asynchronously. But we can also implement our own asynchronous functionalities. Asynchronous code is normally coupled with callback functions. It means that when the heavy task is done processing in the background, a callback function would be called. But this does not mean that using callback functions will turn our code to an asynchronous one.
+We implement some functionalities to behave asynchronously. It means that we design them to perform their tasks in the background (Web API environment). When their operation is done, the callback functions attached to them will be put into the callback queue, ready to be executed.
+
+> **_Note_** | It is important to keep in mind that callback functions associated with promises will not be inserted into the callback queue. Instead, they will be inserted into the **microtasks queue**. This queue is especially designed for promises. The microtasks queue has priority over the callback queue. At the end of an event loop tick, which means after taking a callback to the call stack and executing it, the event loop will check if there are callbacks available in the microtasks queue. If there are, it will run all of them before going to the callback queue again.
+>
+> If one microtask adds a new microtask, this new microtask will also be executed before running any callbacks from the callback queue. Microtasks queue can essentially starve callback queue.
+
+Some functionalities are implemented, by default, in an asynchronous way in JavaScript. For instance, the `setTimeout()` timer does its job asynchronously. But we can also implement our own asynchronous functionalities. Asynchronous code is normally coupled with callback functions. It means that when the heavy task is done processing in the background, a callback function would be put into the callback queue and called. But this does not mean that using callback functions will turn our code to an asynchronous one.
 
 ## **JavaScript pre-defined asynchronous functionalities**
 
@@ -1739,6 +1751,8 @@ Some functionalities are implemented, by default, in an asynchronous way in Java
 4. AJAX calls: stands for Asynchronous JavaScript And XML and allows us to communicate with remote web servers. With AJAX calls, we can request data from web servers dynamically.
 
 ### **AJAX calls**
+
+AJAX calls are designed in nature to work with promises. It means that fetching data from a remote server is actually implemented as a promise. So once the data arrives, the callback function associated with it will be inserted into the microtasks queue.
 
 There are multiple ways of doing AJAX calls.
 
@@ -1782,7 +1796,7 @@ console.log(request); // Promise {<pending>}
 
 ## **Promises**
 
-Promise (introduced in ES6) is an object that is used as a placeholder for the future result of an asynchronous operation. In more simple terms, a promise is a container for a value that would become available some time in future. Response comming from an AJAX call is the perfect example of a future value.
+Promise (introduced in ES6) is an object that is used as a **placeholder** for the **future result** of an **asynchronous operation**. In more simple terms, a promise is a container for a value that would become available some time in future. Response comming from an AJAX call is the perfect example of a future value.
 
 Using promises for asynchronous programming has 2 advantages:
 
@@ -1819,7 +1833,7 @@ const getCountryData = function (country) {
 };
 ```
 
-The response object contains, in addition to the requested data, some information about the request itself, including the `status`, `ok`, `body`, etc. The actual data that we have requested is stored in the `body` property. At this stage, we cannot look at the actual data. It just says `ReadableStream`. To be able to access the data, we should call the `.json()` method on the response object. The problem is that the `.json()` method itself as an asynchronous function. So it returns another promise that should, again, be consumed using yet another `.then()` method.
+The response object contains, in addition to the requested data, some information about the request itself, including the `status`, `ok`, `body`, etc. The actual data that we have requested is stored in the `body` property. At this stage, we cannot look at the actual data. It just says `ReadableStream`. To be able to access the data, we should call the `.json()` method on the response object. The problem is that the `.json()` method itself is an asynchronous function. So it returns another promise that should, again, be consumed using yet another `.then()` method.
 
 ```js
 const getCountryData = function (country) {
