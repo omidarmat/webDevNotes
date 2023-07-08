@@ -1,4 +1,4 @@
-- [**Back-end theory**](#back-end-theory)
+- [\*\*Back-end theory
   - [**How the web works**](#how-the-web-works)
   - [**Web server**](#web-server)
     - [**HTTP server**](#http-server)
@@ -208,8 +208,8 @@ To build a REST API we need to follow some principles:
 
 > **_Note_** | REST architecture is also capable of performing CRUD operations that combine two or more resources.
 
-1. Send Data as JSON: JSON is a very light-weight data interchange format which is heavily used by Web APIs. The JSON data is usually formatted as JSend before being sent as a response to the client. The JSend format wraps the JSON data in another object, in which `status` and `data` fields are added. The status field contains a string that informs the client whether the request was a success or not. The data field will be an object containing the JSON data in it. This is done for some security issues and is called enveloping.
-2. Must be stateless: all state is handled on the client. It means that each request must contain all the information necessary to be processed. The server should not have to remember previous requests. Example: `loggedIn` or `currentPage`.
+4. Send Data as JSON: JSON is a very light-weight data interchange format which is heavily used by Web APIs. The JSON data is usually formatted as JSend before being sent as a response to the client. The JSend format wraps the JSON data in another object, in which `status` and `data` fields are added. The status field contains a string that informs the client whether the request was a success or not. The data field will be an object containing the JSON data in it. This is done for some security issues and is called enveloping.
+1. Must be stateless: all state is handled on the client side. It means that each request must contain all the information necessary to be processed. The server should not have to remember previous requests. Example: `loggedIn` or `currentPage`.
 
 ##### **_JSON_**
 
