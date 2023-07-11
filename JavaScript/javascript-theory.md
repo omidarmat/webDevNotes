@@ -153,6 +153,7 @@
     - [**Manipulate classes**](#manipulate-classes)
   - [**Events**](#events)
   - [**Event delegation**](#event-delegation)
+- [**Problem solving framework**](#problem-solving-framework)
 
 # **A brief JavaScript history**
 
@@ -2977,3 +2978,16 @@ document.querySelector(".nav__links").addEventListener("click", function (e) {
 ```
 
 > **_Note_** | Event delegation is a nice solution for situations where we want to work with elements that are not yet on the page in the runtime. This is a common use case of event delegation, especially with buttons that are added dynamically to the webpage while using the application.
+
+# **Problem solving framework**
+
+In order to solve a problem, first of all you need to stay calm and slow down. Do NOT just jump at a problem without a plan. In order to be able to solve a problem, you need to take a very logical and rational approach.
+
+Here is a 4-step framework that can help you take this logical and rational approach to solve a problem:
+
+1. Make sure you **fully understand the problem**. Ask all the questions you need to get a clear picture of the problem. This way you can step back and take a high-level look at the big picture.
+2. **Divide and conquer:** Break a big problem into smaller sub-problems. These smaller sub-problems are a lot easier to solve. This step will also help you with the first step, which is to fully understand the problem. This is an essential method of problem solving. It is not limited to programming.
+3. Do as much **research** as you need. You should attempt to implement a sub-problem with your own coding abilities, but if you find yourselft constantly hitting a wall, start your research. You can go for Google, Stack overflow, and MDN. Researching is a huge part of a programmer's job.
+4. For bigger problems, **write pseudo-code** before writing the actual code.
+
+> **_Note_** | Try to develop a genuine curiosity and passion for understanding how things actaully work, not only in programming, but in the whole world.
