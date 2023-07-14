@@ -94,3 +94,50 @@
 
   - Basic introduction to using NodeJS frameworks and why they exist
   - Introduction to Part framework
+
+## **Day 8**
+
+- Part framework
+
+  - Introduction to controllers
+  - Introduction to middleware
+
+## **Day 9**
+
+- Databases
+
+  - Introduction to different types of databases
+  - Introduction to sandbox(?) in Atlas database
+
+### **Day 10**
+
+- Databases
+
+  - Creating and deleting data in Atlas
+  - How to do queries in Atlas
+
+### **Day 11**
+
+- Part framework
+
+  - Error handling
+  - A brief introduction to DI
+
+### **Day 12**
+
+- Part framework
+
+  - Introduction to DI
+
+### **Day 13**
+
+- Part framework
+
+  - Introduction to clustering and cluster manager
+
+### **Day 14**
+
+- Part framework
+
+  - Introduction to Decorators
+  - Introduction to logging operation and how to log with the logger module
