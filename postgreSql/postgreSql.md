@@ -303,7 +303,7 @@ SELECT city FROM weather
 
 > This command will not work:
 >
-> ```
+> ```sql
 > SELECT city FROM weather WHERE temp_lo = max(temp_lo);
 > ```
 >
