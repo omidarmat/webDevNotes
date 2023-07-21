@@ -1,4 +1,4 @@
-# **Architectures**
+# **Design patterns**
 
 ## **Singleton**
 
@@ -56,3 +56,12 @@ const logger = new FancyLogger();
 Object.freeze(logger); // This will prevent the logger object from being changed in any way by our code. So the object cannot have any new variables or methods added to or removed from it.
 module.exports = logger;
 ```
+
+# **Architectures**
+
+## **Service-Oriented Architecture (SOA)**
+
+It is a style of software design where services are provided to other components by application components, through a communication protocol over a network. In SOA, a number of services communicate with each other, in one of two ways:
+
+1. Through passing data
+2. Through two or more services coordinating an activity
