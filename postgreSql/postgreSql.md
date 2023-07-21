@@ -1,6 +1,21 @@
-# **PostgreSQL**
+- [**Concepts**](#concepts)
+- [**Working with PostgreSQL**](#working-with-postgresql)
+  - [**Creating a new table**](#creating-a-new-table)
+  - [**Removing a new table**](#removing-a-new-table)
+  - [**Populating a table with rows**](#populating-a-table-with-rows)
+  - [**Querying a table**](#querying-a-table)
+    - [**Retrieve all rows**](#retrieve-all-rows)
+    - [**Retrieve with qualification**](#retrieve-with-qualification)
+      - [**`SELECT`**](#select)
+      - [**`ORDER`**](#order)
+      - [**`DISTINCT`**](#distinct)
+    - [**Join queryies**](#join-queryies)
+      - [**Outer joins**](#outer-joins)
+        - [**Left outer join**](#left-outer-join)
+        - [**Self outer join**](#self-outer-join)
+  - [**Aggregate functions**](#aggregate-functions)
 
-## **Concepts**
+# **Concepts**
 
 PostgreSQL is a relational database management system. It means that it is a system for managin data stored in _relations_, and by relations we mean _tables_.
 
@@ -10,9 +25,9 @@ Columns have a fixed order in each row, but SQL does not guarantee the order of 
 
 Tables are grouped into databases, and a collection of databases managed by a single PostgreSQL server instance consititutes a database _cluster_.
 
-## **Working with PostgreSQL**
+# **Working with PostgreSQL**
 
-### **Creating a new table**
+## **Creating a new table**
 
 This is the syntax you need to create a new table:
 
@@ -47,7 +62,7 @@ PostgreSQL supports the standard SQL types:
 
 > SQL is case insensitive about key words and identifiers, except when identifiers are double-quoted to preserve the case.
 
-### **Removing a new table**
+## **Removing a new table**
 
 If you don't need a table any longer or you want to recreate it differently, you can remove it using the following command:
 
@@ -55,7 +70,7 @@ If you don't need a table any longer or you want to recreate it differently, you
 DROP TABLE <tablename>;
 ```
 
-### **Populating a table with rows**
+## **Populating a table with rows**
 
 The `INSERT` statement is used to insert rows into a table:
 
@@ -80,7 +95,7 @@ You could also use the `COPY` command to load large amounts of data from flat-te
 COPY weather from '/home/user/weather.txt';
 ```
 
-### **Querying a table**
+## **Querying a table**
 
 The `SELECT` statement is used to query a table. The statement is divided into:
 
@@ -88,7 +103,7 @@ The `SELECT` statement is used to query a table. The statement is divided into:
 2. **Table list:** the part that lists the tables from which to retrieve data
 3. **Optional qualification:** the part that specifies any restrictions
 
-#### **Retrieve all rows**
+### **Retrieve all rows**
 
 To retrieve all rows of a table:
 
@@ -130,9 +145,9 @@ In this case, we expect this output:
 (3 rows)
 ```
 
-#### **Retrieve with qualification**
+### **Retrieve with qualification**
 
-##### **`SELECT`**
+#### **`SELECT`**
 
 A query can be _qualified_ by adding a `WHERE` caluse that specifies which rows are wanted. The clause contains a Boolean expression, and only rows for which the Boolean expression is true are returned. The usual Boolean operators (`AND`, `OR`, and `NOT`) are allowed in the qualification.
 
@@ -150,7 +165,7 @@ In this case, we expect this output:
 (1 row)
 ```
 
-##### **`ORDER`**
+#### **`ORDER`**
 
 You can request that the results of a query be returned in sorted order.
 
@@ -159,7 +174,7 @@ SELECT * FROM weather
     ORDER BY city, temp_lo;
 ```
 
-##### **`DISTINCT`**
+#### **`DISTINCT`**
 
 You can request that duplicate rows be removed from the result of the query.
 
@@ -176,7 +191,7 @@ SELECT DISTINCT city
     ORDER BY city;
 ```
 
-#### **Join queryies**
+### **Join queryies**
 
 Queries can access multiple tables at once, or access the same table in such a way that multiple rows of the table are being processed at the same time. Queries that access multiple tables or multiple instances of the same table at one time are called _join queries_.
 
@@ -221,7 +236,7 @@ SELECT *
     WHERE city = name;
 ```
 
-##### **Outer joins**
+#### **Outer joins**
 
 We have 3 different types of outer join:
 
@@ -230,7 +245,7 @@ We have 3 different types of outer join:
 3.  Full outer join
 4.  Self join
 
-###### **Left outer join**
+##### **Left outer join**
 
 In this example, we are going to use the left outer join.
 
@@ -241,7 +256,7 @@ SELECT *
 
 This query, as it is clear from its syntax, is called a _left outer join_. The table mentioned on the left of the join operator will have all of its rows in the output, while the table on the right side of the join operator will only have rows ouput that match a row on the left table. For rows that there was no match, empty (`null`) values are inserted for the table on the right.
 
-###### **Self outer join**
+##### **Self outer join**
 
 This is used to join a table against itself. Suppose we want to find all the weather records that are in the temperature range of other weather records. We would have to compare the `temp_lo` and `temp_hi` columns of each weather row to the `temp_lo` and `temp_hi` columns of all other weather rows. This is implemented by:
 
@@ -253,3 +268,5 @@ SELECT w1.city, w1.temp_lo AS low, w1.temp_hi AS high,
 ```
 
 > Notice how we have relabled the table weather two times, once `w1`, and then `w2` to be able to distinguish the left and ride side of the join.
+
+## **Aggregate functions**
