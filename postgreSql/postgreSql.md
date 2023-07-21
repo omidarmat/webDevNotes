@@ -175,3 +175,81 @@ SELECT DISTINCT city
     FROM weather
     ORDER BY city;
 ```
+
+#### **Join queryies**
+
+Queries can access multiple tables at once, or access the same table in such a way that multiple rows of the table are being processed at the same time. Queries that access multiple tables or multiple instances of the same table at one time are called _join queries_.
+
+Join queries combine rows from one table with rows from a second table, with an expression specifying which rows are to be paired.
+
+We have two types of joins: **inner joins** and **outer joins**.
+
+```
+SELECT * FROM weather JOIN cities ON city = name;
+```
+
+> We can also relabel tables in the command:
+
+```
+SELECT * FROM weather w JOIN cities c ON w.city = c.name;
+```
+
+> This command will ignore any row on the 'weather' table the 'city' column of which does not match any 'name' column on the 'city' table. In the exmple above, the city 'hayward' has its row on the weather table, but not on the cities table. This can be fixed by implementing an outer join.
+
+> We are very likely to receive an output where two columns hold same values. It obviously comes from the matching strategy. But we can fix this by explicitly typing the column names that should be displyed in the result:
+
+```
+SELECT city, temp_lo, temp_hi, prcp, date, location
+    FROM weather JOIN cities ON city = name;
+```
+
+> If there are similar column names in both tables, we can specify which ones we are actually targetting:
+
+```
+SELECT weather.city, weather.temp_lo, weather.temp_hi,
+       weather.prcp, weather.date, cities.location
+    FROM weather JOIN cities ON weather.city = cities.name;
+```
+
+> It is considered good coding style to qualify all column names in a join query, so that the query won't fail if a duplicate column name is later added to one of the tables.
+
+Join queries mentioned above can be written in the format below, but it is recommended to use the explicit syntax.
+
+```
+SELECT *
+    FROM weather, cities
+    WHERE city = name;
+```
+
+##### **Outer joins**
+
+We have 3 different types of outer join:
+
+1.  Left outer join
+2.  Right outer join
+3.  Full outer join
+4.  Self join
+
+###### **Left outer join**
+
+In this example, we are going to use the left outer join.
+
+```
+SELECT *
+    FROM weather LEFT OUTER JOIN cities ON weather.city = cities.name;
+```
+
+This query, as it is clear from its syntax, is called a _left outer join_. The table mentioned on the left of the join operator will have all of its rows in the output, while the table on the right side of the join operator will only have rows ouput that match a row on the left table. For rows that there was no match, empty (`null`) values are inserted for the table on the right.
+
+###### **Self outer join**
+
+This is used to join a table against itself. Suppose we want to find all the weather records that are in the temperature range of other weather records. We would have to compare the `temp_lo` and `temp_hi` columns of each weather row to the `temp_lo` and `temp_hi` columns of all other weather rows. This is implemented by:
+
+```
+SELECT w1.city, w1.temp_lo AS low, w1.temp_hi AS high,
+       w2.city, w2.temp_lo AS low, w2.temp_hi AS high
+    FROM weather w1 JOIN weather w2
+        ON w1.temp_lo < w2.temp_lo AND w1.temp_hi > w2.temp_hi;
+```
+
+> Notice how we have relabled the table weather two times, once `w1`, and then `w2` to be able to distinguish the left and ride side of the join.
