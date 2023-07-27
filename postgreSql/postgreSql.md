@@ -1,4 +1,17 @@
 - [**Concepts**](#concepts)
+  - [**Object storage**](#object-storage)
+    - [**How it works**](#how-it-works)
+      - [**A deeper look**](#a-deeper-look)
+    - [**Benefits**](#benefits)
+      - [**Storing/managing unstructured data**](#storingmanaging-unstructured-data)
+      - [**Scalability**](#scalability)
+      - [**Reduced complexity**](#reduced-complexity)
+      - [**Customizable metadata**](#customizable-metadata)
+    - [**Object vs. File vs. Block storage**](#object-vs-file-vs-block-storage)
+      - [**File storage**](#file-storage)
+      - [**Object storage**](#object-storage-1)
+      - [**Block storage**](#block-storage)
+    - [**User cases**](#user-cases)
 - [**Working with PostgreSQL**](#working-with-postgresql)
   - [**Creating a new table**](#creating-a-new-table)
   - [**Removing a new table**](#removing-a-new-table)
@@ -30,6 +43,80 @@ Each table is a named collection of _rows_. Each row of a given table has the sa
 Columns have a fixed order in each row, but SQL does not guarantee the order of rows within a table.
 
 Tables are grouped into databases, and a collection of databases managed by a single PostgreSQL server instance consititutes a database _cluster_.
+
+## **Object storage**
+
+Object storage (AKA object-based storage) is a data storage architecture for handling large amounts of unstructured data. This is data that does not conform to, or cannot be organized easily into, a traditional relational database with rows and columns. Today's internet communications data is largely unstructured, including email, video, photos, web pages, audio files, sensor data, and other types of media and web content.
+
+Enterprises are finding it challenging to efficiently (and affordably) store and manage this unprecedented volume of data. Object-based storage has emerged as the preferred method for **data archiving and backup**. It offers a level of **scalability** not possible with traditional file or block-based storage. With object storage you can store and manage data volumes on the order to terabytes, petabytes, and even greater.
+
+### **How it works**
+
+Objects are discrete units of data that are stored in a structurally flat data environment. There are no folders, directories, or complex hierarchies as in a file-based system. Each object is a simple, self-contained repo that includes the data, metadata (descriptive information associated with an object), and a unique ID number (instead of a filename and filepath). You can aggregate object storage devices into larger storage pools and distribut these storage pools across locations. This allows for unlimited **scale**, as well as improved **data resiliency** and **disaster recovery**.
+
+Objects (data) in an object-storage system are accessed via APIs. The native API for object storage is an HTTP-based RESTful API. These APIs query an object's metadata to locate the desired object (data) via the internet from anywhere, on any device.
+
+Additional RESTful API standards are emerging that go beyond creating, retrieving, updating, and deleting objects. These allow applications to manage the object storage, its containers, accounts, multi-tenancy, security, billing, and more.
+
+For example, if you want to store all the books in a very large library system on a single platform, you will need to store the contents of the book (data), but also the associated information like the author, publication data, publisher, subject, copyrights, and other details (metadata).
+
+You could store all of this data and metadata in a relational database, organized in folders under a hierarchy of directories and subdirectories. But with millions of books, the search and retrieval process will become cumbersome and time-consuming. An object storage system works well here, since the data is static or fixed; The content of the book will not change. Objects (data, metadata, and ID) are stored as packages in a flat structure and easily located and retrieved with a single API call. Further, as the number of books continue to grow, you can aggregate storage devices into larger storage pools, and distribute these storage pools for unlimited scale.
+
+#### **A deeper look**
+
+We learned that you can use simple API calls to upload and retrieve files in an object storage system. But an application also needs the object's metadata in order to locate the proper object in storage. This is where an object storage database comes into play. This database provides a directory or sorts that uses the object's metadata to locate the appropriate data files in a distributed storage system.
+
+Each object storage group has an object storage database that contains 2 tables:
+
+1. **Object directory table:** contains descriptive information about each object (metadata). This directory keeps track of all objects in the storage hierarchy by recording the collection ID, the object name, and other pertinent information.
+2. **Object storage table:** contains the data content/file itself (objects). The data (fixed digital content such as video and image files or large libraries of documents) sits in the object store, while the metadata resides in a database/object directory table.
+
+When an application `POST`s a file, it creates the metadata and stores it in the object directory table within the object storage database, along with putting the file to the object storage table. To retrieve the file later, the application queries the object directory/database for the metadata and uses that descriptive, identifying information to locate or `GET` the data.
+
+### **Benefits**
+
+#### **Storing/managing unstructured data**
+
+Object storage is seeing wide adoption in the eral of cloud computing and for the management of unstructured data which is estimated to represent the vast majority of all data worldwide in the near future. The volume of web-generated content - emails, videos, social media, documents, sensor data produced by IoT devices - is massive and growing. Unstructured data is typically **static** (unchanging) by may be required at anyu time, anywhere.
+
+Could-based object storage is ideal for long-term data retention. Use object storage to replace traditional archives, such as Network Attached Storage (NAS), reducing your IT infrastructure. Easily archive and store mandated, regulatory data that must be retained for extended periods of time. Cost-effectively preserve large amounts of rich media content (images, videos, etc.) that is **not frequently accessed**.
+
+#### **Scalability**
+
+Unlimited scale is the most significant advantage of object-based storage. You can simply add more devices/servers in parallel to an object storage cluster for additional processing and to support the higher throughputs required by large files such as videos or images.
+
+#### **Reduced complexity**
+
+Objects storage removes the complexity that comes with a hierarchical file system with folders and directories. There is less potential for performance delay and you will realize efficiencies when retrieving data since there are no folders, directories or complex hierarchies to navigate. This shines particularly when managing very large quantities of data.
+
+#### **Customizable metadata**
+
+Objects use metadata for important functions such as policies for retention, deletion and routing, disaster recovery strategies (data protection), or validating content authenticity. You can also customize the metadata with additional context that can be later extracted and leveraged to perform business insights and analytics around customer service or market trends.
+
+### **Object vs. File vs. Block storage**
+
+Storage methods have evolved to meet the changing nature of data. Data can be transactional and collected in smaller volumes that are neatly stored in a database on a dis drive on a server. File-based storage and block-based storage are well-suited to this type of structured data and continue to work well in certain scenarios. But the Internet has changed everything in a way that organizations now struggle to manage mounting volumes of web-based, digital content (unstructured data).
+
+#### **File storage**
+
+Organizes and stored data inside a folder. Files are named, tagged with metadata (typically the file name, file type, creation data and last updating time) and organized in folders under a hierarchy of directories and subdirectories. A hierarchical storage system like this works well with relatively small, easily organized amounts of data. However, as the number of files grow, the search and retreival process can become cumbersome and time-consuming.
+
+#### **Object storage**
+
+Does not use folders, directories or complex hierarchies. Rather, each object is a simple, self-contained repo that includes the data, metadata, and a unique identifying ID number that an application uses to locate and access it. In this case, the metadata is **more descriptive** than with a file-based approach. You can customize the metadata with additional context that you can later extract and leverage for other purposes, such as data analytics.
+
+Use object storage as a solution if you require cost-effective storage capacity for your unstructured data scaling far past the effective limits of block and file solutions. Object storage is also ideal for archiving data that does not change frequently or at all (static files), such as transaction records or music, image, and video files.
+
+#### **Block storage**
+
+Block storage is an alternative to file-based storage - one with improved efficiency and performance. Block storage breaks a file into equally-sized chunks of data and stores data blocks separately under a unique address. You won't need a file-folder structure. Instead, you store the collection of blocks anywhere in the system for maximum efficiency.
+
+To access a file, a server operating system uses the unique address to pull the blocks back together, assembling them into the file. This will provide you with efficiency as the system does not need to navigate through directories and file hierarchies to access the data blocks. Block storage works well for critical business applications, transactional databases and virtual machines that require low-latency, granular or more detailed access to data, and consistent performance.
+
+### **User cases**
+
+1. **Cloud-native applications:** Collect and store large amounts of unstructured IoT and mobile data for your smart device applications. Easily and efficiently update your application components.
+2. **AI and big data analytics**
 
 # **Working with PostgreSQL**
 
