@@ -1,4 +1,7 @@
 - [**Concepts**](#concepts)
+  - [**Data Modelling**](#data-modelling)
+    - [**Relationships in Data Modelling**](#relationships-in-data-modelling)
+    - [**NORMALIZATION**](#normalization)
   - [**Object storage**](#object-storage)
     - [**How it works**](#how-it-works)
       - [**A deeper look**](#a-deeper-look)
@@ -43,6 +46,28 @@ Each table is a named collection of _rows_. Each row of a given table has the sa
 Columns have a fixed order in each row, but SQL does not guarantee the order of rows within a table.
 
 Tables are grouped into databases, and a collection of databases managed by a single PostgreSQL server instance consititutes a database _cluster_.
+
+## **Data Modelling**
+
+Data models are made up of entities, which are the objects or concepts we want to track data about, and they become the tables in a database. Products, vendors, and customers are all examples of potential entities in a data model. Entities have attributes, which are details we want to track about entities—you can think of attributes as the columns in a table. If we have a product entity, the product name could be an attribute.
+
+Entities don’t exist in isolation; they’re connected to each other. The connections between entities in a data model are called relationships, and relationships reflect business rules. Relationships between entities can be one-to-one, one-to-many, or many-to-many.
+
+### **Relationships in Data Modelling**
+
+Relational databases consist of **tables**, **columns**, **rows**, **keys**, and **relationship** between tables. There are three types of relationships between the tables:
+
+1. **one to one:** One to one relationship means one entity in a table is related to just one entity in another table. It should be rare in any relational database design. For instance, each student has only one address and each address represents one student. Also it is important to understand that One-to-one relationships usually occur when a business needs to use entities that are **supertypes** and **subtypes**, also called parents and children. For example, a product could be a supertype, and a specific kind of product, like a book, could be the subtype. In some situations, there are good reasons for storing general product data in a separate table from more specific data about books, and this can help in representing hierarchical relationships among entities. In this example, a single book title should be associated with a single product ID number, and vice versa, making this a one-to-one relationship between products and books.
+2. **one to many:** One to many relationship means one entity in a table is related to one or many entities in another table. A one to many relationship should be the norm in any relational database design and is found in all relational database environments. For example, each customer has one or more orders.
+3. **many to many:** Many to many relationship means multiple entities in a table can be associated with more than one entity in another table. For instance, each student can attend many courses and, each course can consist of many students. Books and authors are a great example of this relationship—one author can write multiple books, and a single book can be written by multiple authors. Although many-to-many relationships exist, you don’t actually see them in data models. Instead, we use associative entities, which are tables that break the many-to-many relationship into many-to-one relationships. In this case, you might have a books table, an authors table, and an author-book table to link the two.
+
+> Many to many relationship causes **duplications** in database. Duplications cause false results from queries. For instance, a company produces products, which consist of several components. One product is made up of many components, and one component can be in more than one product. There is a way to prevent the duplication while setting many to many relationship. The solution is creating a totally new table known as bridge table or **join table**.
+
+### **NORMALIZATION**
+
+An introduction to data modeling would not be complete without mentioning the concept of normalization. Normalization is the process by which anomalies are avoided and redundancy is eliminated, and the concept was first suggested by a data scientist named Edgar Codd. Normalizing a data model means structuring data so that each entity only has one theme or topic. In more technical terms, we refer to this as removing partial dependencies and transitive dependencies.
+
+For example, I want to store data about customer purchases. I’ll want to know information like the dollar amount purchased, the customer name, and the store where the purchase took place. I could store all of these data points in a single table, but that would lead to problems. For example, a customer who has made hundreds of purchases may get married and change her name. To reflect that change in my records, I would have to go through my table and change her name for every single purchase she’s ever made. Instead of dealing with hundreds of changes, a normalized data model would allow me to make only one change. In this situation, I should store customer data in a customer table, product data in a product table, store data in a store table, and so on. By using primary keys and foreign keys, I can link these tables together and access all the information I need. Better yet, when I need to change a customer’s name, I only have to make the change in one place. The diagram shown here is a very simple illustration—most data models are much larger and more complex.
 
 ## **Object storage**
 
