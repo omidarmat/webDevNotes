@@ -43,6 +43,34 @@
         - [**`LIKE`:**](#like)
       - [**Filtering input rows of aggregates**](#filtering-input-rows-of-aggregates)
         - [**`FILTER`:**](#filter)
+- [**Working with Part Atlas**](#working-with-part-atlas)
+  - [**API: Manipulating namespaces**](#api-manipulating-namespaces)
+    - [**Add namespace to a project**](#add-namespace-to-a-project)
+    - [**Get namespace of a project**](#get-namespace-of-a-project)
+    - [**Delete a namespace from a project**](#delete-a-namespace-from-a-project)
+  - [**API: Manipulating data**](#api-manipulating-data)
+    - [**Add records**](#add-records)
+    - [**Modify a record**](#modify-a-record)
+      - [**Modify by key**](#modify-by-key)
+      - [**Modify by ID**](#modify-by-id)
+    - [**Search for records**](#search-for-records)
+      - [**Search by key**](#search-by-key)
+        - [**Sorting**](#sorting)
+        - [**Pagination**](#pagination)
+      - [**Search by body**](#search-by-body)
+      - [**Get search results count with key**](#get-search-results-count-with-key)
+    - [**Read records**](#read-records)
+      - [**Read by key**](#read-by-key)
+      - [**Read by body**](#read-by-body)
+      - [**Read by ID**](#read-by-id)
+    - [**Remove records**](#remove-records)
+      - [**Remove by key**](#remove-by-key)
+      - [**Remove by ID**](#remove-by-id)
+    - [**Restore records**](#restore-records)
+      - [**Restore by ID**](#restore-by-id)
+    - [**Reading archive**](#reading-archive)
+      - [**Reading by ID**](#reading-by-id)
+  - [**API: Service health check**](#api-service-health-check)
 
 # **Concepts**
 
@@ -564,3 +592,472 @@ SELECT city, count(*) FILTER (WHERE temp_lo < 45), max(temp_lo)
 ```
 
 `FILTER` is much like `WHERE`, except that it removes rows only from the input of the particular aggregate function that it is attached to. Notice how the `count` aggregate counts only rows with `temp_lo` below 45, but the `max` aggregate is still applied to all rows.
+
+# **Working with Part Atlas**
+
+## **API: Manipulating namespaces**
+
+### **Add namespace to a project**
+
+`POST` | `addNamespaceToProject`
+
+```
+{host/ip}/service/atlas@4/addNamespaceToProject/{project-name}
+```
+
+Body:
+
+```json
+{
+  "namespace": "namespace_test", // min 1, max 33 chars
+  "type": "file" // file | state | data
+}
+```
+
+### **Get namespace of a project**
+
+`POST` | `getNamespacesByProject`
+
+```
+{host/ip}/service/atlas@4/getNamespacesByProject/{project-name}
+```
+
+Body:
+
+```json
+{
+  "type": "data"
+}
+```
+
+### **Delete a namespace from a project**
+
+`POST` | `removeNamespaceFromProject`
+
+```
+{host/ip}/service/atlas@4/removeNamespaceFromProject/{project-name}
+```
+
+Body:
+
+```json
+{
+  "namespace": "namespace_test2",
+  "type": "data"
+}
+```
+
+## **API: Manipulating data**
+
+### **Add records**
+
+This API adds one or more new records to a given namespace.
+
+`POST` | `add`
+
+```
+{host/ip}/service/atlas@4/add/{project-name}/{namespace}
+```
+
+Body:
+
+```json
+[
+  {
+    "id": "sampleID", // if no ID provided by user, UUID will be generated automatically.
+    "keys": ["testKey1", "testKey2"],
+    "body": "testBody"
+  }
+]
+```
+
+> It is possible to either add a single record or a group of records.
+
+```json
+[
+  {
+    "keys": ["testKey1", "testKey2"],
+    "body": "testBody1"
+  },
+  {
+    "keys": ["testKey3", "testKey2"],
+    "body": "testBody2"
+  }
+]
+```
+
+### **Modify a record**
+
+#### **Modify by key**
+
+This API searches for records that match the given keys. The found records will be removed and replaced by new records with new keys and bodies but with the same ID.
+
+`POST` | `modify`
+
+```
+{host/ip}/service/atlas@4/modify/{project-name}/{namespace}
+```
+
+Body:
+
+```json
+{
+  "searchToken": "testKey",
+  "newKeys": ["newTestKey1", "newTestKey2"],
+  "body": "newTestBody"
+}
+```
+
+> To modify all records that include `testKey1`:
+
+```json
+{
+  "searchToken": "testKey",
+  "newKeys": ["newTestKey1", "newTestKey2"],
+  "body": "newTestBody"
+}
+```
+
+> To modify all records that include `testKey1` AND `testKey2`:
+
+```json
+{
+  "searchToken": "testKey1 & testKey2",
+  "newKeys": ["newTestKey1", "newTestKey2"],
+  "body": "newTestBody"
+}
+```
+
+> To modify all records that include `testKey1` OR `testKey2`:
+
+```json
+{
+  "searchToken": "testKey1 | testKey2",
+  "newKeys": ["newTestKey1", "newTestKey2"],
+  "body": "newTestBody"
+}
+```
+
+> To modify all records that include keys that start with `testKey1` OR `testKey2`:
+
+```json
+{
+  "searchToken": "testKey1:* | testKey2:*",
+  "newKeys": ["newTestKey1", "newTestKey2"],
+  "body": "newTestBody"
+}
+```
+
+> To modify all records that don't include `testKey1`:
+
+```json
+{
+  "searchToken": "!testKey1",
+  "newKeys": ["newTestKey1", "newTestKey2"],
+  "body": "newTestBody"
+}
+```
+
+> To modify all records that include a key that has whitespaces in it, such as `test key`.
+
+```json
+{
+  "searchToken": "'test key'" // also works for persian keys
+}
+```
+
+> IMPORTANT | You can only use `&`, `|`, `!`, and `:*` if the namespace is of the type `data`.
+
+#### **Modify by ID**
+
+This API searches for a record that matches the given ID. The found record will be removed and replaced by a new record given with new keys and body. It will be stored with the same ID.
+
+`POST` | `modifyById`
+
+```
+{host/ip}/service/atlas@4/modifyById/{project-name}/{namespace}
+```
+
+Body:
+
+```json
+{
+  "id": "sampleID",
+  "newKeys": ["newTestKey1", "newTestKey2"],
+  "body": "newTestBody"
+}
+```
+
+### **Search for records**
+
+#### **Search by key**
+
+This API is used to retrieve record IDs found by string search performed on keys.
+
+`POST` | `searchByKey`
+
+```
+{host/ip}/service/atlas@4/searchByKey/{project-name}/{namespace}
+```
+
+Body:
+
+```json
+{
+  "searchToken": "testKey", // first ANDs and then ORs are operated.
+  "sort": false,
+  "sortMethod": "asc",
+  "sortKeyIndex": 0,
+  "pagination": false,
+  "pageSize": 1,
+  "pageNumber": 1
+}
+```
+
+> If any of the fields `pageSize`, `pagination`, `sortKeyIndex`, `sortMethod`, `sort`, or `pageNumber` are inserted, then `sortKeyIndex`, `sortMethod`, and `sort` are required fields.
+
+> If any of the fields `pagination` or `pageNumber` are inserted, then `pageNumber`, `pageSize`, and are required.
+
+##### **Sorting**
+
+In order to receive sorted results, the following fields should be defined in the body:
+
+```json
+{
+  "sort": true,
+  "sortMethod": "asc", // 'asc' for ascending, and 'desc' for descending
+  "sortKeyIndex": 0 // index of the key on which you want the sorting to be applied. Starts from 0.
+}
+```
+
+##### **Pagination**
+
+In order to apply pagination, sorting must be applied first. So `sort`, `sortMethod`, `sortKeyIndex` are required. Then for pagination, the following fields should be defined in the body:
+
+```json
+{
+  "pagination": true,
+  "pageSize": 1, // defines how many records should be displayed on each page. Starts from 1.
+  "pageNumber": 1 // starts from 1.
+}
+```
+
+#### **Search by body**
+
+This API is used to retrieve record IDs found by string search performed on bodies.
+
+> This API is not yet implemented for namespaces of the types `state` and `file`. It only works for `data`.
+
+`POST` | `searchByBody`
+
+```
+{host/ip}/service/atlas@4/searchByBody/{project-name}/{namespace}
+```
+
+Body:
+
+```json
+{
+  "searchToken": "testBody"
+}
+```
+
+> Operators such as `&`, `|`, `!`, `:*` work the same way as [before](#modify-by-key). You can also use the single quoation inside double quoatation for body strings that include whitespaces.
+
+#### **Get search results count with key**
+
+This API is used to receive the number of records that match a search operation performed on keys.
+
+`POST` | `getCountByKey`
+
+```
+{host/ip}/service/atlas@4/getCountByKey/{project-name}/{namespace}
+```
+
+Body:
+
+```json
+{
+  "searchToken": "testKey"
+}
+```
+
+### **Read records**
+
+#### **Read by key**
+
+This API is used to retreive data (id, keys, body) related to records that match a string search performed on keys.
+
+`POST` | `readByKey`
+
+```
+{host/ip}/service/atlas@4/readByKey/{project-name}/{namespace}
+```
+
+Body:
+
+```json
+{
+  "searchToken": "testKey",
+  "include": ["id", "keys", "body"],
+  "sort": false,
+  "sortMethod": "asc",
+  "sortKeyIndex": 0,
+  "pagination": false,
+  "pageSize": 1,
+  "pageNumber": 1
+}
+```
+
+> If we omit the `include` field, all the three fields will be displayed in the output. We can also only require one or two of the three fields.
+
+> Sorting and pagination options can be applied just like before. Refer to [sorting](#sorting) and [pagination](#pagination).
+
+#### **Read by body**
+
+This API is used to retreive data (id, keys, body) related to records that match a string search performed on bodies.
+
+`POST` | `readByBody`
+
+```
+{host/ip}/service/atlas@4/readByBody/{project-name}/{namespace}
+```
+
+Body:
+
+```json
+{
+  "searchToken": "test:*",
+  "include": ["id", "keys", "body"],
+  "sort": false,
+  "sortMethod": "asc",
+  "sortKeyIndex": 0,
+  "pagination": false,
+  "pageSize": 1,
+  "pageNumber": 1
+}
+```
+
+> If we omit the `include` field, all the three fields will be displayed in the output. We can also only require one or two of the three fields.
+
+> Sorting and pagination options can be applied just like before. Refer to [sorting](#sorting) and [pagination](#pagination).
+
+#### **Read by ID**
+
+This API is used to retreive data (id, keys, body) related to records that match a given ID.
+
+`POST` | `readById`
+
+```
+{host/ip}/service/atlas@4/readById/{project-name}/{namespace}
+```
+
+Body:
+
+```json
+{
+  "ids": ["sampleID1", "sampleID2"],
+  "include": ["id", "keys", "body"],
+  "sort": false,
+  "sortMethod": "asc",
+  "sortKeyIndex": 0,
+  "pagination": false,
+  "pageSize": 1,
+  "pageNumber": 1
+}
+```
+
+> Sorting and pagination options can be applied just like before. Refer to [sorting](#sorting) and [pagination](#pagination).
+
+### **Remove records**
+
+#### **Remove by key**
+
+This API is used to remove records that match a string search performed on keys.
+
+`POST` | `removeByKey`
+
+```
+{host/ip}/service/atlas@4/removeByKey/{project-name}/{namespace}
+```
+
+Body:
+
+```json
+{
+  "searchToken": "testKey"
+}
+```
+
+#### **Remove by ID**
+
+This API is used to remove records with a given ID.
+
+`POST` | `removeByID`
+
+```
+{host/ip}/service/atlas@4/removeById/{project-name}/{namespace}
+```
+
+Body:
+
+```json
+{
+  "ids": ["sampleID1", "sampleID2"]
+}
+```
+
+### **Restore records**
+
+#### **Restore by ID**
+
+This API is used to restore records with given IDs.
+
+`POST` | `restoreById`
+
+```
+{host/ip}/service/atlas@4/restoreById/{project-name}/{namespace}
+```
+
+Body:
+
+```json
+{
+  "ids": ["sampleID1", "sampleID2"]
+}
+```
+
+### **Reading archive**
+
+#### **Reading by ID**
+
+This API is used to retrieve the archive of records (id, keys, body, delete_date) with given IDs.
+
+> The `ids` array can currently accept only 1 ID element.
+
+`POST` | `readArchiveById`
+
+```
+{host/ip}/service/atlas@4/readArchiveById/{project-name}/{namespace}
+```
+
+Body:
+
+```json
+{
+  "ids": ["sampleID1"],
+  "includes": ["id", "keys", "body", "delete_date"]
+}
+```
+
+## **API: Service health check**
+
+This API is used to check if the system is at a healthy state.
+
+`POST` | `checkHealth`
+
+```
+{host/ip}/service/atlas@4/checkHealth/monitoring
+```
+
+> There is no body for this API call.
