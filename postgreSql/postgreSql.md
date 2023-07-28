@@ -3,8 +3,12 @@
     - [**Relationships in Data Modelling**](#relationships-in-data-modelling)
     - [**Referencing/normalizing vs. Embedding/denormalizing**](#referencingnormalizing-vs-embeddingdenormalizing)
       - [**Referencing/normalizing**](#referencingnormalizing)
+        - [**Child referencing**](#child-referencing)
+        - [**Parent referencing**](#parent-referencing)
+        - [**Two-way referencing**](#two-way-referencing)
       - [**Embedding/denormalizing**](#embeddingdenormalizing)
     - [**Time to make a decision**](#time-to-make-a-decision)
+    - [**Summary**](#summary)
   - [**Object storage**](#object-storage)
     - [**How it works**](#how-it-works)
       - [**A deeper look**](#a-deeper-look)
@@ -92,6 +96,22 @@ On the other hand, the _actors_ table would probably have ID references to the _
 
 Now imagine we want to query all the information of a specific movie. For any refernce in the movie data, an additional query should be done to get the information, for example for actors of that movie. This will reduce **performance**. However, it gives us the ability to query actors information on its own.
 
+##### **Child referencing**
+
+If we want to implement child referencing we should keep 2 things in mind. If the number of children can potentially grow to a very huge number, we should probably use parent referencing instead. Also remember that child referencing makes it so that parents and children are very tightly coupled. This is not always what we want. This is where parent referncing comes into play.
+
+> Use child referencing when you have a 1:few relationship where we know beforehand that the array of children data will not grow much.
+
+##### **Parent referencing**
+
+While in child referncing, only the parent know about its children, in parent referncing, the children know about their parent. The parent will have no idea about how many children it has and what they are. In each child data, we keep a reference to the parent element. For example, think of the example we mentioned about an application and its logs. So if we used child referencing, the application data would have to hold millions of ID refernces pointing to each log. So the application data volume would grow to infinity and that is definitely not good. On the other hand, with parent referencing, each log data would have a reference ID to the parent application data. This way, no data will grow to infinity.
+
+> Use parent referencing when you have 1:many or 1:ton relationships where the array of children data can potentially grow to infinity.
+
+##### **Two-way referencing**
+
+Going back to the example of movies and actors, we usually use two-way referencing for many:many relationships. In each movie, we keep reference IDs of its actors, and at the same time, we keep reference IDs of the movies in which the actor has played. This makes it easy to query movies and actors completely independantly.
+
 #### **Embedding/denormalizing**
 
 Going back to the movie example mentioned for referncing/normalizing, if we store the actors data of a movie in the movie data, we are actually embedding/denormalizing. This gives us a much better **performance** since we can get all the information of a movie in one query. But we can no longer query the actors information on its own.
@@ -104,11 +124,18 @@ When we have 2 related datasets, we have to decide whether to embed one into ano
 
 | Criteria             | Embedding                       | Referencing                                  |
 | -------------------- | ------------------------------- | -------------------------------------------- |
-| Relationship type    | 1:few, 1:many                   | 1:many, 1:ton, many:many                     |
-| Data access patterns | high read/write                 | high write/read (data is updated a lot)      |
+| Relationship type    | _1:few_, _1:many_               | _1:many_, _1:ton_, _many:many_               |
+| Data access patterns | high _read/write_               | high _write/read_ (data is updated a lot)    |
 | Data closeness       | datasets really belong together | datasets are frequently queried on their own |
 
 > In a 1:many relationship, it is ok to either embed or reference. This is where the 2nd and 3rd criteria comes to help.
+
+### **Summary**
+
+- The most important principle is: Structure your data to match the ways that your application **queries** and **updates** data: identify the questions that arise from your application's use cases first, and then model your data so that the questions can get answered in the most efficient way. For instance, will I need to query movies and actors always together? or are there scenarios where I would need to query them independantly?
+- Always favor **embedding**, unless there is a good reason not to embed. So you may use embedding on _1:few_ and _1:many_ relationships. A _1:ton_ or a _many:many_ relationship is usually a good reason to **reference** instead of embedding.
+- Favor referncing when data is **updated** a lot and if you need to frequently **access** a dataset on its own. On the other hand, use embedding when data is mostly **read** but rarely updated, and when two datasets belong intrinsically together.
+- Don't allow arrays to grow indefinitely. Therefore, if you need to normalize, use **child referencing** for _1:many_ relationships, and **parent referencing** for _1:ton_ relationships. Use two-way referencing for _many:many_ relationships.
 
 ## **Object storage**
 
