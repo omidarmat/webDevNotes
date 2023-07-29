@@ -82,6 +82,21 @@ The code that uses the factory method (often called the _client code_) does not 
 5. If there are too many product types and it does not make sense to create subclasses for all of them, you can reuse the control paramteres from the base class in subclasses.
 6. If, after all the extractions, the base factory method ahs become empty, you can make it abstract. If there is something left, you can make it a default behavior of the method.
 
+## **Service locator**
+
+The goal of this pattern is to improve the modularity of your application by removing the dependency between the client and the implementation of an interface.
+
+Interfaces are one of the most flexible and powerful tools to decouple software components and to improve the maintainability of your code. This is closely related to solid design principles:
+
+- Following the **open/closed principle**, you use one or more interfaces to ensure that your component is open for extension but closed for modification.
+- The **Liskov substitution principle** requires you to implement your interfaces in a way that you can replace its implementations without changing the code that uses the interface.
+- The **interface segregation principle** ensures that you design your interfaces so that clients don't depend on parts of the interface.
+- Following the **dependency inversion principle**, you need to introduce an interface as an abstraction between a higher and a lower level component to split the dependency between both components.
+
+Following all of the principles above, is necessary but is not enough. At some point, you would still have to provide an implementation of the interface. If this is done by the same class that uses the interface, you still got a dependency between the client and the implementation of the interface. The **service locator pattern** is one option to avoid this dependency.
+
+Service locator pattern acts as a central registry that provides implementations of different interfaces. Doing so, your component that uses an interface no longer needs to know the specific class that implements the interface. Instead of instantiating that class itself, it gets an implementation from the service locator. In simple terms, the service locator holds all the separate services you need to run tasks in your application and whenever you need a service you ask the service locator and it makes it available.
+
 # **Architectures**
 
 ## **Service-Oriented Architecture (SOA)**
