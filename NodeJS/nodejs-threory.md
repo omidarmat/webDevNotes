@@ -66,10 +66,10 @@
     - [**Optional parameter**](#optional-parameter)
   - [**Popular middleware**](#popular-middleware)
     - [**Body parser**](#body-parser)
+    - [**Param middleware**](#param-middleware)
     - [**Static**](#static)
     - [**Morgan**](#morgan)
   - [**Creating custom middleware**](#creating-custom-middleware)
-  - [**Param middleware**](#param-middleware)
   - [**Express regular workflow**](#express-regular-workflow)
 - [**Database**](#database)
   - [**MongoDB**](#mongodb)
@@ -753,6 +753,19 @@ fs.writeFile("./txt/output.txt", textOut, "utf-8", (err) => {
 });
 ```
 
+> In order to write a JavaScript object to a JSON file, we should `staingify` the object that is going to be passed into the `.writeFile()` method.
+
+```js
+fs.writeFile("<file-path>", JSON.stringify(data), (err) => {
+  res.status(201).json({
+    status: "success",
+    data: {
+      data,
+    },
+  });
+});
+```
+
 ### **HTTP module**
 
 **`core`**
@@ -771,10 +784,10 @@ A web server is actually an application that can listen for requests and respond
 
 We should create a JavaScript file and in there, we create a web server. Creating a web server basically includes 2 steps:
 
-1. Creating a server using the `.createServer()` method on the `http` module. The method accepts a callback function that gets called whenever a request hits the server. This callback function has access to 2 arguments:
+1. **Creating a server** using the `.createServer()` method on the `http` module. The method accepts a callback function that gets called whenever a request hits the server. This callback function has access to 2 arguments:
 
-   - Request object: includes all kinds of stuff like the request URL, request headers, etc.
-   - Response object: includes a bunch of tools for sending out the response, like `.end()` method.
+   - **Request object:** includes all kinds of stuff like the request URL, request headers, etc.
+   - **Response object:** includes a bunch of tools for sending out the response, like `.end()` method.
 
 ```js
 const server = http.createServer((req, res) => {
@@ -784,10 +797,10 @@ const server = http.createServer((req, res) => {
 
 The method finally returns the server that we can store in a variable.
 
-2. Starting a server, so that we can listen to incomming requests. To do this we call the `.listen()` method on the server that we created. The method accepts three arguments:
-   - Port number: the port is a sub-address on a certain host. We usually use 8000 or other numbers.
-   - Host: it is the IP address of the host. If we skip defining this parameter, it will by default be set to local host, but we can also explicitly define the local host for it. The standard IP address for local host is `127.0.0.1`.
-   - Callback function (optional): it is called as soon as the server starts.
+2. **Starting a server**, so that we can listen to incomming requests. To do this we call the `.listen()` method on the server that we created. The method accepts three arguments:
+   - **Port number:** the port is a sub-address on a certain host. We usually use 8000 or other numbers.
+   - **Host:** it is the IP address of the host. If we skip defining this parameter, it will by default be set to local host, but we can also explicitly define the local host for it. The standard IP address for local host is `127.0.0.1`.
+   - **Callback function (optional):** it is called as soon as the server starts.
 
 ```js
 server.listen(8000, "127.0.0.1", () => {
@@ -846,6 +859,8 @@ const server = http.createServer((req, res) => {
 ```
 
 It can also be used with streams in order to end a request-response cycle after the steam is finished. (refer to [Streams](#streams-in-practice) and consider the **back pressure** problem.)
+
+> Remember that you should always send a response to a client request in order to end a request-response cycle. Otherwise, the request will be timed out and this is a bad experience for your client.
 
 ##### **Standard HTTP response headers**
 
@@ -1144,8 +1159,10 @@ In order to implement a middleware in Express, we use the `.use()` method on the
 - A callback function that has access to the request and response objects, and also the `next()` function.
 
 ```js
-app.use();
+app.use("<route>", (req, res, next) => {});
 ```
+
+> It essentially matters where you place your middleware in your code. It should be placed before the final route handler functions, otherwise the middleware will not run.
 
 ## **Starting a server**
 
@@ -1207,7 +1224,7 @@ app.route("api/v1/foods/:id").get().patch().delete();
 
 ### **Implementing Routers and mounting**
 
-This is mainly done in order to nicely separate our codes into different files that would fit into the **MVC architecture**, so that we would have separate files only containing routes for different resources, and then also separate files that only contain route handler functions, and one main file, usually called `app.js` that is mainly responsible for our middelware stack and routers mounting for each resource.
+This is mainly done in order to nicely separate our code into different files that would fit into the **MVC architecture**, so that we would have separate files only containing routes for different resources, and then also separate files that only contain route handler functions, and one main file, usually called `app.js` that is mainly responsible for our middelware stack and routers mounted for each resource.
 
 We first need to implement a separate router for each resource.
 
@@ -1217,7 +1234,7 @@ To create a new router:
 const foodRouter = express.Router();
 ```
 
-Now to connect this new router to our application (`app`), we use a middleware.
+Now to connect this new router to our application (`app`), we use a middleware since the new `foodRouter` router is actually a middleware.
 
 ```js
 app.use("api/foods", foodRouter);
@@ -1327,6 +1344,25 @@ app.route("/api/foods").post((req, res) => {
 });
 ```
 
+### **Param middleware**
+
+Param middleware only runs when we certain parameters are present in the URL. For example, if we receive a request on this URL:
+
+```
+127.0.0.1:3000/api/foods/:id?
+```
+
+Param middleware is usually used to take the task of checking certain parameters away from route handler functions which are mainly concerned with other functionalities.
+
+> **_Note_** | since it is a middleware, we should be careful about its placement in our code. Additionally, as a middleware, it has access to the 3 arguments that all middleware have, but also yet another argument which is the value of the parameter.
+
+```js
+router.param("id", (req, res, next, val) => {
+  console.log(`Food id: ${val}`);
+  next();
+});
+```
+
 ### **Static**
 
 **`Express`**
@@ -1351,7 +1387,7 @@ Notice how we omited the `public` directory in the URL. It is because when we op
 
 This is a 3rd-party middleware used to perform some logging operation. It enables us to see request data right in the console.
 
-In order to use this middleware, we first need to install it using NPM. Although the middleware is used to make developing easier, we use its code in our program, so it is not to be installed as a development dependency.
+In order to use this middleware, we first need to install it using NPM. Although the middleware is used to make developing easier, we use its code in our program, so it is not to be installed as a development dependency, but a regular dependency.
 
 ```
 npm install morgan
@@ -1375,7 +1411,7 @@ Logs produced by this middleware can also be saved into a file and used as a his
 
 ## **Creating custom middleware**
 
-To implement custom middleware, we still need to use the `.use()` method on the `app` variable. As mentioned before, the method accepts a route and a callback function that has access to the request and response objects, along with the `next()` function. If no route is defined, the middleware will apply to all incoming requests.
+To implement custom middleware, we still need to use the `.use()` method on the `app` variable. As mentioned before, the method accepts a **route** and a **callback function** that has access to the **request** and **response** objects, along with the **`next()`** function. If no route is defined, the middleware will apply to all incoming requests.
 
 At the end of each middleware, the `next()` function should be called. Otherwise, the request-response cycle would get stuck in the current middleware, and the request would never be responded.
 
@@ -1399,24 +1435,7 @@ app.use((req, res, next) => {
 
 Now as the request object is passed on to the next middleware and route handler functions, it will carry this new property that we added to it.
 
-## **Param middleware**
-
-Param middleware only runs when we certain parameters are present in the URL. For example, if we receive a request on this URL:
-
-```
-127.0.0.1:3000/api/foods/:id?
-```
-
-Param middleware is usually used to take the task of checking certain parameters away from route handler functions which are mainly concerned with other functionalities.
-
-> **_Note_** | since it is a middleware, we should be careful about its placement in our code. Additionally, as a middleware, it has access to the 3 arguments that all middleware have, but also yet another argument which is the value of the parameter.
-
-```js
-router.param("id", (req, res, next, val) => {
-  console.log(`Food id: ${val}`);
-  next();
-});
-```
+> Remember that it matters where you place your middleware in the code. If should be placed before final route handler functions, otherwise the final route handler function will send back the response and end the request-response cycle. This will cause the middleware not run. Therefore, it is kind of obvious that we need to place our **global middleware** - that is, middleware that has no defined route and will run for each and every request - before all of our route handler functions.
 
 ## **Express regular workflow**
 
@@ -1444,7 +1463,8 @@ app.listen(3000, () => {
 });
 ```
 
-6. Define [routes](#defining-routes). Routing means to determine how an application will respond to a client request on a specific URL with a specific HTTP method.
+6. Define [routes](#defining-routes). Routing means to determine how an application will respond to a client request on a specific **URL** with a specific **HTTP method**.
+7. Define your [middlewares](#implementing-middleware). You certainly cannot define all the middleware you need right in the beginning. Define the ones your currently need to run for your requests and routes before the final route handler function is executed. Then as you move foreward in developing your projects, you will need to add more middleware.
 
 # **Database**
 
