@@ -1,4 +1,4 @@
-- [\*\*Back-end theory
+- [**Back-end theory**](#back-end-theory)
   - [**How the web works**](#how-the-web-works)
   - [**Web server**](#web-server)
     - [**HTTP server**](#http-server)
@@ -70,6 +70,7 @@
     - [**Morgan**](#morgan)
   - [**Creating custom middleware**](#creating-custom-middleware)
   - [**Param middleware**](#param-middleware)
+  - [**Express regular workflow**](#express-regular-workflow)
 - [**Database**](#database)
   - [**MongoDB**](#mongodb)
     - [**MongoDB key features**](#mongodb-key-features)
@@ -1187,7 +1188,7 @@ Next, we should define routes for our application.
 In order to implement routing, we should determine URL and the HTTP method.
 
 - The HTTP method is defined by a method that we use on the `app` variable according to the HTTP method that we are aiming for. We can choose between `.get()`, `.post()`, `.patch()`, `.delete()`.
-- The URl is then defined in the HTTP method as the first argument. The second argument would a callback function that would be executed as a response. This callback function, again, has access to the request and the response object.
+- The URL is then defined in the HTTP method as the first argument. The second argument would a callback function that would be executed as a response. This callback function, again, has access to the **request** and the **response** object.
 
 ```js
 app.get("/", (req, res) => {
@@ -1416,6 +1417,34 @@ router.param("id", (req, res, next, val) => {
   next();
 });
 ```
+
+## **Express regular workflow**
+
+When we want to start an Express project, these are the usual steps that we take:
+
+1. Create the `package.json` file. We run the `npm init` command in the terminal.
+2. Install Express using NPM. We run `npm i express`. We may want to use version 4 since it is the most stable version (`npm i express@4`). But the Express team has been working on version 5. There are not a lot of changes implemented though. This will create the `node_modules` folder in our project root.
+3. Create `app.js` file. It is a convention to place all the Express configuration in a file called `app.js`. We should `require` Express in the `app.js` file in order to be able to work with it.
+
+```js
+const express = require("express");
+```
+
+4. Call the `express` variable and assign its result to another variable which is conventionally called `app`. `express` is a function that, upon calling, will add a bunch of methods to the `app` variable.
+
+```js
+const app = express();
+```
+
+5. Use `.listen()` method on the `app` variable to start up a server. This method accepts first the port number, and second a callback function that will get called as soon as the server starts listening.
+
+```js
+app.listen(3000, () => {
+  console.log("App running on port 3000");
+});
+```
+
+6. Define [routes](#defining-routes). Routing means to determine how an application will respond to a client request on a specific URL with a specific HTTP method.
 
 # **Database**
 
