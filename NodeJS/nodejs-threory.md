@@ -1185,7 +1185,7 @@ app.listen(port, () => {
 >
 > In this structure, the `app` variable should be exported from the `app.js` file, and it should be imported in the `server.js` file.
 >
-> Note that the server file will also include database configurations, error handling stuff, and environment variables. Keep in mind that with this file structure, the entry point of our program execution will be the `server.js` file. So the script inserted into the `package.json` file would be updated to `nodemon server.js`.
+> Note that the server file, in addition to the server configuaration, will also include database configurations, error handling stuff, and environment variables. Keep in mind that with this file structure, the entry point of our program execution will be the `server.js` file. So the script inserted into the `package.json` file would be updated to `nodemon server.js`.
 
 **`server.js`:**
 
@@ -1279,6 +1279,8 @@ const foodRouter = require("./routes/foodRoutes");
 ```
 
 > **_Note_** | an HTTP method can accept more than one handler function. They just have to be separated from each other with a comma.
+
+> The `app.js` file is normally used only for declaring middlewares that should be applied to all the routes. Again, a global middleware should be placed before all the sub-applications - that is, middlewares that are actually routers to the sub-applications.
 
 ```js
 router.route("<route>").get(foodController.checkId, foodController.getFood);
@@ -1464,7 +1466,26 @@ app.listen(3000, () => {
 ```
 
 6. Define [routes](#defining-routes). Routing means to determine how an application will respond to a client request on a specific **URL** with a specific **HTTP method**.
-7. Define your [middlewares](#implementing-middleware). You certainly cannot define all the middleware you need right in the beginning. Define the ones your currently need to run for your requests and routes before the final route handler function is executed. Then as you move foreward in developing your projects, you will need to add more middleware.
+7. Define your [middlewares](#implementing-middleware). You certainly cannot define all the middleware you need right in the beginning. Define the ones you currently need to run for your requests and routes before the final route handler function is executed. Then as you move foreward in developing your projects, you will need to add more middleware.
+
+This is the regular file structure that you should follow in your project:
+
+```
+[Project root]
+- controllers (dir)
+    tourController.js
+    userController.js
+- node_modules (dir)
+- public (dir)
+- routes (dir)
+    tourRoutes.js
+    userRoutes.js
+app.js
+server.js (entry => npm script: "nodemon server.js")
+package.json
+package-lock.json
+.prettierrc
+```
 
 # **Database**
 
