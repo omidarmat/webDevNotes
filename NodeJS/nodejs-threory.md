@@ -369,9 +369,10 @@ These environment variables are accessible in any file, and they come from the [
 ### **Environment variables and Express**
 
 Many packages in Express depend on an environment variables called `NODE_ENV`. It is a conventional name for a variable that should determine in which environment the application is currently running.
+
 However, Express does not define this variable automatically. We have to do it manually. We have 2 ways of doing this:
 
-1. Using the terminal: just as we start our application using a command like `nodemon server.js`, we should prepend the variable and its value to the command in the terminal:
+1. **Using the terminal:** just as we start our application using a command like `nodemon server.js`, we should prepend the variable and its value to the command in the terminal:
 
 ```
 NODE_ENV=development nodemon server.js
@@ -379,7 +380,7 @@ NODE_ENV=development nodemon server.js
 
 > **_Note_** | this solution seems not to work on Windows
 
-2. Create a configuration file: we create a file called `config.env` in the root directory of our project. In this file we can store any environment variables we need:
+2. **Create a configuration file:** we create a file called `config.env` in the root directory of our project. In this file we can store any environment variables we need:
 
 ```
 NODE_ENV=development
@@ -403,7 +404,7 @@ const dotenv = require("dotenv");
 Then to establish the connection we use the `config()` method on the `dotenv` object. The method accepts an object in which we should define the `path` variable and set it to the directory of the `config.env` file.
 
 ```js
-dotenv.config({ path: "./config.env" }); //EXTREMELY IMPORTANT: this connection should be established before requiring the app.js into server.js
+dotenv.config({ path: "./config.env" }); //EXTREMELY IMPORTANT: this connection should be established before requiring app.js into server.js
 
 const app = require("./app");
 ```
@@ -1365,6 +1366,8 @@ router.param("id", (req, res, next, val) => {
 });
 ```
 
+> The callback function defined for the param middleware can be defined separately in the controller file. Then we would only have to refer to that function here in the param middleware declaration.
+
 ### **Static**
 
 **`Express`**
@@ -1467,6 +1470,7 @@ app.listen(3000, () => {
 
 6. Define [routes](#defining-routes). Routing means to determine how an application will respond to a client request on a specific **URL** with a specific **HTTP method**.
 7. Define your [middlewares](#implementing-middleware). You certainly cannot define all the middleware you need right in the beginning. Define the ones you currently need to run for your requests and routes before the final route handler function is executed. Then as you move foreward in developing your projects, you will need to add more middleware.
+8. Define neccessary [variable environments](#environment-variables) in a `config.env` file in the root directory and connect it to your Node application using the [dotenv](#dotenv-module) package.
 
 This is the regular file structure that you should follow in your project:
 
@@ -1482,6 +1486,7 @@ This is the regular file structure that you should follow in your project:
     userRoutes.js
 app.js
 server.js (entry => npm script: "nodemon server.js")
+config.env
 package.json
 package-lock.json
 .prettierrc
