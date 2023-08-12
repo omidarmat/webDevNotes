@@ -36,3 +36,47 @@ React is a JavaScript library for building user interfaces. But let's extend thi
 - **Declarative:** We describe how components look like and how they work using a declarative syntax called **JSX**. So React is a huge abstraction away from the DOM, we never touch the DOM. JSX is a syntax that combines HTML, CSS, JavaScript, as well as referncing other components. If we never touch the DOM, how does React update the UI? This is where state comes to play.
 - **State-driven:** React keeps the data in sync with the UI. Let's call this data "state" from now on. Whenever the state changes, we manually update the state in our application, and React will automatically re-render the UI to reflect the latest state. In other words, React actually reacts to state changes by re-rendering the UI.
 - **JavaScript library:** React is actually just a JavaScript library. React is only the **view** layer. We need to pick multiple external libraries to build a complete application, for instance, for routing or for data fetching. To address this issue, multiple frameworks have been built on top of React, such as **NextJS** and **Remix**.
+
+## **Setting up a new React project: The options**
+
+The two options that are available for setting up a react project:
+
+1. **Create-React-App tool:** a complete starter kit for React applications. The nice thing about this is that everything is already configured in it: An app created with this tool automatically comes with a development server, webpack for module bundling, and important developer tools such as ESLint, Prettier, Jest, Babel, etc. The problem with this tool is that it was built many years ago, and uses some slow and **outdated technologies** like webpack. So don't use this tool for real-world projects anymore. Only use for tutorials or experiments.
+2. **Vite build tool:** use this tool for **real-world applications**. It is a modern build tool that contains a template for setting up React applications. This needs you to manually set up ESLint and other things. This can go wrong sometimes. So why use Vite? For its extremely fast page refreshment when the code changes. This is called **Hot Module Replacement (HMR)**. Also bundling is extremely fast in Vite.
+
+But we also have other options in addition to the two options mentioned above. It is to use a React framework like **NextJS** or **Remix**. A framework like NextJS contains solutions for things like routing, data fetching, and server-side rendering, which are things that React itself does not provide easily out of the box. So a React framework is something built on top of React and makes it even easier to build applications.
+
+This sounds great, but only for some applications. **Vanilla React applications** are still very important. It only makes sense to use React frameworks for building actual products, not for learning React.
+
+### **Setting up a project with `create-react-app`**
+
+Here are the steps you should follow:
+
+1. Open up the command prompt and navigate to the directory where you want to start your project. Then type this command:
+
+```
+npx create-react-app@5 <project-name>
+```
+
+This will create a new folder with the project name defined in the command. It will also download a lot of files which will take a few minutes. As a result, you will see in the newly created folder a structured set of files and folders. This structure is designed in this way because developers thought it was the best possible structure. But it could be completely different.
+
+```
+- node_modules (dir)
+- public (dir)
+- src (dir)
+    App.css
+    App.js
+    App.test.js
+    index.css
+    index.js
+    logo.svg
+    reportWebVitals.js
+    setupTests.js
+.gitignore
+package.lock.json
+package.json
+```
+
+In the `src` folder we have some files that we don't need and we will get rid of.
+
+The `public` folder contains all the assets that will end up in the final application, such as all the images and an `index.html` file that contains a `<div>` element with the id `root`.
