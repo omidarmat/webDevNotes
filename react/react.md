@@ -8,11 +8,22 @@
     - [**Declarative JSX**](#declarative-jsx)
       - [**Imperative appraoch**](#imperative-appraoch)
       - [**Declarative appraoch**](#declarative-appraoch)
+    - [**Rules of JSX**](#rules-of-jsx)
+    - [**Extracting JSX into a new component**](#extracting-jsx-into-a-new-component)
   - [**Components**](#components)
     - [**Rendering the `root` component and strict mode**](#rendering-the-root-component-and-strict-mode)
     - [**Creating and reusing a component**](#creating-and-reusing-a-component)
       - [**Using public assets in components**](#using-public-assets-in-components)
       - [**Implementing JavaScript logic in components**](#implementing-javascript-logic-in-components)
+  - [Props](#props)
+    - [**Props make one-way data flow**](#props-make-one-way-data-flow)
+    - [**Passing and reciving props**](#passing-and-reciving-props)
+      - [**Rendering lists with props**](#rendering-lists-with-props)
+      - [**Conditional rendering**](#conditional-rendering)
+        - [**With `&&`**](#with-)
+        - [**With ternary operator**](#with-ternary-operator)
+        - [**With multiple `return` statements**](#with-multiple-return-statements)
+  - [React Fragments](#react-fragments)
   - [**Styling React applications**](#styling-react-applications)
     - [**Inline styling**](#inline-styling)
     - [**External CSS or Sass**](#external-css-or-sass)
@@ -120,7 +131,7 @@ We will also share data between components using Props and learn about rendering
 
 It is important to remember that each component has its own:
 
-1. Data
+1. Data (props)
 2. JavaScript Logic
 3. Appearance (JSX)
 
@@ -150,6 +161,72 @@ Declarative approach means to describe what the UI should look like at all times
 
 So in the declarative approach, we tell the browser **what we want to achieve**. It helps us developers to never think of touching the DOM. Instead, we should only think of the UI as a reflection of the current data.
 
+### **Rules of JSX**
+
+1. JSX works essentially like HTML, but we can enter JavaScript mode by using `{}`.
+2. Inside the JavaScript mode, we can place any JavaScript expressions. Example: reference variables, create arrays or objects, `.map()`, ternary opertor. But statements are not allowed (`if/else`, `for`, `switch`)
+3. A piece of JSX produces a JavaScript expression. By that we mean that this:
+
+```js
+const el = <h1>Hello React!</h1>;
+```
+
+is converted to:
+
+```js
+const el = React.createElement("h1", null, "Hello React!");
+```
+
+This fact has 2 important implications:
+
+- We can place other pieces of JSX inside `{}`
+- We can write JSX anywhere inside a component (in `if/else`, assign to variables, pass it into functions)
+
+4. A piece of JSX can only have one root element. If you need more, use `<React.Fragment>`.
+
+### **Extracting JSX into a new component**
+
+Let's talk on the `Footer` component example. As we notice that the JSX inside this component is growing too much, we can extract JSX into another component. We simply define another component that returns a JSX.
+
+```js
+function Order(props) {
+  return (
+    <div className="order">
+      <p>
+        We're open until {props.closeHour}:00. Come visit us or order online.
+      </p>
+      <button className="btn">Order</button>
+    </div>
+  );
+}
+```
+
+We would obviously have to udpate the `Footer` component like this:
+
+```js
+function Footer() {
+  const hour = new Date().getHours();
+  const openHour = 12;
+  const closeHour = 22;
+  const isOpen = hour >= openHour && hour <= closeHour;
+  console.log(isOpen);
+
+  return (
+    <footer className="footer">
+      {isOpen ? (
+        <Order closeHour={closeHour} />
+      ) : (
+        <p>
+          We're happy to welcome you between {openHour} and {closeHour}
+        </p>
+      )}
+    </footer>
+  );
+}
+```
+
+So we take out a part of the JSX, and replace it with the result of calling the `Order` component by passing the `closeHour` prop into it, because it depends on it.
+
 ## **Components**
 
 Components are the most fundamental concepts in React. React applications are entirely made out of components.
@@ -173,11 +250,13 @@ Then we add the first component which is usually called `App` and its name needs
 
 ```js
 function App() {
-  return <h1>Hello React!</h1>; // We are not allowed to return more than one element.
+  return <h1>Hello React!</h1>;
 }
 ```
 
 Now in order to render this component to the DOM, we would have to use the `createRoot` method that is available on `ReactDOM`. This method receives as argument the `<div>` element with the ID `root` in the `index.html` file which is currently located in the `public` folder.
+
+> We are not allowed to return more than one element in a single JSX. If we want to include more than one element, we would have to wrap them in one single parent element, like a `div`. This can also be handled using React [fragments]().
 
 ```js
 const root = ReactDOM.createRoot(document.getElementById("root"));
@@ -284,6 +363,321 @@ function Footer() {
 Notice how we have used regular JavaScript logic before returning the JSX. Also keep in mind that in order to implement JavaScript logic in JSX, we should always insert the JavaScript code inside `{}`.
 
 > You will probably receive every result twice, and that is becasue of the strict mode.
+
+## Props
+
+Up until this point, we have learned about a component's appearance and logic. We also know that React renders a component based on its current data and that the UI will always be in sync with that data. This data is made out of **props** and **state**. There are actually more, but for now these two matter.
+
+State is **internal component data** that can be updated by the component's **logic**, while props is the data coming from the **parent component**, so from outside. So it is the parent component that owns the data, and therefore it cannot be modified by the child component. Props can only be updated by the parent component itself. So keep in mind that **Props are read-only, they are immutable**. Therefore, if you need to mutate props, you actually need state.
+
+Why props are immutable? Because props are just simple objects. Mutating props would affect the parent component, that is how objects work in JavaScript. If you change an object that is located outside a function, that function has then created side effects. React is all about pure functions that don't produce side effects. Components have to be pure in terms of their props and state, because this allows React to optimize apps, avoid bugs, and make apps predictable.
+
+Props essentially defines how we pass data between components, in particular, from parent components to child components. Props are an essential React tool to configure and to customize components. You can imagine props as settings that we can use to make a parent component control how its child components should look like. Props are just like function arguments passed to regular JavaScript functions.
+
+### **Props make one-way data flow**
+
+This means that in React applications, data can only be passed from parent to child components which happens by using props. There are multiple reasons thar React uses this one-way data flow:
+
+1. Makes applications more predictable and easier to understand for developers.
+2. Makes applications easier to debug, as we have more control over the data
+3. This is more performant.
+
+Now you might ask, what if I actually wanted to pass some state up to a parent component? There is a very clever way to do that, but we will learn that later.
+
+### **Passing and reciving props**
+
+To define props we do it in 2 steps:
+
+1. Pass the props
+2. Receive the props
+
+Imagine we have a `Menu` component that is going to pass props into a `Pizza` component. This would the most basic way to implement:
+
+```js
+function Menu() {
+  return (
+    <main className="menu">
+      <h2>Our menu</h2>
+      <Pizza
+        name="Pizza Spinaci"
+        ingredients="Tomato, mozarella, spinach, and ricotta cheese"
+        photoName="pizzas/spinaci.jpg"
+        price={10}
+      />
+    </main>
+  );
+}
+```
+
+Notice how we have defined props similar to regular attributes in HTML.
+
+> The order in which we define props as attributes is not important. Also note that you can insert anything as props. It is limited to strings or numbers. It can be objects, or even other React components. However, if you want to insert anything but strings, you should first enter JavaScript mode by typing `{}`.
+
+Now the `Pizza` component will be able to receive these props in an object called `props`. The attributes will be available as properties on the `props` object.
+
+```js
+function Pizza(props) {
+  return (
+    <div>
+      <img src={props.photoName} alt={props.name} />
+      <h2>{props.name}</h2>
+      <p>{props.ingredients}</p>
+    </div>
+  );
+}
+```
+
+> The `props` object is always available on all components, but if we don't pass anything into a component as argument, it will simply be an empty object.
+
+#### **Rendering lists with props**
+
+Rendering a list is when we have an array and we want to render an element for each component of the array. We will continue the example mentioned above for this use case.
+
+We should now update the `Menu` component we defined in the example above:
+
+```js
+function Menu() {
+  return (
+    <main className="menu">
+      <h2>Our menu</h2>
+      <ul>
+        {pizzaData.map((pizza) => (
+          <Pizza pizzaObj={pizza} key={pizza.name} />
+        ))}
+      </ul>
+    </main>
+  );
+}
+```
+
+> This is the conventional practice in React that in these cases, the parent component passes the whole data object as props to the child component.
+
+We would also have to update the `Pizza` component to receive the whole pizza object for each pizza on the menu.
+
+```js
+function Pizza(props) {
+  return (
+    <li className="pizza">
+      <img src={props.pizzaObj.photoName} alt={props.pizzaObj.name} />
+      <div>
+        <h3>{props.pizzaObj.name}</h3>
+        <p>{props.pizzaObj.ingredients}</p>
+        <span>{props.pizzaObj.price}</span>
+      </div>
+    </li>
+  );
+}
+```
+
+> Note how we also defined a `key` prop in the `Menu` component. If we didn't do it, React would give us an error in the console saying that "Each child in a list should have a unique "key" prop." This means that each time we render a list, as we did in the `Menu` component using the `.map()` method, each of the items that gets rendered needs also a `key` property or attribute. This is a prop that is internal to React and it uses it to do some performance optimization. We should pass a unique value for the `key` prop. In this example, we used the pizza name as the key for each pizza.
+
+> Also keep in mind that we should still keep using semantic HTML in React. Notice how we did that by using `ul` and `li` tags in the `Menu` and `Pizza` components respectively.
+
+> It is a good practice to destructure props immediately when they are received in a component. This lets us quickly figure out what props the component is receiving, without having to look at the parent component in the chain. For instance, for the `Pizza` component mentioned above, we can do it like this:
+
+```js
+function Pizza({ pizzaObj }) {
+  if (pizzaObj.soldOut) return null;
+
+  return (
+    <li className="pizza">
+      <img src={pizzaObj.photoName} alt={pizzaObj.name} />
+      <div>
+        <h3>{pizzaObj.name}</h3>
+        <p>{pizzaObj.ingredients}</p>
+        <span>{pizzaObj.price}</span>
+      </div>
+    </li>
+  );
+}
+```
+
+#### **Conditional rendering**
+
+This is a very important technique that we use all the time in React. There are 3 ways of rendering some JSX or an entire component in React.
+
+Keep these notes in mind:
+
+1. Use the ternary operator when you need to return some piece of JSX based on a condition.
+2. Sometimes you may need to return something entirely different in a certain condition. In these situations you may use multiple `return` statements based on conditions.
+
+##### **With `&&`**
+
+This basically involves using the short circuiting technique of JavaScript. Short circuiting means that you combine a condition with something that should be returned. If the condition becomes `true` or if it contains a truthy value, the second thing will actually be returned.
+
+In this example, we want to render the footer content if the `isOpen` variable contains `true`.
+
+```js
+function Footer() {
+  const hour = new Date().getHours();
+  const openHour = 12;
+  const closeHour = 22;
+  const isOpen = hour >= openHour && hour <= closeHour;
+  console.log(isOpen);
+  return (
+    <footer className="footer">
+      {isOpen && (
+        <div className="order">
+          <p>We're open until {closeHour}:00. Come visit us or order online.</p>
+          <button className="btn">Order</button>
+        </div>
+      )}
+    </footer>
+  );
+}
+```
+
+As another example, take the `Menu` component that we previously mentioned. We want to render the `ul` only if there are some pizzas avilable on the `pizzaData` array.
+
+```js
+function Menu() {
+  const numPizzas = pizzaData.length;
+  return (
+    <main className="menu">
+      <h2>Our menu</h2>
+      {numPizzas > 0 && (
+        <ul className="pizzas">
+          {pizzas.map((pizza) => (
+            <Pizza pizzaObj={pizza} key={pizza.name} />
+          ))}
+        </ul>
+      )}
+    </main>
+  );
+}
+```
+
+This will make it so that if the `pizzaData` array is empty, then the whole `ul` won't be rendered.
+
+> We should not implement the condition by simply writing `numPizzas` as a truthy/falsey value. In this case, if `numPizzas` is 0, then it would be a falsey value and short circuiting will happen. Therefore, what will be returned is not what we wrote after the `&&`. Instead, the value of `numPizzas` will be returned and rendered on the page. We don't want that. So we should actually write the condition in a way that becomes `true` or `false`.
+
+##### **With ternary operator**
+
+We are now going to do the same thing with the ternary operator. The advantage of using ternary operator is that we can display some alternative.
+
+```js
+function Menu() {
+  const pizzas = pizzaData;
+  const numPizzas = pizzas.length;
+  return (
+    <main className="menu">
+      <h2>Our menu</h2>
+      {numPizzas > 0 ? (
+        <ul className="pizzas">
+          {pizzas.map((pizza) => (
+            <Pizza pizzaObj={pizza} key={pizza.name} />
+          ))}
+        </ul>
+      ) : null}
+    </main>
+  );
+}
+```
+
+Let's also use this for the `Footer` component:
+
+```js
+function Footer() {
+  const hour = new Date().getHours();
+  const openHour = 12;
+  const closeHour = 22;
+  const isOpen = hour >= openHour && hour <= closeHour;
+  console.log(isOpen);
+
+  return (
+    <footer className="footer">
+      {isOpen ? (
+        <div className="order">
+          <p>We're open until {closeHour}:00. Come visit us or order online.</p>
+          <button className="btn">Order</button>
+        </div>
+      ) : (
+        <p>
+          We're happy to welcome you between {openHour} and {closeHour}
+        </p>
+      )}
+    </footer>
+  );
+}
+```
+
+> We can use ternary operator to render the text content of a JSX element based on a condition. We can also use the ternary operator to insert class names based on a condition. Take the `Pizza` component for instance where we want to add the `sold-out` class name to any of the pizzas that are sold out. We also want to show the "SOLD OUT" text content instead of pizza's price in the `<span>` element that we defined in the JSX.
+
+```js
+function Pizza({ pizzaObj }) {
+  return (
+    <li className={`pizza ${pizzaObj.soldOut ? "sold-out" : ""}`}>
+      <img src={pizzaObj.photoName} alt={pizzaObj.name} />
+      <div>
+        <h3>{pizzaObj.name}</h3>
+        <p>{pizzaObj.ingredients}</p>
+        <span>{pizzaObj.soldOut ? "SOLD OUT" : pizzaObj.price}</span>
+      </div>
+    </li>
+  );
+}
+```
+
+##### **With multiple `return` statements**
+
+Up until this point, all our components only ever had one `return` statement. But as JavaScript allows us, we can use multiple return statements based on some condition. Of course, only one of the `return` statements would be executed in the component, and that is why we implement this based on some condition.
+
+For instance, if we want to render a `Pizza` component if only it is not sold out, we can do this:
+
+```js
+function Pizza(props) {
+  if (props.pizzaObj.soldOut) return null;
+
+  return (
+    <li className="pizza">
+      <img src={props.pizzaObj.photoName} alt={props.pizzaObj.name} />
+      <div>
+        <h3>{props.pizzaObj.name}</h3>
+        <p>{props.pizzaObj.ingredients}</p>
+        <span>{props.pizzaObj.price}</span>
+      </div>
+    </li>
+  );
+}
+```
+
+## React Fragments
+
+Basically, a React fragment lets us group elements without leaving any trace in the DOM.
+
+Remember that a piece of JSX, no matter where it is defined, can only have one root element. Previously, we said that one way to fix this is to wrap our elements in a single parent element, like a `div`. This can potentially mess up the styles and appearances that we defined for the page. So we can use fragments.
+
+You will again wrap the elements that you want to return as JSX in a parent element, but this parent element will not be an actual HTML element. It won't be inserted into the HTML code of the page. Only React will know about this. The parent element's opening would be `<>` and its closing would be `</>`.
+
+```js
+function Menu() {
+  const pizzas = pizzaData;
+  const numPizzas = pizzas.length;
+  return (
+    <main className="menu">
+      <h2>Our menu</h2>
+
+      {numPizzas > 0 ? (
+        <>
+          <p>
+            Authentic Italian cuisine. 6 creative dishes to choose from. All
+            from our stone stove, all organic, all delicious.
+          </p>
+          <ul className="pizzas">
+            {pizzas.map((pizza) => (
+              <Pizza pizzaObj={pizza} key={pizza.name} />
+            ))}
+          </ul>
+        </>
+      ) : (
+        <p>We're still working on our menu. Please come back later.</p>
+      )}
+    </main>
+  );
+}
+```
+
+> Sometimes we need to add a `key` to the React fragment, for instance, when we are using it to render a list. Then the fragment would have to be written in a different way. The wrapper element will now be `<React.Fragment>` and then we would be able to add a `key` prop to it.
 
 ## **Styling React applications**
 
