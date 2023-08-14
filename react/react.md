@@ -30,6 +30,9 @@
     - [**CSS modules**](#css-modules)
     - [**Tailwind CSS**](#tailwind-css)
   - [**Separation of concerns in React**](#separation-of-concerns-in-react)
+- [**State, Events and Forms interactive components**](#state-events-and-forms-interactive-components)
+  - [**Handling events**](#handling-events)
+  - [**State in React**](#state-in-react)
 
 # **A first look at react**
 
@@ -229,7 +232,7 @@ So we take out a part of the JSX, and replace it with the result of calling the 
 
 ## **Components**
 
-Components are the most fundamental concepts in React. React applications are entirely made out of components.
+Components are the most fundamental concepts in React. React applications are entirely made out of components. Each component is a self-contained piece of the UI which contains its own data, JS logic, and appearance (JSX).
 
 In a real-world application, we can identify main components, and if we look with more precision, we can also identify some smaller components inside other major components. In React applications, it is very normal to **nest** components inside other components.
 
@@ -738,3 +741,162 @@ function App() {
 [Notes will be added later.]
 
 Before React we had one technology per file, but with React we have one component per file. So separation of concerns is still there, but in a different paradigm.
+
+# **State, Events and Forms interactive components**
+
+In this section, we will be working on a steps component as an example. We initialized the a new project using the `npx create-react-app@5 steps` command, then deleted everything in the `src` folder except the `App.js` and `index.js` files. Inside the `App.js` file we define the `App` component and export it so that the `root` element defined in the `index.js` file can have access to it.
+
+**`App.js`**
+
+```js
+const messages = [
+  "Learn React ⚛️",
+  "Apply for jobs 💼",
+  "Invest your new income 🤑",
+];
+
+export default function App() {
+  const step = 1;
+  return (
+    <div className="steps">
+      <div className="numbers">
+        <div className={`${step >= 1 ? "active" : ""}`}>1</div>
+        <div className={`${step >= 2 ? "active" : ""}`}>2</div>
+        <div className={`${step >= 3 ? "active" : ""}`}>3</div>
+      </div>
+
+      <p className="message">
+        Step {step}: {messages[step - 1]}
+      </p>
+
+      <div className="buttons">
+        <button style={{ backgroundColor: "#7950f2", color: "#fff" }}>
+          Previous
+        </button>
+        <button style={{ backgroundColor: "#7950f2", color: "#fff" }}>
+          Next
+        </button>
+      </div>
+    </div>
+  );
+}
+```
+
+## **Handling events**
+
+To handle events in React, we don't use the `.addEventListener()` method, because that is the imperative way of responding to event. But in React, we use a **declarative** approach, meaning that we don't manually select DOM elements. Instead, we use something similar to the **HTML inline event listener**.
+
+To listen for a click event on a certain element, we use the `on<Event>` prop or attribute on the element in the JSX. This prop accepts a JavaScript function. For instance, if we want to listen for a click event on a button:
+
+```js
+export default function App() {
+  const step = 1;
+
+  return (
+    <div className="steps">
+      <div className="numbers">
+        <div className={`${step >= 1 ? "active" : ""}`}>1</div>
+        <div className={`${step >= 2 ? "active" : ""}`}>2</div>
+        <div className={`${step >= 3 ? "active" : ""}`}>3</div>
+      </div>
+
+      <p className="message">
+        Step {step}: {messages[step - 1]}
+      </p>
+
+      <div className="buttons">
+        <button
+          style={{ backgroundColor: "#7950f2", color: "#fff" }}
+          onClick={() => alert("previous")}
+          onMouseEnter={() => alert("previous")}
+        >
+          Previous
+        </button>
+        <button style={{ backgroundColor: "#7950f2", color: "#fff" }}>
+          Next
+        </button>
+      </div>
+    </div>
+  );
+}
+```
+
+> Notice how we have listened for two events (`onClick` and `onMouseEnter`) at the same time on one element.
+
+> We don't usually define the callback function inside the event listener prop. Instead, we define a separate function inside the current component, and pass it into the prop.
+
+```js
+export default function App() {
+  const step = 1;
+
+  function handlePrevious() {
+    alert("previous");
+  }
+
+  function handleNext() {
+    alert("next");
+  }
+
+  return (
+    <div className="steps">
+      <div className="numbers">
+        <div className={`${step >= 1 ? "active" : ""}`}>1</div>
+        <div className={`${step >= 2 ? "active" : ""}`}>2</div>
+        <div className={`${step >= 3 ? "active" : ""}`}>3</div>
+      </div>
+
+      <p className="message">
+        Step {step}: {messages[step - 1]}
+      </p>
+
+      <div className="buttons">
+        <button
+          style={{ backgroundColor: "#7950f2", color: "#fff" }}
+          onClick={handlePrevious}
+        >
+          Previous
+        </button>
+        <button
+          style={{ backgroundColor: "#7950f2", color: "#fff" }}
+          onClick={handleNext}
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  );
+}
+```
+
+We usually handle events in order to work with **states**.
+
+## **State in React**
+
+State is the most important concept in React. Everything revolves around the concept of state in React. Here is what React developers need to learn about state:
+
+1. What is state and why we need it?
+2. How to use state in practice?
+   - `useState`
+   - `useReducer`
+   - Context API
+3. Thinking about state
+   - When to use state
+   - Where to place state
+   - Types of state
+
+We know how to pass data into a component using props, which is data coming from outside the component. But what if a component needs to hold its own data, especially over time? Also, what if we want to make our application interactive and change the UI as a result of an action? This is where state comes in.
+
+State is data that a component can hold over time. It is necessary for information that the component needs to remember throughout the application's lifecycle. So we can think of state as the memory of a component.
+
+Examples of state:
+
+- Notification count
+- Text content of an input field
+- Active tab in a tabbed component
+- Content of a shopping cart
+
+The common thing between all kinds of state is that the user can easily change the state value in the application. For instance, when they read a notification, the count will decrease. So each component needs to be able to hold this data, which is **a piece of state**, over time.
+
+A piece of state or a state variable is a single variable in a component, which is also called a component state.
+
+Keep in mind that updating the state triggers React to re-render the component in the UI.
