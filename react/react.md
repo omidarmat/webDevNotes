@@ -15,7 +15,8 @@
     - [**Creating and reusing a component**](#creating-and-reusing-a-component)
       - [**Using public assets in components**](#using-public-assets-in-components)
       - [**Implementing JavaScript logic in components**](#implementing-javascript-logic-in-components)
-  - [Props](#props)
+    - [**Moving components into separate files**](#moving-components-into-separate-files)
+  - [**Props**](#props)
     - [**Props make one-way data flow**](#props-make-one-way-data-flow)
     - [**Passing and reciving props**](#passing-and-reciving-props)
       - [**Rendering lists with props**](#rendering-lists-with-props)
@@ -46,6 +47,8 @@
   - [**State management**](#state-management)
     - [**Types of state**](#types-of-state)
     - [**When and where?**](#when-and-where)
+    - [**Lifting state**](#lifting-state)
+    - [**Derived state**](#derived-state)
 
 # **A first look at react**
 
@@ -113,14 +116,14 @@ This will create a new folder with the project name defined in the command. It w
 - node_modules (dir)
 - public (dir)
 - src (dir)
-    App.css
+    App.css //delete
     App.js
-    App.test.js
-    index.css
+    App.test.js //delete
+    index.css //delete
     index.js
-    logo.svg
-    reportWebVitals.js
-    setupTests.js
+    logo.svg //delete
+    reportWebVitals.js //delete
+    setupTests.js //delete
 .gitignore
 package.lock.json
 package.json
@@ -380,7 +383,13 @@ Notice how we have used regular JavaScript logic before returning the JSX. Also 
 
 > You will probably receive every result twice, and that is becasue of the strict mode.
 
-## Props
+### **Moving components into separate files**
+
+We take the component code from the main `App.js` file and put it in a separate file in the `src` folder of our project. It is a good practice to call the new file with the same name as the component. For instance, if we are taking the `Logo` component to a separate file, we call the new file `Logo.js`.
+
+Inside the `Logo.js` file we `export default` the component, and then import it in the main `App.js` file.
+
+## **Props**
 
 Up until this point, we have learned about a component's appearance and logic. We also know that React renders a component based on its current data and that the UI will always be in sync with that data. This data is made out of **props** and **state**. There are actually more, but for now these two matter.
 
@@ -1181,6 +1190,8 @@ So we have basically defined an event handler function for the `onChange` prop o
 
 > Note that `e.target` is the element to which the event handler function is attached.
 
+> **EXTREMELY IMPORTANT:** Notice how functions are passed differently into `onSubmit` and `onChange` props. The reason behind this difference is that when the `submit` event happens, meaning the form data is being submitted, we call the submit handler function immediately with the `event` object automatically passed into it. On the other hand, when the input `change` event happens, we need to pass the new value into the state setter function. So although the `e` object is automatically passed into the setter function, we need to call the setter function with the new state value which is inside the event object, we don't want to call the setter with the event object itself.
+
 We can implement the same technique for the `select` form field.
 
 ```js
@@ -1337,3 +1348,340 @@ It all starts **when** you realize that you need to store some data. When this h
   - No: **Used by one or a few sibling components or a parent component?**
     - Yes: _Lift_ state up to first _common parent_.
     - No: Probably _global state_. later...
+
+### **Lifting state**
+
+Let's go back to the "Far Away" application as an example. In this application, we are going to set a state variable for all the things that should be listed.
+
+Following the set of questions mentioned in the previous part, we should first ask if the data will change at some point? Yes. Can it be computed from an existing state? No. Should it re-render the component? Yes. So we would have to place a new piece of state in the component for now.
+
+What we do now is to create a new piece of state in the `Form` component for `items`. Then we should use the `setItems` setter function to update the `items` state variable whenever the form input data is submitted.
+
+```js
+function Form() {
+  const [description, setDescription] = useState("");
+  const [quantity, setQuantity] = useState(1);
+  const [items, setItems] = useState([]);
+
+  function handleAddItems(item) {
+    setItems((items) => [...items, item]);
+  }
+
+  function handleSubmit(e) {
+    e.preventDefault();
+
+    if (!description) return;
+
+    const newItem = { description, quantity, packed: false, id: Date.now() };
+    handleAddItems(newItem);
+
+    setDescription("");
+    setQuantity(1);
+  }
+  return (
+    <form className="add-form" onSubmit={handleSubmit}>
+      <h3>What do you need for your trip?</h3>
+      <select value={quantity} onChange={(e) => setQuantity(+e.target.value)}>
+        {Array.from({ length: 20 }, (_, i) => i + 1).map((num) => (
+          <option value={num} key={num}>
+            {num}
+          </option>
+        ))}
+      </select>
+      <input
+        type="text"
+        placeholder="Item..."
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+      />
+      <button>Add</button>
+    </form>
+  );
+}
+```
+
+> Notice again how we have implemented a callback function inside the `setItems` state setter function because the new state is computed based on the current state.
+
+Up until this point, the state is being updated successfully, but it is not rendered anywhere in the UI. The problem is that the `Form` component in which we have defined the `items` state is actually the sibling of `PackingList` component which is actually responsible for rendering the `items` state to the UI. We cannot pass this data as a prop to the `PackingList`. The solution here is to **lift up state** to the first common parent component, which is the `App` component in this case.
+
+So we move the state definition to the `App` component. Then we would also have to move the `handleAddItems` function to the `App` component because that is where, now, the `setItems` setter function and the `items` state is defined and therefore usable.
+
+Now that we have lifted the state to the `App` component, we can pass the state down to any of the child components.
+
+So the `PackingList` component will simply receive the `items` state variable as a prop, and use it to render the `items` state to the UI.
+
+We also need to pass the `handleAddItems` function, responsible for calling the `setItems` setter function to update the state function, to the `Form` component. Passing down a setter function is also called **child-to-parent communication** or **inverse data flow**, because here it is the child that will update the parent state. It seems as if the data is flowing up, which in fact is not true.
+
+```js
+export default function App() {
+  const [items, setItems] = useState([]);
+
+  function handleAddItems(item) {
+    setItems((items) => [...items, item]);
+  }
+
+  return (
+    <div className="app">
+      <Logo />
+      <Form onAddItems={handleAddItems} />
+      <PackingList items={items} />
+      <Stats />
+    </div>
+  );
+}
+```
+
+> There is a convention for naming the prop through which a state setter function is passed. In this example, we insert the `handleAddItems` function into a prop called `onAddItems`.
+
+We would then have to prepare the `Form` and `PackingList` components to receive these props. We would update the `Form` component like this:
+
+```js
+function Form({ onAddItems }) {
+  const [description, setDescription] = useState("");
+  const [quantity, setQuantity] = useState(1);
+
+  function handleSubmit(e) {
+    e.preventDefault();
+
+    if (!description) return;
+
+    const newItem = { description, quantity, packed: false, id: Date.now() };
+    onAddItems(newItem);
+
+    setDescription("");
+    setQuantity(1);
+  }
+  return (
+    <form className="add-form" onSubmit={handleSubmit}>
+      <h3>What do you need for your trip?</h3>
+      <select value={quantity} onChange={(e) => setQuantity(+e.target.value)}>
+        {Array.from({ length: 20 }, (_, i) => i + 1).map((num) => (
+          <option value={num} key={num}>
+            {num}
+          </option>
+        ))}
+      </select>
+      <input
+        type="text"
+        placeholder="Item..."
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+      />
+      <button>Add</button>
+    </form>
+  );
+}
+```
+
+And the `PackingList` component like this:
+
+```js
+function PackingList({ items }) {
+  return (
+    <div className="list">
+      <ul>
+        {items.map((item) => (
+          <Item item={item} key={item.id} />
+        ))}
+      </ul>
+    </div>
+  );
+}
+```
+
+As another example, we now want to implement the functionality of deleting items from the list. This means that whenever we hit the X button on any of the elements, that button should be removed from the state, and therefore, should also be removed from the UI.
+
+So we define a `handleDeleteItem` function in the `App` component.
+
+```js
+export default function App() {
+  const [items, setItems] = useState([]);
+
+  function handleAddItems(item) {
+    setItems((items) => [...items, item]);
+  }
+
+  function handleDeleteItem(id) {
+    setItems((items) => items.filter((item) => item.id !== id));
+  }
+
+  return (
+    <div className="app">
+      <Logo />
+      <Form onAddItems={handleAddItems} />
+      <PackingList items={items} onDeleteItem={handleDeleteItem} />
+      <Stats />
+    </div>
+  );
+}
+```
+
+And then we should pass it into the `Item` since it is in that component where the click on delete button will happen in the UI. But on the way to that component, there is the `PackingList` component. So we first pass the `handleDeleteItem` function to the `PackingList` component, and then from there, we pass it into the `Item` component.
+
+```js
+function PackingList({ items, onDeleteItem }) {
+  return (
+    <div className="list">
+      <ul>
+        {items.map((item) => (
+          <Item item={item} onDeleteItem={onDeleteItem} key={item.id} />
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function Item({ item, onDeleteItem }) {
+  return (
+    <li>
+      <span style={item.packed ? { textDecoration: "line-through" } : {}}>
+        {item.quantity} {item.description}
+      </span>
+      <button onClick={() => onDeleteItem(item.id)}>❌</button>
+    </li>
+  );
+}
+```
+
+> This is, again, the case where we previously mentioned an **EXTREMELY IMPORTANT** note. Keep in mind that we cannot immediately call the `onDeleteItem` function in the `onClick` prop, because in that case, the function will be called with the event (`e`) object passed into it automatically. But here, we don't want to call this object with the event object. Instead, we want the function to be called while the item ID is passed into it. This is why we used a callback function inside the `onClick` prop, in order to be able to pass the necessary data into the `onDeleteItem` handler.
+
+As another example, we now want to implement a checkbox for each item. If the checkbox is checked, we want the item's `packed` property to be updated. It means that we actually want the `items` state variable to be updated.
+
+We start by defining the `handleToggleItem` function in the `App` component since this is where the `items` state variable and its setter function are defined. Remember that this `handleToggleItem` function should receive the item ID in order to be able to find it in the items and update it.
+
+```js
+function handleToggleItem(id) {
+  setItems((items) =>
+    items.map((item) =>
+      item.id === id ? { ...item, packed: !item.packed } : item
+    )
+  );
+}
+```
+
+We should then pass this function into the `Item` component, but on its way, it should first go through the `PackingList` component.
+
+```js
+export default function App() {
+  const [items, setItems] = useState([]);
+
+  function handleAddItems(item) {
+    setItems((items) => [...items, item]);
+  }
+
+  function handleDeleteItem(id) {
+    setItems((items) => items.filter((item) => item.id !== id));
+  }
+
+  function handleToggleItem(id) {
+    setItems((items) =>
+      items.map((item) =>
+        item.id === id ? { ...item, packed: !item.packed } : item
+      )
+    );
+  }
+
+  return (
+    <div className="app">
+      <Logo />
+      <Form onAddItems={handleAddItems} />
+      <PackingList
+        items={items}
+        onDeleteItem={handleDeleteItem}
+        onToggleItem={handleToggleItem}
+      />
+      <Stats />
+    </div>
+  );
+}
+```
+
+Now we should receive the function inside the `PackingList` component and then pass it to the `Item` component.
+
+```js
+function PackingList({ items, onDeleteItem, onToggleItem }) {
+  return (
+    <div className="list">
+      <ul>
+        {items.map((item) => (
+          <Item
+            item={item}
+            onDeleteItem={onDeleteItem}
+            onToggleItem={onToggleItem}
+            key={item.id}
+          />
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function Item({ item, onDeleteItem, onToggleItem }) {
+  return (
+    <li>
+      <input
+        type="checkbox"
+        value={item.packed}
+        onChange={() => onToggleItem(item.id)}
+      />
+      <span style={item.packed ? { textDecoration: "line-through" } : {}}>
+        {item.quantity} {item.description}
+      </span>
+      <button onClick={() => onDeleteItem(item.id)}>❌</button>
+    </li>
+  );
+}
+```
+
+### **Derived state**
+
+This is pretty straight forward. Derived state is state that is computed from an existing piece of state of from props.
+
+Whenever you are in a situation where one state is easily computed from another, always prefer derived state.
+
+As an exmple of this, let's calculate the statistics displayed in the `Stats` component of our imaginary application. What we should do is to pass the `items` state variable to the `Stats` component, where some new states will be derived from the `items` state and then reflected in the `Stats` component.
+
+So in the `App` component, the only thing we do is:
+
+```js
+return (
+  <div className="app">
+    <Logo />
+    <Form onAddItems={handleAddItems} />
+    <PackingList
+      items={items}
+      onDeleteItem={handleDeleteItem}
+      onToggleItem={handleToggleItem}
+    />
+    <Stats items={items} />
+  </div>
+);
+```
+
+Then we receive the `items` state variable in the `Stats` component, and based on the value of this state variable, we perform some actions.
+
+```js
+function Stats({ items }) {
+  if (!items.length)
+    return (
+      <p className="stats">
+        <em>Start adding some items to your packing list.</em>
+      </p>
+    );
+
+  const numItems = items.length;
+  const numPacked = items.filter((item) => item.packed).length;
+  const percentage = Math.round((numPacked / numItems) * 100);
+
+  return (
+    <footer className="stats">
+      <em>
+        {percentage === 100
+          ? "You got everything! Ready to go ✈"
+          : `💼 You have ${numItems} items on your list, and you already packed
+        ${numPacked} (${percentage}%)`}
+      </em>
+    </footer>
+  );
+}
+```
