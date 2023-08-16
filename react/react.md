@@ -42,10 +42,10 @@
       - [**Controlled elements**](#controlled-elements)
   - [**Review: State vs. Props**](#review-state-vs-props)
 - [**React developer tools**](#react-developer-tools)
-- [**Forms and handling submissions**](#forms-and-handling-submissions-1)
-  - [**Creating a form**](#creating-a-form-1)
-  - [**Form Events**](#form-events-1)
-  - [**Controlled elements**](#controlled-elements-1)
+- [**Thinking in React**](#thinking-in-react)
+  - [**State management**](#state-management)
+    - [**Types of state**](#types-of-state)
+    - [**When and where?**](#when-and-where)
 
 # **A first look at react**
 
@@ -1255,193 +1255,85 @@ Since developer tools are so helpful for developers, the React team built dev-to
 
 Install React's Chrome dev-tools.
 
-# **Forms and handling submissions**
+# **Thinking in React**
 
-One of the most important things that we do the web is to interact with web applications through forms. We are now going to learn how to use forms in React.
+A core skill that every React developer needs to develop, is to think in React. Thinking in React encompasses many aspects:
 
-## **Creating a form**
+1. State management
+   - When and wehere to create state?
+   - When and how to **derive** state?
+   - How to communicate between child and parent components by **lifting** state up?
+2. some other aspect
+3. some other aspect
 
-Take the "Far Away" project as an example. When we build forms in React, we use the normal HTML `<form>` element. So we have a `Form` component, and inside it we write the JSX for a form like this:
+While you are building an application, thinking in React basically means that you have a very good **mental model** of how and when to use all the React tools, like components, state, props, data flow, effects, and many more. It is also always thinking in terms of **state transitions** rather than element mutations.
 
-```js
-function Form() {
-  return (
-    <form className="add-form">
-      <h3>What do you need for your trip?</h3>
-      <select>
-        {Array.from({ length: 20 }, (_, i) => i + 1).map((num) => (
-          <option value={num} key={num}>
-            {num}
-          </option>
-        ))}
-      </select>
-      <input type="text" placeholder="Item..." />
-      <button>Add</button>
-    </form>
-  );
-}
-```
+Thinking in React can be interpretted as a process that can help us build apps in a more structured way. This process, of course, is not a rigid process. In practice there will be a lot of back and forth between these steps. But here is a good suggestion:
 
-> Notice how we have inserted all the `option` elements of the `select` form element programatically. So basically, we made an `Array` by defining its `length` and a mapping function that receives first the current value, and second the current index, and it will return any value that we produce with any expression in this mapping function.
+1. Break the desired UI into components and establish how these components are related in the component tree. This also includes thinking about reusablity and composiblity of components.
+2. Build a static version in React (without state and interactivity). By doing this, we do most of the coding up front, before having to wory about state and interactivity.
+3. Think about **state**:
+   - When to use state
+   - Types of state: local vs. global
+   - Where to place each piece of state
+4. Establish **data flow**:
+   - One-way data flow
+   - Child-to-parent communication
+   - Accessing global state
 
-> Remember to define a `key` prop for any element that is produced through a mapping operation. We will later learn what this key is and why it is important.
+> Steps 3 and 4 are called altogether **state management**.
 
-## **Form Events**
+Once we know how to think in Reeact, we will be able to answer these questions:
 
-When we work with a form, we basically want the form to be submitted once we click on a button element. We can then react to the form submission with an event handler.
+- How to break up a UI design into components?
+- How to make some of my components truly reusable?
+- How to assemble UI from reusable components?
+- What piece of state do I need for interactivity?
+- Where to place state? (what component should own each piece of state?)
+- What types of state can or should I use?
+- How to make data flow through the application?
 
-To listen for the submission event on a form, we add the `onSubmit` prop to its JSX element, and we pass an event handler function to it, not call it. So we would also have to define an event handler function inside the `Form` component.
+## **State management**
 
-```js
-function Form() {
-  function handleSubmit(e) {
-    e.preventDefault();
-  }
-  return (
-    <form className="add-form" onSubmit={handleSubmit}>
-      <h3>What do you need for your trip?</h3>
-      <select>
-        {Array.from({ length: 20 }, (_, i) => i + 1).map((num) => (
-          <option value={num} key={num}>
-            {num}
-          </option>
-        ))}
-      </select>
-      <input type="text" placeholder="Item..." />
-      <button>Add</button>
-    </form>
-  );
-}
-```
+Take a look at a complicated web application. How would we know that we need all pieces of state in the application? How do we know where to place them in the code? This is where state management comes to play.
 
-> Note that we have prevented the default behavior of the HTML form element when a submission happens. The default behavior is to perform a full reload for the whole application, but as we have talked about React and its aim to create single-page applications, that is not what we want.
+State management is about deciding **when** to create pieces of state, what **types** of state are necessary, **where** to place each piece of state, and how **data flows** through the app. State management is to give each piece of state a home within our code base.
 
-> The input data that is submitted by a form is accessible in the event (`e`) object that is received by the event handler function. Inside this object there is a `target` object that stores all the elements of the form, and their values if they have any. But this is not the way we acquire form input data in React. Instead, we use **Controlled Elements**.
+Up until this point, we never had to worry about state management. We simply placed each state in a component that needed it. However, as an application grows the need to find the right home to each piece of state starts to become really important.
 
-## **Controlled elements**
+### **Types of state**
 
-An important thing to keep in mind is that, by default, the input fields of a form maintain their own state inside the DOM. This makes it hard to read their values, and it also leaves the state right in the DOM, which is not ideal for many reasons. In React, we want to keep all states in one central place which is inside the React application, and not inside the DOM. In order to do this, we use a technique called **Controlled Elements**.
+There are two types of state: Local vs. Global.
 
-With this technique, it is React that will control and own the state of the input fields. So, basically, we need some state in our application.
+| Local                                                                                             | Global                                                  |
+| ------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| Needed only by one or few components                                                              | Many components might need                              |
+| Defined in a component and only that component and child components have access to it (via props) | Accessible to every component in the entire application |
 
-In order to implement the controlled element technique, we follow 3 steps:
+> Looking at a complicated application, an example of local state might be the input text in the search bar. An example of global state can be the shopping cart since this piece of data is used all over the place.
 
-1. Create a piece of state
-2. Use this state as a value of the input field
+The distinction between local and global state matters more in large-scale applications. In small apps, we won't have any truly global state. One important guideline in state management is to always start with local state, and only move to global state if you truly need it.
 
-```js
-function Form() {
-  const [description, setDescription] = useState("");
+> In practice, we can define global state using React's **Context API** or an external global state management library called **Redux**.
 
-  function handleSubmit(e) {
-    e.preventDefault();
-  }
-  return (
-    <form className="add-form" onSubmit={handleSubmit}>
-      <h3>What do you need for your trip?</h3>
-      <select>
-        {Array.from({ length: 20 }, (_, i) => i + 1).map((num) => (
-          <option value={num} key={num}>
-            {num}
-          </option>
-        ))}
-      </select>
-      <input type="text" placeholder="Item..." value={description} />
-      <button>Add</button>
-    </form>
-  );
-}
-```
+### **When and where?**
 
-3. This will make it so that the `value` of the input field is only in sync with the value of the `description` state variable. So we are no longer able to type anything into the field in the UI. In order to fix this, we would have to connect the `description` state variable to the UI. This is done by inserting a `onChange` prop on the input field.
+It all starts **when** you realize that you need to store some data. When this happens, you have to ask yourself:
 
-```js
-function Form() {
-  const [description, setDescription] = useState("");
+**Will this data change at some point in time?**
 
-  function handleSubmit(e) {
-    e.preventDefault();
-  }
-  return (
-    <form className="add-form" onSubmit={handleSubmit}>
-      <h3>What do you need for your trip?</h3>
-      <select>
-        {Array.from({ length: 20 }, (_, i) => i + 1).map((num) => (
-          <option value={num} key={num}>
-            {num}
-          </option>
-        ))}
-      </select>
-      <input
-        type="text"
-        placeholder="Item..."
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-      />
-      <button>Add</button>
-    </form>
-  );
-}
-```
+- No: use a regular `const` variable
+- Yes: **Is it possible to compute this new data from an existing piece of state or props?**
+  - Yes: _Derive_ state, meaning that you should compute it based on already existing state or prop
+  - No: **Should updating the state re-render the component?**
+    - No: `useRef`, which persists data over time, like regular state, but does not re-render a component.
+    - Yes: Place a new piece of state in component. (mentioned earlier: always start with local state.)
 
-So we have basically defined an event handler function for the `onChange` prop of the input field. This makes it so that everytime we type something in the field, it will update the state with the value that has just been typed. What then? React detects that the state has been updated, so it triggers a re-render.
+**Is the state variable that we just created only used by the current component?**
 
-> Note that `e.target` is the element to which the event handler function is attached.
-
-We can implement the same technique for the `select` form field.
-
-```js
-function Form() {
-  const [description, setDescription] = useState("");
-  const [quantity, setQuantity] = useState(1);
-
-  function handleSubmit(e) {
-    e.preventDefault();
-
-    if (!description) return;
-
-    const newItem = { description, quantity, packed: false, id: Date.now() };
-    console.log(newItem);
-
-    setDescription("");
-    setQuantity(1);
-  }
-  return (
-    <form className="add-form" onSubmit={handleSubmit}>
-      <h3>What do you need for your trip?</h3>
-      <select value={quantity} onChange={(e) => setQuantity(+e.target.value)}>
-        {Array.from({ length: 20 }, (_, i) => i + 1).map((num) => (
-          <option value={num} key={num}>
-            {num}
-          </option>
-        ))}
-      </select>
-      <input
-        type="text"
-        placeholder="Item..."
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-      />
-      <button>Add</button>
-    </form>
-  );
-}
-```
-
-We should also twick the `handleSubmit` function to prevent the application to accept empty submissions. It is also a normal practice to make the form go back to its empty initial status as the form is submitted.
-
-```js
-function handleSubmit(e) {
-  e.preventDefault();
-
-  if (!description) return;
-
-  const newItem = { description, quantity, packed: false, id: Date.now() };
-  console.log(newItem);
-
-  setDescription("");
-  setQuantity(1);
-}
-```
-
-> Now as the example application is going on in its development phase, we now need to render this new item created through the form submission. Remember that we cannot pass data as props between sibling elements. Data can only flow down the tree, but not sideways. This is where we really need to start thinking about state and state management in React in order to make it possible to pass data between sibling elements.
+- Yes: Leave the state in the component.
+- No: **State variable is also used by a child component?**
+  - Yes: Pass to child via props
+  - No: **Used by one or a few sibling components or a parent component?**
+    - Yes: _Lift_ state up to first _common parent_.
+    - No: Probably _global state_. later...
