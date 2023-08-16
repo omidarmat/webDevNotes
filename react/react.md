@@ -33,6 +33,19 @@
 - [**State, Events and Forms interactive components**](#state-events-and-forms-interactive-components)
   - [**Handling events**](#handling-events)
   - [**State in React**](#state-in-react)
+    - [**Mechanics of state**](#mechanics-of-state)
+    - [**State guidelines**](#state-guidelines)
+    - [**Working with a state variable**](#working-with-a-state-variable)
+    - [**Forms and handling submissions**](#forms-and-handling-submissions)
+      - [**Creating a form**](#creating-a-form)
+      - [**Form Events**](#form-events)
+      - [**Controlled elements**](#controlled-elements)
+  - [**Review: State vs. Props**](#review-state-vs-props)
+- [**React developer tools**](#react-developer-tools)
+- [**Forms and handling submissions**](#forms-and-handling-submissions-1)
+  - [**Creating a form**](#creating-a-form-1)
+  - [**Form Events**](#form-events-1)
+  - [**Controlled elements**](#controlled-elements-1)
 
 # **A first look at react**
 
@@ -185,7 +198,7 @@ This fact has 2 important implications:
 - We can place other pieces of JSX inside `{}`
 - We can write JSX anywhere inside a component (in `if/else`, assign to variables, pass it into functions)
 
-4. A piece of JSX can only have one root element. If you need more, use `<React.Fragment>`.
+4. A piece of JSX can only have one, and exactly one root element. If you need more, use `<React.Fragment>`. Also note that when you open a `return` statement to return a JSX, you must always start with a JSX element. You cannot immediately enter JavaScript mode by `{}`. You will have to first open a `<div>` element, and then inside that, you can enter JavaScript mode.
 
 ### **Extracting JSX into a new component**
 
@@ -872,7 +885,7 @@ We usually handle events in order to work with **states**.
 
 ## **State in React**
 
-State is the most important concept in React. Everything revolves around the concept of state in React. Here is what React developers need to learn about state:
+State is the most important concept in React. Mastering state is the most difficult part of learning React. Everything revolves around the concept of state in React. Here is what React developers need to learn about state:
 
 1. What is state and why we need it?
 2. How to use state in practice?
@@ -884,9 +897,9 @@ State is the most important concept in React. Everything revolves around the con
    - Where to place state
    - Types of state
 
-We know how to pass data into a component using props, which is data coming from outside the component. But what if a component needs to hold its own data, especially over time? Also, what if we want to make our application interactive and change the UI as a result of an action? This is where state comes in.
+We know how to pass data into a component using props, which is data coming from outside the component. But what if a component needs to **hold its own data**, especially **over time**? Also, what if we want to make our application interactive and change the UI as a result of an action? This is where state comes in.
 
-State is data that a component can hold over time. It is necessary for information that the component needs to remember throughout the application's lifecycle. So we can think of state as the memory of a component.
+State is data that a component can hold over time. It is necessary for information that the component needs to remember throughout the application's lifecycle. So we can think of state as the **memory of a component**.
 
 Examples of state:
 
@@ -899,4 +912,536 @@ The common thing between all kinds of state is that the user can easily change t
 
 A piece of state or a state variable is a single variable in a component, which is also called a component state.
 
-Keep in mind that updating the state triggers React to re-render the component in the UI.
+Keep in mind that **updating** the state triggers React to **re-render** the component in the UI. So state is how React keeps the user interface in sync with data. Therefore, state allows developers to do 2 important things:
+
+1. Update the component's view by re-rendering the component.
+2. Persist local variables between renders and re-renders
+
+So state is actually a tool. Mastering the state will unlock the power of React development.
+
+### **Mechanics of state**
+
+Let's start from a fundamental React principle that we learned earlier.
+
+1. **PRICIPLE:** In react, we do NOT manipulate the DOM directly when we want to update a component's view. React is declarative, not imperative.
+
+So how do we update a component on the screen when some data changes or when we need to respond to some event like a click?
+
+2. **PRICIPLE:** React updates a component view by re-rendering the entire component whenever the underlying data changes. Re-rendering means that React calls the component function again. React removes the entire component view and replaces it with a new view each time a re-render needs to happen. React preserves the component state throughout re-renders, unless the component disappears from UI entirely which we call **unmounting**.
+3. It is when the state is update that a component is automatically re-rendered.
+
+Now here is a flow of what happens in this process in the actually application. Imagine there is an event handler in the view, for instance, on a button that the user can click:
+
+1. The moment that button is clicked, we can update a piece of state using the **setter function** coming from the `useState()` hook.
+2. When React notices that a state has changed, it will automatically re-render the component, which will result in the updated view for the component.
+
+**REACT REAECTS TO STATE CHANGES BY RE-RENDERING THE UI.**
+
+### **State guidelines**
+
+There is one important technical detail to remember: **Each component has and manages its own state, no matter how many times we render the same component, and no matter if there are multiple components of the same type (like a list) but for different contents.** For instance, imagine a list of score componentes for multiple football teams. State is isolated inside each component.
+
+Therefore, we can think of the entire Application (UI) as a function of the state. In other words the entire UI is always a representation of all the current states in all components.
+
+Taking it one step further, we can say that a React application is fundamentally all about **changing state over time**. Instead of viewing a UI as explicit DOM manipulations, with state, we now view a **UI as a reflection of data changing over time**.
+
+Here are a few practical guidelines about state:
+
+1. Use a state variable variable for any data that the component should keep track of or remember over time. This is data that will change at some point.
+2. Whenever you want something in the component to be dynamic, create a piece of state related to that thing, and update the state when that thing should change. For instance, you can create an `isOpen` state variable that tracks whether a model window is open or not. Then when `isOpen` is `true` we display the window, and if `false`, we hide it.
+3. When building a component, imagine its view as a reflection of state changing over time.
+4. For data that should not trigger component re-renders, don't use state. Use a regular variable instead.
+
+### **Working with a state variable**
+
+Following the example mentioned earlier, we now want to implement a functionality that causes the step to change as we click on the next and previous buttons.
+
+To do this, we no longer define the `state` variable as we did before like this:
+
+```js
+const step = 1;
+```
+
+Instead, in order to use state in a component we should follow 3 steps:
+
+1. Add a new state variable with `useState()` function. Don't forget to import `useState` from `react`. The `useState()` function receives an argument which is the dafault value of the state variable that is being defined. This function returns an array with two elements: first, the default value that we defined, and second, a function that updates the state variable. So we can immediately destructure this returned array into two separate variables: `step`, `setStep`.
+
+```js
+export default function App() {
+  const [step, setStep] = useState(1);
+
+  function handlePrevious() {
+    alert("previous");
+  }
+
+  function handleNext() {
+    alert("next");
+  }
+
+  return (
+    <div className="steps">
+      <div className="numbers">
+        <div className={`${step >= 1 ? "active" : ""}`}>1</div>
+        <div className={`${step >= 2 ? "active" : ""}`}>2</div>
+        <div className={`${step >= 3 ? "active" : ""}`}>3</div>
+      </div>
+
+      <p className="message">
+        Step {step}: {messages[step - 1]}
+      </p>
+
+      <div className="buttons">
+        <button
+          style={{ backgroundColor: "#7950f2", color: "#fff" }}
+          onClick={handlePrevious}
+        >
+          Previous
+        </button>
+        <button
+          style={{ backgroundColor: "#7950f2", color: "#fff" }}
+          onClick={handleNext}
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  );
+}
+```
+
+> The `useState()` function is also called a **hook** in React. Hooks are identified with the `use` keyword at the beginning of their name. It is extremely important to remember that we can only call hooks on the top-level of a function, not inside an `if` statement or a function or a loop.
+
+> We should only update state using the setter function that is, by default, defined as the second element of the array returned by the `useState()` function. If you attempt to update the state manually using regular JavaScript code, React cannot understand what you are trying to do. The functionality will simply not work. This is true about primitive values. But what if the state variable holds an object and then we update this state manually? This will actually work and React will re-render! But it is definitely a bad practice, especially in React, which is all about **immutablity** and **function state updates**.
+
+```js
+const [test] = useState({ name: "Jonas" });
+
+function handleNext() {
+  test.name = "Fred";
+}
+```
+
+2. Use it in a code, usually in JSX. In this example, we should use the `setStep()` function in `handlePrevious()` and `handleNext()` functions. The `setStep()` function receives an expression that tells it how to update the state variable.
+3. Update the piece of state in some event handler
+
+```js
+function handlePrevious() {
+  if (step > 1) setStep(step - 1);
+}
+
+function handleNext() {
+  if (step < messages.length) setStep(step + 1);
+}
+```
+
+> In case we are updating the state based on the current state, it is the best practice to implement a callback function inside the state setter function that will handle the upading task. This way we prepare our application for future changes in its state updating mechanism. Again, this is important when we are updating the state based on the current state. It means that the new value of the state variable is derived somehow from the current value of the state variable.
+
+```js
+function handlePrevious() {
+  if (step > 1) setStep((s) => s - 1);
+}
+
+function handleNext() {
+  if (step < messages.length) setStep((s) => s + 1);
+}
+```
+
+> In case the new value of the state variable does not depend on its current value, we can simply ignore using a callback function inside the state setter function.
+
+### **Forms and handling submissions**
+
+One of the most important things that we do the web is to interact with web applications through forms. We are now going to learn how to use forms in React.
+
+#### **Creating a form**
+
+Take the "Far Away" project as an example. When we build forms in React, we use the normal HTML `<form>` element. So we have a `Form` component, and inside it we write the JSX for a form like this:
+
+```js
+function Form() {
+  return (
+    <form className="add-form">
+      <h3>What do you need for your trip?</h3>
+      <select>
+        {Array.from({ length: 20 }, (_, i) => i + 1).map((num) => (
+          <option value={num} key={num}>
+            {num}
+          </option>
+        ))}
+      </select>
+      <input type="text" placeholder="Item..." />
+      <button>Add</button>
+    </form>
+  );
+}
+```
+
+> Notice how we have inserted all the `option` elements of the `select` form element programatically. So basically, we made an `Array` by defining its `length` and a mapping function that receives first the current value, and second the current index, and it will return any value that we produce with any expression in this mapping function.
+
+> Remember to define a `key` prop for any element that is produced through a mapping operation. We will later learn what this key is and why it is important.
+
+#### **Form Events**
+
+When we work with a form, we basically want the form to be submitted once we click on a button element. We can then react to the form submission with an event handler.
+
+To listen for the submission event on a form, we add the `onSubmit` prop to its JSX element, and we pass an event handler function to it, not call it. So we would also have to define an event handler function inside the `Form` component.
+
+```js
+function Form() {
+  function handleSubmit(e) {
+    e.preventDefault();
+  }
+  return (
+    <form className="add-form" onSubmit={handleSubmit}>
+      <h3>What do you need for your trip?</h3>
+      <select>
+        {Array.from({ length: 20 }, (_, i) => i + 1).map((num) => (
+          <option value={num} key={num}>
+            {num}
+          </option>
+        ))}
+      </select>
+      <input type="text" placeholder="Item..." />
+      <button>Add</button>
+    </form>
+  );
+}
+```
+
+> Note that we have prevented the default behavior of the HTML form element when a submission happens. The default behavior is to perform a full reload for the whole application, but as we have talked about React and its aim to create single-page applications, that is not what we want.
+
+> The input data that is submitted by a form is accessible in the event (`e`) object that is received by the event handler function. Inside this object there is a `target` object that stores all the elements of the form, and their values if they have any. But this is not the way we acquire form input data in React. Instead, we use **Controlled Elements**.
+
+#### **Controlled elements**
+
+An important thing to keep in mind is that, by default, the input fields of a form maintain their own state inside the DOM. This makes it hard to read their values, and it also leaves the state right in the DOM, which is not ideal for many reasons. In React, we want to keep all states in one central place which is inside the React application, and not inside the DOM. In order to do this, we use a technique called **Controlled Elements**.
+
+With this technique, it is React that will control and own the state of the input fields. So, basically, we need some state in our application.
+
+In order to implement the controlled element technique, we follow 3 steps:
+
+1. Create a piece of state
+2. Use this state as a value of the input field
+
+```js
+function Form() {
+  const [description, setDescription] = useState("");
+
+  function handleSubmit(e) {
+    e.preventDefault();
+  }
+  return (
+    <form className="add-form" onSubmit={handleSubmit}>
+      <h3>What do you need for your trip?</h3>
+      <select>
+        {Array.from({ length: 20 }, (_, i) => i + 1).map((num) => (
+          <option value={num} key={num}>
+            {num}
+          </option>
+        ))}
+      </select>
+      <input type="text" placeholder="Item..." value={description} />
+      <button>Add</button>
+    </form>
+  );
+}
+```
+
+3. This will make it so that the `value` of the input field is only in sync with the value of the `description` state variable. So we are no longer able to type anything into the field in the UI. In order to fix this, we would have to connect the `description` state variable to the UI. This is done by inserting a `onChange` prop on the input field.
+
+```js
+function Form() {
+  const [description, setDescription] = useState("");
+
+  function handleSubmit(e) {
+    e.preventDefault();
+  }
+  return (
+    <form className="add-form" onSubmit={handleSubmit}>
+      <h3>What do you need for your trip?</h3>
+      <select>
+        {Array.from({ length: 20 }, (_, i) => i + 1).map((num) => (
+          <option value={num} key={num}>
+            {num}
+          </option>
+        ))}
+      </select>
+      <input
+        type="text"
+        placeholder="Item..."
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+      />
+      <button>Add</button>
+    </form>
+  );
+}
+```
+
+So we have basically defined an event handler function for the `onChange` prop of the input field. This makes it so that everytime we type something in the field, it will update the state with the value that has just been typed. What then? React detects that the state has been updated, so it triggers a re-render.
+
+> Note that `e.target` is the element to which the event handler function is attached.
+
+We can implement the same technique for the `select` form field.
+
+```js
+function Form() {
+  const [description, setDescription] = useState("");
+  const [quantity, setQuantity] = useState(1);
+
+  function handleSubmit(e) {
+    e.preventDefault();
+
+    if (!description) return;
+
+    const newItem = { description, quantity, packed: false, id: Date.now() };
+    console.log(newItem);
+
+    setDescription("");
+    setQuantity(1);
+  }
+  return (
+    <form className="add-form" onSubmit={handleSubmit}>
+      <h3>What do you need for your trip?</h3>
+      <select value={quantity} onChange={(e) => setQuantity(+e.target.value)}>
+        {Array.from({ length: 20 }, (_, i) => i + 1).map((num) => (
+          <option value={num} key={num}>
+            {num}
+          </option>
+        ))}
+      </select>
+      <input
+        type="text"
+        placeholder="Item..."
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+      />
+      <button>Add</button>
+    </form>
+  );
+}
+```
+
+We should also twick the `handleSubmit` function to prevent the application to accept empty submissions. It is also a normal practice to make the form go back to its empty initial status as the form is submitted.
+
+```js
+function handleSubmit(e) {
+  e.preventDefault();
+
+  if (!description) return;
+
+  const newItem = { description, quantity, packed: false, id: Date.now() };
+  console.log(newItem);
+
+  setDescription("");
+  setQuantity(1);
+}
+```
+
+> Now as the example application is going on in its development phase, we now need to render this new item created through the form submission. Remember that we cannot pass data as props between sibling elements. Data can only flow down the tree, but not sideways. This is where we really need to start thinking about state and state management in React in order to make it possible to pass data between sibling elements.
+
+## **Review: State vs. Props**
+
+| State                                        | Props                                                                                                                            |
+| -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Internal data, owned by component            | External data, owned by parent component. Similar to function parameters, as a communication channel between parent and children |
+| Component's memory                           | Read-only, cannot be modified by the component that is receiving them                                                            |
+| Can be updated by the component itself       | **Receiving new props causes components to re-render. Usually when the parent's state has been updated.**                        |
+| Updating state causes component to re-render |                                                                                                                                  |
+| Used to make components interactive          | Used by parent to configure child component (settings)                                                                           |
+
+# **React developer tools**
+
+Since developer tools are so helpful for developers, the React team built dev-tools specific to React, which can be extremely helpful when working with [state](#state-in-react).
+
+Install React's Chrome dev-tools.
+
+# **Forms and handling submissions**
+
+One of the most important things that we do the web is to interact with web applications through forms. We are now going to learn how to use forms in React.
+
+## **Creating a form**
+
+Take the "Far Away" project as an example. When we build forms in React, we use the normal HTML `<form>` element. So we have a `Form` component, and inside it we write the JSX for a form like this:
+
+```js
+function Form() {
+  return (
+    <form className="add-form">
+      <h3>What do you need for your trip?</h3>
+      <select>
+        {Array.from({ length: 20 }, (_, i) => i + 1).map((num) => (
+          <option value={num} key={num}>
+            {num}
+          </option>
+        ))}
+      </select>
+      <input type="text" placeholder="Item..." />
+      <button>Add</button>
+    </form>
+  );
+}
+```
+
+> Notice how we have inserted all the `option` elements of the `select` form element programatically. So basically, we made an `Array` by defining its `length` and a mapping function that receives first the current value, and second the current index, and it will return any value that we produce with any expression in this mapping function.
+
+> Remember to define a `key` prop for any element that is produced through a mapping operation. We will later learn what this key is and why it is important.
+
+## **Form Events**
+
+When we work with a form, we basically want the form to be submitted once we click on a button element. We can then react to the form submission with an event handler.
+
+To listen for the submission event on a form, we add the `onSubmit` prop to its JSX element, and we pass an event handler function to it, not call it. So we would also have to define an event handler function inside the `Form` component.
+
+```js
+function Form() {
+  function handleSubmit(e) {
+    e.preventDefault();
+  }
+  return (
+    <form className="add-form" onSubmit={handleSubmit}>
+      <h3>What do you need for your trip?</h3>
+      <select>
+        {Array.from({ length: 20 }, (_, i) => i + 1).map((num) => (
+          <option value={num} key={num}>
+            {num}
+          </option>
+        ))}
+      </select>
+      <input type="text" placeholder="Item..." />
+      <button>Add</button>
+    </form>
+  );
+}
+```
+
+> Note that we have prevented the default behavior of the HTML form element when a submission happens. The default behavior is to perform a full reload for the whole application, but as we have talked about React and its aim to create single-page applications, that is not what we want.
+
+> The input data that is submitted by a form is accessible in the event (`e`) object that is received by the event handler function. Inside this object there is a `target` object that stores all the elements of the form, and their values if they have any. But this is not the way we acquire form input data in React. Instead, we use **Controlled Elements**.
+
+## **Controlled elements**
+
+An important thing to keep in mind is that, by default, the input fields of a form maintain their own state inside the DOM. This makes it hard to read their values, and it also leaves the state right in the DOM, which is not ideal for many reasons. In React, we want to keep all states in one central place which is inside the React application, and not inside the DOM. In order to do this, we use a technique called **Controlled Elements**.
+
+With this technique, it is React that will control and own the state of the input fields. So, basically, we need some state in our application.
+
+In order to implement the controlled element technique, we follow 3 steps:
+
+1. Create a piece of state
+2. Use this state as a value of the input field
+
+```js
+function Form() {
+  const [description, setDescription] = useState("");
+
+  function handleSubmit(e) {
+    e.preventDefault();
+  }
+  return (
+    <form className="add-form" onSubmit={handleSubmit}>
+      <h3>What do you need for your trip?</h3>
+      <select>
+        {Array.from({ length: 20 }, (_, i) => i + 1).map((num) => (
+          <option value={num} key={num}>
+            {num}
+          </option>
+        ))}
+      </select>
+      <input type="text" placeholder="Item..." value={description} />
+      <button>Add</button>
+    </form>
+  );
+}
+```
+
+3. This will make it so that the `value` of the input field is only in sync with the value of the `description` state variable. So we are no longer able to type anything into the field in the UI. In order to fix this, we would have to connect the `description` state variable to the UI. This is done by inserting a `onChange` prop on the input field.
+
+```js
+function Form() {
+  const [description, setDescription] = useState("");
+
+  function handleSubmit(e) {
+    e.preventDefault();
+  }
+  return (
+    <form className="add-form" onSubmit={handleSubmit}>
+      <h3>What do you need for your trip?</h3>
+      <select>
+        {Array.from({ length: 20 }, (_, i) => i + 1).map((num) => (
+          <option value={num} key={num}>
+            {num}
+          </option>
+        ))}
+      </select>
+      <input
+        type="text"
+        placeholder="Item..."
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+      />
+      <button>Add</button>
+    </form>
+  );
+}
+```
+
+So we have basically defined an event handler function for the `onChange` prop of the input field. This makes it so that everytime we type something in the field, it will update the state with the value that has just been typed. What then? React detects that the state has been updated, so it triggers a re-render.
+
+> Note that `e.target` is the element to which the event handler function is attached.
+
+We can implement the same technique for the `select` form field.
+
+```js
+function Form() {
+  const [description, setDescription] = useState("");
+  const [quantity, setQuantity] = useState(1);
+
+  function handleSubmit(e) {
+    e.preventDefault();
+
+    if (!description) return;
+
+    const newItem = { description, quantity, packed: false, id: Date.now() };
+    console.log(newItem);
+
+    setDescription("");
+    setQuantity(1);
+  }
+  return (
+    <form className="add-form" onSubmit={handleSubmit}>
+      <h3>What do you need for your trip?</h3>
+      <select value={quantity} onChange={(e) => setQuantity(+e.target.value)}>
+        {Array.from({ length: 20 }, (_, i) => i + 1).map((num) => (
+          <option value={num} key={num}>
+            {num}
+          </option>
+        ))}
+      </select>
+      <input
+        type="text"
+        placeholder="Item..."
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+      />
+      <button>Add</button>
+    </form>
+  );
+}
+```
+
+We should also twick the `handleSubmit` function to prevent the application to accept empty submissions. It is also a normal practice to make the form go back to its empty initial status as the form is submitted.
+
+```js
+function handleSubmit(e) {
+  e.preventDefault();
+
+  if (!description) return;
+
+  const newItem = { description, quantity, packed: false, id: Date.now() };
+  console.log(newItem);
+
+  setDescription("");
+  setQuantity(1);
+}
+```
+
+> Now as the example application is going on in its development phase, we now need to render this new item created through the form submission. Remember that we cannot pass data as props between sibling elements. Data can only flow down the tree, but not sideways. This is where we really need to start thinking about state and state management in React in order to make it possible to pass data between sibling elements.
