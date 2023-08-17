@@ -24,7 +24,7 @@
         - [**With `&&`**](#with-)
         - [**With ternary operator**](#with-ternary-operator)
         - [**With multiple `return` statements**](#with-multiple-return-statements)
-  - [React Fragments](#react-fragments)
+  - [**React Fragments**](#react-fragments)
   - [**Styling React applications**](#styling-react-applications)
     - [**Inline styling**](#inline-styling)
     - [**External CSS or Sass**](#external-css-or-sass)
@@ -454,6 +454,18 @@ function Pizza(props) {
 
 > The `props` object is always available on all components, but if we don't pass anything into a component as argument, it will simply be an empty object.
 
+> We normally call a component in a JSX as a single-tag element. But we can call a component with opening and closing tags and also insert some text in between. This text is received by the component function as a parameter called `children`. Take the code below as an example. Here, the `Select` text content passed in between the opening and closing tags of `<Button>` is received by the `Button` component as the `children` parameter. This basically allows you to reuse a component multiple times throughout your project with different text contents.
+
+```js
+function Friend({ friend }) {
+  return <Button>Select</Button>;
+}
+
+function Button({ children }) {
+  return <button className="button">{children}</button>;
+}
+```
+
 #### **Rendering lists with props**
 
 Rendering a list is when we have an array and we want to render an element for each component of the array. We will continue the example mentioned above for this use case.
@@ -666,7 +678,7 @@ function Pizza(props) {
 }
 ```
 
-## React Fragments
+## **React Fragments**
 
 Basically, a React fragment lets us group elements without leaving any trace in the DOM.
 
