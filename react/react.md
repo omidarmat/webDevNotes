@@ -49,6 +49,11 @@
     - [**When and where?**](#when-and-where)
     - [**Lifting state**](#lifting-state)
     - [**Derived state**](#derived-state)
+  - [**Components**](#components-1)
+    - [**Splitting a UI into components**](#splitting-a-ui-into-components)
+      - [**When to create a new component?**](#when-to-create-a-new-component)
+      - [**General guidelines**](#general-guidelines)
+    - [**Component categories**](#component-categories)
 
 # **A first look at react**
 
@@ -1697,3 +1702,71 @@ function Stats({ items }) {
   );
 }
 ```
+
+## **Components**
+
+We will now learn:
+
+- how to think about components
+- Composition
+- Reusability
+- How to split a component
+- Building layouts
+
+It is important to first understand how to split a UI into components and what type of components we can use.
+
+### **Splitting a UI into components**
+
+When it comes to components these are the important questions that we should ask:
+
+1. How to split a UI into components?
+2. When should we create new components?
+
+One important factor that helps us answer these questions is the **component size**. A component, at its extremes, can be huge or small. Many times none of these extremes are ideal.
+
+A huge component is identified when it has a lot of responsibilities. Components are just like JavaScript functions, in the sense that if a function does to many different things, we should break it up into multiple functions. Another sign of a huge component is that it might receive too many props, like 10 or 15! These make the component very **hard to reuse**. It also makes the code complex and hard to understand.
+
+But this does not mean that we should switch to the other extreme and build small components, splitting every single functionality into its own component.
+
+| Small                                               | Huge                      |
+| --------------------------------------------------- | ------------------------- |
+| end up with 100s of mini-components                 | Too many responsibilities |
+| Confusing code base because of too much abstraction | Might need to many props  |
+
+Most of the time the goal is to create components that strike the right balance between being too specific and too broad.
+
+Here are 4 criteria for splitting a UI into comonents:
+
+1. Logical separation of contant/layout
+2. Reusability
+3. Each component has a single well-defined responsibility to avoid complexity
+4. Personal coding style: some people prefer smaller components, while others prefer larger components
+
+#### **When to create a new component?**
+
+When you are creating a new component and you are in doubt about what the component should include, just start with a relatively big component, but not a huge component. Then split the big component into smaller components as it is necessary. But when does it become necessary?
+
+Here is a framework based on the 4 criteria mentioned above to help you decide when to create a new component:
+
+1. Logical separation of content/layout: Does the component contain pieces of content or layout that don't belong together? If yes, Then you might need a new component.
+2. Is it possible to reuse part of the component? Do you want or need to reuse it? If yes, then you should probably take that code and extract it into its new component.
+3. Is the component doing too many different things? Does the componeent rely on too many props? Does the component havee too many pieces of state and/or effects? Is the code, including JSX, too complex/confusing? If yes, then you might need a new smaller component.
+4. Personal coding style: Do you prefer smaller functions/components? If yes, you might need a new component.
+
+#### **General guidelines**
+
+- Creating a new component creates a new abstraction. Abstractions have a cost, because more abstractions require more mental energy to switch back and forth between components. So try not to create new components too early.
+- Name a component according to what it does or what it displayes. Don't be afraid of using long names.
+- Never declare a new component inside another component. Instead, co-locate related components inside the same file. Don't separate components into different files too early.
+- It's completely normal that an application has components of many different sizes, including very small and huge ones: we always need some very small components in any application, because they are highly reusable and have very low complexity. For instance, you can imagine the like button component in an application.
+- Most apps will have a few huge components that are not meant to be reused. For instance, a `Page` component of an application that contains the layout of the entire application or the page.
+
+> The reusability range is pretty similar to the size range. Generally, the smaller the components are, the more reusable they will be, but not all components are meeant to be reusable. These are usually the huge components.
+
+### **Component categories**
+
+Most of your components will naturally fall into one of these three categories. We say naturally, because we should not force our components into one of these categories.
+
+1. **Stateless/presentational:** They don't have any state. They are usually components that receive some props and then they simply present the received data or other content. These are usually small and reusable components, like logo, number of results, and one single item component.
+2. **Stateful:** They do have state. Just because they have state, it does not mean they cannot be reusable. For instance, a search component does have state and we can reuse it as many times as we need.
+3. **Structural:** These include pages, layouts, or screens of the application, which are oftentimes the result of componsing smaller components together. Structural components can be large and non-reusable components, but they don't have to. Structural components can also be small. What matters is that they are responsible for providing some sort of structure to applications, such as pages or layouts. So these componeents might not be used in small applications.
