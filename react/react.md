@@ -16,6 +16,7 @@
       - [**Using public assets in components**](#using-public-assets-in-components)
       - [**Implementing JavaScript logic in components**](#implementing-javascript-logic-in-components)
     - [**Moving components into separate files**](#moving-components-into-separate-files)
+    - [**Component composition**](#component-composition)
   - [**Props**](#props)
     - [**Props make one-way data flow**](#props-make-one-way-data-flow)
     - [**Passing and reciving props**](#passing-and-reciving-props)
@@ -24,6 +25,7 @@
         - [**With `&&`**](#with-)
         - [**With ternary operator**](#with-ternary-operator)
         - [**With multiple `return` statements**](#with-multiple-return-statements)
+      - [**Prop drilling**](#prop-drilling)
   - [**React Fragments**](#react-fragments)
   - [**Styling React applications**](#styling-react-applications)
     - [**Inline styling**](#inline-styling)
@@ -44,12 +46,12 @@
   - [**Review: State vs. Props**](#review-state-vs-props)
 - [**React developer tools**](#react-developer-tools)
 - [**Thinking in React**](#thinking-in-react)
-  - [**State management**](#state-management)
+  - [**Thinking: State management**](#thinking-state-management)
     - [**Types of state**](#types-of-state)
     - [**When and where?**](#when-and-where)
     - [**Lifting state**](#lifting-state)
     - [**Derived state**](#derived-state)
-  - [**Components**](#components-1)
+  - [**Thinking: Components**](#thinking-components)
     - [**Splitting a UI into components**](#splitting-a-ui-into-components)
       - [**When to create a new component?**](#when-to-create-a-new-component)
       - [**General guidelines**](#general-guidelines)
@@ -394,6 +396,51 @@ We take the component code from the main `App.js` file and put it in a separate 
 
 Inside the `Logo.js` file we `export default` the component, and then import it in the main `App.js` file.
 
+### **Component composition**
+
+Component composition is all about reusability. We have talked about a way of creating and reusing a component, but that would introduce a problem regarding reusability.
+
+Imagine we have a `Modal` component that uses another component called `Success` like this:
+
+```js
+function Modal() {
+  return (
+    <div className="modal">
+      <Success />
+    </div>
+  );
+}
+
+function Success() {
+  return <p>Well done!</p>;
+}
+```
+
+This way of using a component inside another component actually makes the `Modal` component un-reusable. The Component composition technique can be used to fix this problem. This technique involves combining different components using the `children` prop (or explicitly defined props).
+
+This is how we should implement component composition in order for the `Modal` component to be reusable:
+
+```js
+function Modal({ children }) {
+  return <div className="modal">{children}</div>;
+}
+```
+
+Now we can use this `Modal` component anywhere with any content that we want. We previously passed a success message into it, but we may need to pass an error message into it some other time:
+
+```js
+<Modal>
+  <Error />
+</Modal>
+```
+
+> This is only possible because components don't need to know about their children in advance. This allows us to leave the `children` empty slot in them.
+
+Component composition is used in 2 important situations:
+
+1. Create hightly reusable and flexible components
+2. Fix [prop drilling](#prop-drilling) problems (great for layouts)
+
 ## **Props**
 
 Up until this point, we have learned about a component's appearance and logic. We also know that React renders a component based on its current data and that the UI will always be in sync with that data. This data is made out of **props** and **state**. There are actually more, but for now these two matter.
@@ -682,6 +729,15 @@ function Pizza(props) {
   );
 }
 ```
+
+#### **Prop drilling**
+
+When the scale of the application grows a bit, we might find ourselves from time to time passing props through several nested child components to get the data into some deeply nested component. This is called prop drilling and can become frustrating in large-scale applications. It is obvious that many of the components through which the prop is passed does not even need that prop. They are just acting as a tunnel only to pass data to our destination component.
+
+There are several ways that we can use to fix prop drilling:
+
+1. [Component composition](#component-composition)
+2. [s](#components-1)
 
 ## **React Fragments**
 
@@ -1321,7 +1377,7 @@ Once we know how to think in Reeact, we will be able to answer these questions:
 - What types of state can or should I use?
 - How to make data flow through the application?
 
-## **State management**
+## **Thinking: State management**
 
 Take a look at a complicated web application. How would we know that we need all pieces of state in the application? How do we know where to place them in the code? This is where state management comes to play.
 
@@ -1703,7 +1759,7 @@ function Stats({ items }) {
 }
 ```
 
-## **Components**
+## **Thinking: Components**
 
 We will now learn:
 
