@@ -3,6 +3,8 @@
   - [**What is React?**](#what-is-react)
   - [**Setting up a new React project: The options**](#setting-up-a-new-react-project-the-options)
     - [**Setting up a project with `create-react-app`**](#setting-up-a-project-with-create-react-app)
+- [**How React works behind the scenes**](#how-react-works-behind-the-scenes)
+  - [**Components, instances, and elements**](#components-instances-and-elements)
 - [**Core concepts of building React apps**](#core-concepts-of-building-react-apps)
   - [**JSX**](#jsx)
     - [**Declarative JSX**](#declarative-jsx)
@@ -151,6 +153,36 @@ import ReactDOM from "react-dom/client";
 Next up, we will create our `App` component. It is not necessary to call it App, but it is necessary to start its name with a capital letter. From here on, you can go on to the [Core Concepts](#core-concepts-of-building-react-apps) section of this file.
 
 The `public` folder contains all the assets that will end up in the final application, such as all the images and an `index.html` file that contains a `<div>` element with the id `root`. Remember that Webpack, which is the module bundler here, will automatically look into the `public` folder to find the assets of our application, such as images, etc.
+
+# **How React works behind the scenes**
+
+## **Components, instances, and elements**
+
+There are conceptual differences between React components, component instances, and React elements. Understanding these differences makes it more clear what actually happens with our components as we use them.
+
+Components are what we write to describe a piece of UI, and it is just a regular JavaScript function, but it is a function that returns React elements (element tree), usually written as JSX.
+
+A component is a generic description of the UI. We can think of a component as a blueprint or a template, and it is out of this blueprint that React then creates one or multiple component instances. React does this each time that we use the component somewhere in our code. For instance, in the code example below, we have used the `Tab` component three times, and therefore 3 instances of `Tab` are placed in a component tree.
+
+```js
+function App() {
+  return (
+    <div className='tabs'>
+      <Tab item={content[0]}>
+      <Tab item={content[1]}>
+      <Tab item={content[2]}>
+    </div>
+  )
+}
+```
+
+This means that React will call the `Tab` function three times, one time for each instance. So we can say that an instance is like the actual physical manifestation of a component living in our component tree, while the component itself is really just a function that we wrote before being called. Also, each instance holds its own state and props, and has its own lifecycle (can be born, live, and die).
+
+As React executes the code in each of these instances, each of them will return one or more React elements. This is done behind the scenes by converting JSX to multiple `React.createElement()` function calls. Then as React calls these functions, the result will be a React element. So a React element is the result of using a component in our code. It is a big immutable JavaScript object that React keeps in memory.
+
+A React element contains all the information that is necessary to create DOM elements for the current component instance. It is this React element that will eventually be converted to actual DOM elements and then painted on to the screen by the browser. Therefore, the DOM elements are the actual, visual representation of the component instance in the browser. It is NOT the React elements that are rendered to the DOM. React elements just live inside the React app and have nothing to do with the DOM. They are converted to DOM elements when they are painted on the screen in the final step.
+
+This is the journey from writing a simple component to using it multiple times in our code as a blueprint, all the way untill it is converted into a React element, and then rendered as HTML elements into the DOM.
 
 # **Core concepts of building React apps**
 
