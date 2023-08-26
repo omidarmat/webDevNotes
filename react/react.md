@@ -5,6 +5,11 @@
     - [**Setting up a project with `create-react-app`**](#setting-up-a-project-with-create-react-app)
 - [**How React works behind the scenes**](#how-react-works-behind-the-scenes)
   - [**Components, instances, and elements**](#components-instances-and-elements)
+  - [**How rendering works**](#how-rendering-works)
+    - [**How renders are triggered**](#how-renders-are-triggered)
+    - [**The render phase**](#the-render-phase)
+      - [**Overview**](#overview)
+      - [**More detailed look**](#more-detailed-look)
 - [**Core concepts of building React apps**](#core-concepts-of-building-react-apps)
   - [**JSX**](#jsx)
     - [**Declarative JSX**](#declarative-jsx)
@@ -183,6 +188,55 @@ As React executes the code in each of these instances, each of them will return 
 A React element contains all the information that is necessary to create DOM elements for the current component instance. It is this React element that will eventually be converted to actual DOM elements and then painted on to the screen by the browser. Therefore, the DOM elements are the actual, visual representation of the component instance in the browser. It is NOT the React elements that are rendered to the DOM. React elements just live inside the React app and have nothing to do with the DOM. They are converted to DOM elements when they are painted on the screen in the final step.
 
 This is the journey from writing a simple component to using it multiple times in our code as a blueprint, all the way untill it is converted into a React element, and then rendered as HTML elements into the DOM.
+
+## **How rendering works**
+
+Up until this point we have understood how components are transformed to React elements. We are now going to learn about a process in which React elements end up in the DOM and are displayed on the screen.
+
+### **How renders are triggered**
+
+The whole rendering process is started by React each time that a new render is triggered. There are two situations that trigger renders:
+
+1. Initial render of the application
+2. State is updated in one or more component instances (re-render)
+
+> The render process is triggered for the entire application, not just for one single component. It does not mean that the entire DOM is updated. In React, rendering is only about calling the component functions and figuring out what needs to change in the DOM later. React looks at the entire tree when a render happens.
+
+> Renders are not triggered immediately, but scheduled for when the JS engine has some free time! This takes only a few miliseconds and we don't notice it.
+
+> There are situations where multiple `setState` calls in the same function, and renders will be batched. This will be explored later.
+
+### **The render phase**
+
+#### **Overview**
+
+In the render phase, React calls our component functions and figures out how it should update the DOM in order to reflect the state changes. However, the DOM is **NOT** updated in this phase. React's definition of render is a bit different than what we think. In React, rendering is NOT updating the DOM or displaying elements on the screen. Rendering only happens internally inside React, it does not produce any visual changes. Once React knows how to update the DOM, it does so in the **commit phase**.
+
+In the commit phase, new elements might be placed in the DOM, and already existing elements might be updated or deleted in order to correctly reflect the current state of the application. It is the commit phase that is really responsible for what we traditionally call rendering.
+
+Finally, when the browser notices that the DOM is updated, it re-paints the screen. This final step is where actual visual changes are produced.
+
+#### **More detailed look**
+
+At the beginning of the render phase, React will go through the entire component tree, take all the component instances that triggered a re-render, and actually render them, which simply means to call the corresponding component functions we have written in our code. This will created updated react elements which, altogether, make up the so-called **virtual DOM**.
+
+> **VIRTUAL DOM**
+>
+> In the initial render, React takes the entire component tree and transform it into one big React element, which will basically be a React element tree. This is the virtual DOM. The virtual DOM is a tree of all React elements created from all instances in the component tree. It is relatively cheap and fast to create a tree like this. It is just a JavaScript object.
+>
+> Imagine there is an update to a state in component D of an imaginary component tree. This will of course trigger a re-render. So React will call the function of component D again, and place the new React element in a new React element tree, a new virtual DOM. **Whenever React renders a component, that render will cause all of its child components to be rendered as well** no matter if the props that we passed down have changed or not. This means that if you update the highest component in the component tree, the entire application will be re-rendered.
+>
+> It is not the entire DOM that is updated. It is just the virtual DOM that will be recreated, which is cheap and not a big problem in small or medium-sized applications.
+
+The new virtual DOM will get reconciled with the current **Fiber tree** as it exists before the state update. This reconciliation is done in React's reconciler which is called **Fiber**. The results of the reconciliation process is going to be an updated fiber tree that will eventually be used to write to the DOM.
+
+> **RECONCILIATION**
+>
+> So Why reconciliation? Why not simply update the entire DOM whenever state changes somwhere in the app? We said previously that creating the virtual DOM is cheap and fast since it is just a JavaScript object. However, writing to the DOM is not cheap and fast. It would be inefficient to always write the entire virtual DOM to the actual DOM each time that a render is triggered. Also, usually, when the state changes in the app, only a small portion of the DOM needs to be updated, and the rest of the DOM that is already present can be reused. Whenever a render is triggered, React will try to be as efficient as possible by reusing as much of the existing DOM tree as possible.
+>
+> How does React know what changed from one render to the next one? This is where **reconciliation** comes into play. Reconciliation is deciding exactly which DOM elements need to be inserted, deleted, or updated to reflect to latest state changes. The result of the reconciliation process is going to be a list of DOM operations that are necessary to update the current DOM with the new state. This process is done by a reconciler. So in a sense, we can say that the reconciler is the **engine of React**. This reconciler allows us to never touch the DOM directly. Instead, we simply tell React what the next snapshot of the UI shouldd look like based on state. This reconciler is called **Fiber**.
+
+> Don't confuse the virtual DOM with the **shadow DOM**. They have nothing to do with each other.
 
 # **Core concepts of building React apps**
 
