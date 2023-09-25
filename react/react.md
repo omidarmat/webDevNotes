@@ -42,7 +42,7 @@
     - [**CSS modules**](#css-modules)
     - [**Tailwind CSS**](#tailwind-css)
   - [**Separation of concerns in React**](#separation-of-concerns-in-react)
-- [**State, Events and Forms interactive components**](#state-events-and-forms-interactive-components)
+- [**State, Events and Forms: interactive components**](#state-events-and-forms-interactive-components)
   - [**Handling events**](#handling-events)
   - [**State in React**](#state-in-react)
     - [**Mechanics of state**](#mechanics-of-state)
@@ -580,15 +580,15 @@ State is **internal component data** that can be updated by the component's **lo
 
 Why props are immutable? Because props are just simple objects. Mutating props would affect the parent component, that is how objects work in JavaScript. If you change an object that is located outside a function, that function has then created side effects. React is all about pure functions that don't produce side effects. Components have to be pure in terms of their props and state, because this allows React to optimize apps, avoid bugs, and make apps predictable.
 
-Props essentially define how we pass data between components, in particular, from parent components to child components. Props are an essential React tool to configure and to customize components. You can imagine props as settings that we can use to make a parent component control how its child components should look like. Props are just like function arguments passed to regular JavaScript functions.
+Props essentially define **how we pass data between components**, in particular, from parent components to child components. Props are an essential React tool to configure and to customize components. You can imagine props as settings that we can use to make a parent component control how its child components should look like. Props are just like **function arguments** passed to regular JavaScript functions.
 
 ### **Props make one-way data flow**
 
-This means that in React applications, data can only be passed from parent to child components which happens by using props. There are multiple reasons thar React uses this one-way data flow:
+This means that in React applications, data can only be passed from parent to child components which happens by using props. There are multiple reasons that React uses this one-way data flow:
 
-1. Makes applications more predictable and easier to understand for developers.
-2. Makes applications easier to debug, as we have more control over the data
-3. This is more performant.
+1. Makes applications more **predictable** and easier to understand for developers.
+2. Makes applications **easier to debug**, as we have more control over the data.
+3. This is more **performant**.
 
 Now you might ask, what if I actually wanted to pass some state up to a parent component? There is a very clever way to do that, but we will learn that later.
 
@@ -596,10 +596,10 @@ Now you might ask, what if I actually wanted to pass some state up to a parent c
 
 To define props we do it in 2 steps:
 
-1. Pass the props
-2. Receive the props
+1. **Pass** the props
+2. **Receive** the props
 
-Imagine we have a `Menu` component that is going to pass props into a `Pizza` component. This would the most basic way to implement:
+Imagine we have a `Menu` component that is going to pass props into a `Pizza` component. This would be the most basic way to implement:
 
 ```js
 function Menu() {
@@ -689,9 +689,9 @@ function Pizza(props) {
 }
 ```
 
-> Note how we also defined a `key` prop in the `Menu` component. If we didn't do it, React would give us an error in the console saying that "Each child in a list should have a unique "key" prop." This means that each time we render a list, as we did in the `Menu` component using the `.map()` method, each of the items that gets rendered needs also a `key` property or attribute. This is a prop that is internal to React and it uses it to do some performance optimization. We should pass a unique value for the `key` prop. In this example, we used the pizza name as the key for each pizza.
+> Note how we also defined a `key` prop in the `Menu` component. If we didn't do it, React would give us an error in the console saying that "Each child in a list should have a unique "key" prop." This means that each time we render a list, as we did in the `Menu` component using the `.map()` method, each of the items that gets rendered needs also a **`key`** property or attribute. This is a prop that is internal to React and it uses it to do some performance optimization. We should pass a unique value for the `key` prop. In this example, we used the pizza name as the key for each pizza.
 
-> Also keep in mind that we should still keep using semantic HTML in React. Notice how we did that by using `ul` and `li` tags in the `Menu` and `Pizza` components respectively.
+> Also keep in mind that we should still keep using **semantic HTML** in React. Notice how we did that by using `ul` and `li` tags in the `Menu` and `Pizza` components respectively.
 
 > It is a good practice to destructure props immediately when they are received in a component. This lets us quickly figure out what props the component is receiving, without having to look at the parent component in the chain. For instance, for the `Pizza` component mentioned above, we can do it like this:
 
@@ -718,12 +718,12 @@ This is a very important technique that we use all the time in React. There are 
 
 Keep these notes in mind:
 
-1. Use the ternary operator when you need to return some piece of JSX based on a condition.
-2. Sometimes you may need to return something entirely different in a certain condition. In these situations you may use multiple `return` statements based on conditions.
+1. Use the **ternary operator** when you need to return some piece of JSX based on a condition.
+2. Sometimes you may need to return something entirely different in a certain condition. In these situations you may use **multiple `return` statements** based on conditions.
 
 ##### **With `&&`**
 
-This basically involves using the short circuiting technique of JavaScript. Short circuiting means that you combine a condition with something that should be returned. If the condition becomes `true` or if it contains a truthy value, the second thing will actually be returned.
+This basically involves using the short circuiting technique of JavaScript. Short circuiting means that you combine a condition with something that should be returned. If the condition becomes **`true`** or if it contains a **truthy** value, the second thing will actually be returned.
 
 In this example, we want to render the footer content if the `isOpen` variable contains `true`.
 
@@ -863,7 +863,7 @@ function Pizza(props) {
 
 #### **Prop drilling**
 
-When the scale of the application grows a bit, we might find ourselves from time to time passing props through several nested child components to get the data into some deeply nested component. This is called prop drilling and can become frustrating in large-scale applications. It is obvious that many of the components through which the prop is passed does not even need that prop. They are just acting as a tunnel only to pass data to our destination component.
+When the scale of the application grows a bit, we might find ourselves from time to time passing props through several nested child components to get the data into some **deeply nested component**. This is called **prop drilling** and can become frustrating in large-scale applications. It is obvious that many of the components through which the prop is passed does not even need that prop. They are just acting as a tunnel only to pass data to our destination component.
 
 There are several ways that we can use to fix prop drilling:
 
@@ -919,7 +919,7 @@ This can obviously be done for several levels of nesting.
 
 #### **PropTypes**
 
-With PropTypes we can specify the type of values that we expect the consumer of the component to pass in for each of the props. For this pupose, we can use React's built-in prop types.
+With `PropTypes` we can specify the type of values that we expect the consumer of the component to pass in for each of the props. For this pupose, we can use React's built-in prop types.
 
 In order to be able to use PropTypes, we should first import it into the script where we want to use it.
 
@@ -1045,7 +1045,7 @@ function App() {
 
 Before React we had one technology per file, but with React we have one component per file. So separation of concerns is still there, but in a different paradigm.
 
-# **State, Events and Forms interactive components**
+# **State, Events and Forms: interactive components**
 
 In this section, we will be working on a steps component as an example. We initialized the a new project using the `npx create-react-app@5 steps` command, then deleted everything in the `src` folder except the `App.js` and `index.js` files. Inside the `App.js` file we define the `App` component and export it so that the `root` element defined in the `index.js` file can have access to it.
 
@@ -1087,7 +1087,7 @@ export default function App() {
 
 ## **Handling events**
 
-To handle events in React, we don't use the `.addEventListener()` method, because that is the imperative way of responding to event. But in React, we use a **declarative** approach, meaning that we don't manually select DOM elements. Instead, we use something similar to the **HTML inline event listener**.
+To handle events in React, we don't use the `.addEventListener()` method, because that is the imperative way of responding to events. But in React, we use a **declarative** approach, meaning that we don't manually select DOM elements. Instead, we use something similar to the **HTML inline event listener**.
 
 To listen for a click event on a certain element, we use the `on<Event>` prop or attribute on the element in the JSX. This prop accepts a JavaScript function. For instance, if we want to listen for a click event on a button:
 
