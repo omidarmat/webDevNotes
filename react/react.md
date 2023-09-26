@@ -1207,7 +1207,7 @@ Keep in mind that **updating** the state triggers React to **re-render** the com
 1. Update the component's view by re-rendering the component.
 2. Persist local variables between renders and re-renders
 
-So state is actually a tool. Mastering the state will unlock the power of React development.
+So state is actually a tool. **Mastering the state will unlock the power of React development**.
 
 ### **Mechanics of state**
 
@@ -1217,10 +1217,10 @@ Let's start from a fundamental React principle that we learned earlier.
 
 So how do we update a component on the screen when some data changes or when we need to respond to some event like a click?
 
-2. **PRICIPLE:** React updates a component view by re-rendering the entire component whenever the underlying data changes. Re-rendering means that React calls the component function again. React removes the entire component view and replaces it with a new view each time a re-render needs to happen. React preserves the component state throughout re-renders, unless the component disappears from UI entirely which we call **unmounting**.
-3. It is when the state is update that a component is automatically re-rendered.
+2. **PRICIPLE:** React updates a component view by re-rendering the entire component whenever the underlying data changes. Re-rendering means that **React calls the component function again**. React removes the entire component view and replaces it with a new view each time a re-render needs to happen. React **preserves the component state throughout re-renders**, unless the component disappears from UI entirely which we call **unmounting**.
+3. It is when the state is updated that a component is automatically re-rendered.
 
-Now here is a flow of what happens in this process in the actually application. Imagine there is an event handler in the view, for instance, on a button that the user can click:
+Now here is a flow of what happens in this process in the actual application. Imagine there is an event handler in the view, for instance, on a button that the user can click:
 
 1. The moment that button is clicked, we can update a piece of state using the **setter function** coming from the `useState()` hook.
 2. When React notices that a state has changed, it will automatically re-render the component, which will result in the updated view for the component.
@@ -1237,9 +1237,9 @@ Taking it one step further, we can say that a React application is fundamentally
 
 Here are a few practical guidelines about state:
 
-1. Use a state variable variable for any data that the component should keep track of or remember over time. This is data that will change at some point.
-2. Whenever you want something in the component to be dynamic, create a piece of state related to that thing, and update the state when that thing should change. For instance, you can create an `isOpen` state variable that tracks whether a model window is open or not. Then when `isOpen` is `true` we display the window, and if `false`, we hide it.
-3. When building a component, imagine its view as a reflection of state changing over time.
+1. Use a state variable for **any data that the component should keep track of or remember over time**. This is data that will change at some point.
+2. Whenever you want something in the component to be **dynamic**, create a piece of state related to that thing, and update the state when that thing should change. For instance, you can create an `isOpen` state variable that tracks whether a model window is open or not. Then when `isOpen` is `true` we display the window, and if `false`, we hide it.
+3. When building a component, imagine its **view as a reflection of state** changing over time.
 4. For data that should not trigger component re-renders, don't use state. Use a regular variable instead.
 
 ### **Working with a state variable**
@@ -1324,7 +1324,7 @@ function handleNext() {
 }
 ```
 
-> In case we are updating the state based on the current state, it is the best practice to implement a callback function inside the state setter function that will handle the upading task. This way we prepare our application for future changes in its state updating mechanism. Again, this is important when we are updating the state based on the current state. It means that the new value of the state variable is derived somehow from the current value of the state variable.
+> In case we are **updating the state based on the current state**, it is the best practice to implement a callback function inside the state setter function that will handle the upading task. This way we prepare our application for future changes in its state updating mechanism. Again, this is important when we are updating the state based on the current state. It means that the new value of the state variable is derived somehow from the current value of the state variable.
 
 ```js
 function handlePrevious() {
@@ -1340,7 +1340,7 @@ function handleNext() {
 
 ### **Forms and handling submissions**
 
-One of the most important things that we do the web is to interact with web applications through forms. We are now going to learn how to use forms in React.
+One of the most important things that we do on the web is to interact with web applications through forms. We are now going to learn how to use forms in React.
 
 #### **Creating a form**
 
@@ -1436,7 +1436,7 @@ function Form() {
 }
 ```
 
-3. This will make it so that the `value` of the input field is only in sync with the value of the `description` state variable. So we are no longer able to type anything into the field in the UI. In order to fix this, we would have to connect the `description` state variable to the UI. This is done by inserting a `onChange` prop on the input field.
+3. This will make it so that the `value` of the input field is only in sync with the value of the `description` state variable. So we are no longer able to type anything into the field in the UI. In order to fix this, we would have to connect the `description` state variable to the UI. This is done by inserting an `onChange` prop on the input field.
 
 ```js
 function Form() {
@@ -1552,7 +1552,7 @@ Install React's Chrome dev-tools.
 A core skill that every React developer needs to develop, is to think in React. Thinking in React encompasses many aspects:
 
 1. State management
-   - When and wehere to create state?
+   - When and where to **create** state?
    - When and how to **derive** state?
    - How to communicate between child and parent components by **lifting** state up?
 2. some other aspect
@@ -1562,8 +1562,8 @@ While you are building an application, thinking in React basically means that yo
 
 Thinking in React can be interpretted as a process that can help us build apps in a more structured way. This process, of course, is not a rigid process. In practice there will be a lot of back and forth between these steps. But here is a good suggestion:
 
-1. Break the desired UI into components and establish how these components are related in the component tree. This also includes thinking about reusablity and composiblity of components.
-2. Build a static version in React (without state and interactivity). By doing this, we do most of the coding up front, before having to wory about state and interactivity.
+1. Break the desired UI into components and establish **how these components are related** in the component tree. This also includes thinking about **reusablity** and **composiblity** of components.
+2. Build a **static version** in React (without state and interactivity). By doing this, we do most of the coding up front, before having to wory about state and interactivity.
 3. Think about **state**:
    - When to use state
    - Types of state: local vs. global
@@ -1575,7 +1575,7 @@ Thinking in React can be interpretted as a process that can help us build apps i
 
 > Steps 3 and 4 are called altogether **state management**.
 
-Once we know how to think in Reeact, we will be able to answer these questions:
+Once we know how to think in React, we will be able to answer these questions:
 
 - How to break up a UI design into components?
 - How to make some of my components truly reusable?
