@@ -1604,13 +1604,13 @@ There are two types of state: Local vs. Global.
 
 > Looking at a complicated application, an example of local state might be the input text in the search bar. An example of global state can be the shopping cart since this piece of data is used all over the place.
 
-The distinction between local and global state matters more in large-scale applications. In small apps, we won't have any truly global state. One important guideline in state management is to always start with local state, and only move to global state if you truly need it.
+The distinction between local and global state matters more in large-scale applications. In small apps, we won't have any truly global state. One important guideline in state management is to **always start with local state**, and only move to global state if you truly need it.
 
 > In practice, we can define global state using React's **Context API** or an external global state management library called **Redux**.
 
 ### **When and where?**
 
-It all starts **when** you realize that you need to store some data. When this happens, you have to ask yourself:
+It all starts **when** you realize that **you need to store some data**. When this happens, you have to ask yourself:
 
 **Will this data change at some point in time?**
 
@@ -1619,7 +1619,7 @@ It all starts **when** you realize that you need to store some data. When this h
   - Yes: _Derive_ state, meaning that you should compute it based on already existing state or prop
   - No: **Should updating the state re-render the component?**
     - No: `useRef`, which persists data over time, like regular state, but does not re-render a component.
-    - Yes: Place a new piece of state in component. (mentioned earlier: always start with local state.)
+    - Yes: Place a new piece of state in the component. (mentioned earlier: always start with local state.)
 
 **Is the state variable that we just created only used by the current component?**
 
@@ -1824,11 +1824,11 @@ function Item({ item, onDeleteItem }) {
 }
 ```
 
-> This is, again, the case where we previously mentioned an **EXTREMELY IMPORTANT** note. Keep in mind that we cannot immediately call the `onDeleteItem` function in the `onClick` prop, because in that case, the function will be called with the event (`e`) object passed into it automatically. But here, we don't want to call this object with the event object. Instead, we want the function to be called while the item ID is passed into it. This is why we used a callback function inside the `onClick` prop, in order to be able to pass the necessary data into the `onDeleteItem` handler.
+> This is, again, the case where we previously mentioned an **EXTREMELY IMPORTANT** note. Keep in mind that we cannot immediately call the `onDeleteItem` function in the `onClick` prop, because in that case, the function will be called with the event (`e`) object passed into it automatically. But here, we don't want to call this function with the event object. Instead, we want the function to be called while the item ID is passed into it. This is why we used a callback function inside the `onClick` prop, in order to be able to pass the necessary data into the `onDeleteItem` handler.
 
 As another example, we now want to implement a checkbox for each item. If the checkbox is checked, we want the item's `packed` property to be updated. It means that we actually want the `items` state variable to be updated.
 
-We start by defining the `handleToggleItem` function in the `App` component since this is where the `items` state variable and its setter function are defined. Remember that this `handleToggleItem` function should receive the item ID in order to be able to find it in the items and update it.
+We start by defining the `handleToggleItem` function in the `App` component since this is where the `items` state variable and its setter function are located. Remember that this `handleToggleItem` function should receive the item ID in order to be able to find it in the items and update it.
 
 ```js
 function handleToggleItem(id) {
