@@ -1971,7 +1971,7 @@ function Stats({ items }) {
 
 We will now learn:
 
-- how to think about components
+- How to think about components
 - Composition
 - Reusability
 - How to split a component
@@ -1988,23 +1988,23 @@ When it comes to components these are the important questions that we should ask
 
 One important factor that helps us answer these questions is the **component size**. A component, at its extremes, can be huge or small. Many times none of these extremes are ideal.
 
-A huge component is identified when it has a lot of responsibilities. Components are just like JavaScript functions, in the sense that if a function does to many different things, we should break it up into multiple functions. Another sign of a huge component is that it might receive too many props, like 10 or 15! These make the component very **hard to reuse**. It also makes the code complex and hard to understand.
+A huge component is identified when it has a lot of responsibilities. Components are just like JavaScript functions, in the sense that if a function **does too many different things**, we should break it up into multiple functions. Another sign of a huge component is that it might **receive too many props**, like 10 or 15! These make the component very **hard to reuse**. It also makes the code complex and hard to understand.
 
 But this does not mean that we should switch to the other extreme and build small components, splitting every single functionality into its own component.
 
 | Small                                               | Huge                      |
 | --------------------------------------------------- | ------------------------- |
-| end up with 100s of mini-components                 | Too many responsibilities |
-| Confusing code base because of too much abstraction | Might need to many props  |
+| End up with 100s of mini-components                 | Too many responsibilities |
+| Confusing code base because of too much abstraction | Might need too many props |
 
 Most of the time the goal is to create components that strike the right balance between being too specific and too broad.
 
 Here are 4 criteria for splitting a UI into comonents:
 
-1. Logical separation of contant/layout
-2. Reusability
-3. Each component has a single well-defined responsibility to avoid complexity
-4. Personal coding style: some people prefer smaller components, while others prefer larger components
+1. **Logical separation** of content/layout
+2. **Reusability**
+3. Each component has **a single well-defined responsibility** to avoid complexity
+4. **Personal coding style:** some people prefer smaller components, while others prefer larger components
 
 #### **When to create a new component?**
 
@@ -2012,20 +2012,20 @@ When you are creating a new component and you are in doubt about what the compon
 
 Here is a framework based on the 4 criteria mentioned above to help you decide when to create a new component:
 
-1. Logical separation of content/layout: Does the component contain pieces of content or layout that don't belong together? If yes, Then you might need a new component.
-2. Is it possible to reuse part of the component? Do you want or need to reuse it? If yes, then you should probably take that code and extract it into its new component.
-3. Is the component doing too many different things? Does the componeent rely on too many props? Does the component havee too many pieces of state and/or effects? Is the code, including JSX, too complex/confusing? If yes, then you might need a new smaller component.
-4. Personal coding style: Do you prefer smaller functions/components? If yes, you might need a new component.
+1. **Logical separation of content/layout:** Does the component contain pieces of content or layout that don't belong together? If yes, Then you might need a new component.
+2. Is it possible to **reuse parts of the component?** Do you want or need to reuse it? If yes, then you should probably take that code and extract it into its new component.
+3. Is the component **doing too many different things?** Does the component **rely on too many props?** Does the component **have too many pieces of state and/or effects?** Is the code, including JSX, **too complex/confusing?** If yes, then you might need a new smaller component.
+4. **Personal coding style:** Do you prefer smaller functions/components? If yes, you might need a new component.
 
 #### **General guidelines**
 
-- Creating a new component creates a new abstraction. Abstractions have a cost, because more abstractions require more mental energy to switch back and forth between components. So try not to create new components too early.
-- Name a component according to what it does or what it displayes. Don't be afraid of using long names.
-- Never declare a new component inside another component. Instead, co-locate related components inside the same file. Don't separate components into different files too early.
-- It's completely normal that an application has components of many different sizes, including very small and huge ones: we always need some very small components in any application, because they are highly reusable and have very low complexity. For instance, you can imagine the like button component in an application.
-- Most apps will have a few huge components that are not meant to be reused. For instance, a `Page` component of an application that contains the layout of the entire application or the page.
+- Creating a new component creates a new abstraction. Abstractions have a cost, because **more abstractions require more mental energy to switch back and forth between components.** So try not to create new components too early.
+- **Name a component according to what it does** or what it displays. Don't be afraid of using long names.
+- **Never declare a new component inside another component.** Instead, co-locate related components inside the same file. Don't separate components into different files too early.
+- It's completely normal that **an application has components of many different sizes**, including very small and huge ones: we always need some very small components in any application, because they are highly reusable and have very low complexity. For instance, you can imagine the like button component in an application.
+- Most apps will have a **few huge components that are not meant to be reused.** For instance, a `Page` component of an application that contains the layout of the entire application or the page.
 
-> The reusability range is pretty similar to the size range. Generally, the smaller the components are, the more reusable they will be, but not all components are meeant to be reusable. These are usually the huge components.
+> The reusability range is pretty similar to the size range. **Generally, the smaller the components are, the more reusable they will be,** but not all components are meeant to be reusable. These are usually the huge components.
 
 ### **Component categories**
 
@@ -2033,19 +2033,19 @@ Most of your components will naturally fall into one of these three categories. 
 
 1. **Stateless/presentational:** They don't have any state. They are usually components that receive some props and then they simply present the received data or other content. These are usually small and reusable components, like logo, number of results, and one single item component.
 2. **Stateful:** They do have state. Just because they have state, it does not mean they cannot be reusable. For instance, a search component does have state and we can reuse it as many times as we need.
-3. **Structural:** These include pages, layouts, or screens of the application, which are oftentimes the result of componsing smaller components together. Structural components can be large and non-reusable components, but they don't have to. Structural components can also be small. What matters is that they are responsible for providing some sort of structure to applications, such as pages or layouts. So these componeents might not be used in small applications.
+3. **Structural:** These include pages, layouts, or screens of the application, which are oftentimes the result of componsing smaller components together. Structural components can be **large and non-reusable components,** but they don't have to. Structural components can also be small. What matters is that they are responsible for providing some sort of structure to applications, such as pages or layouts. So these components might not be used in small applications.
 
 ### **Component's API**
 
 When we build a reusable component, we should think about what props the component needs.
 
-Any component is always created by someone, and always consumed by someone. Obviously, when you are working on your own, the creator and consumer of a component is the same person, but on a team they might very well be different people. In any case, it is always a good idea to think in terms of there being a creator and a consumer.
+Any component is always created by someone, and always consumed by someone. Obviously, when you are working on your own, the creator and consumer of a component is the same person, but on a team they might very well be different people. In any case, it is always a good idea to think in terms of there being a **creator** and a **consumer**.
 
-The creator is the person who builds a component and defines what props the component can accept. The consumer uses the component by specifying values for the props. The reason for separation between consumer and creator is that if we have this mindset, we can think of component props as the public API of the component.
+The creator is the person who builds a component and **defines what props** the component can accept. The consumer uses the component by **specifying values for the props**. The reason for separation between consumer and creator is that if we have this mindset, we can think of component props as the **public API** of the component.
 
-As a component creator, when we choose what the component consumer is allowed to pass in, we are actually defining the public interface of our component. At the same time, we are choosing how much complexity of the component we want to expose to the consumer of the API. In the end, a component is just an abstraction. It encapsulates a part of the UI and the associated logic into a component and allow consumers to interact with that component via props.
+As a component creator, when we choose what the component consumer is allowed to pass in, we are actually defining the public interface of our component. At the same time, we are choosing how much complexity of the component we want to expose to the consumer of the API. In the end, a component is just an abstraction. It encapsulates a part of the UI and the associated logic into a component and allows consumers to interact with that component via props.
 
-When we decide about what props to allow in component, we need to find a good balance on how strict we want to be, especially about how many props we want to enable for configuration.
+When we decide about what props to allow in the component, we need to find a good balance on how strict we want to be, especially about how many props we want to enable for configuration.
 
 | Too little props    | Too many props               |
 | ------------------- | ---------------------------- |
@@ -2053,4 +2053,4 @@ When we decide about what props to allow in component, we need to find a good ba
 | Might not be useful | Exposing too much complexity |
 | -                   | Hard-to-write code           |
 
-It is best to try to find the right balance between tool little and too many props, that works for both the consumer and the creator. In case you need expose so many props, make sure you provide some good default values for many of them.
+It is best to try to find the right balance between too little and too many props, that works for both the consumer and the creator. In case you need to expose so many props, make sure you provide some good default values for many of them.
