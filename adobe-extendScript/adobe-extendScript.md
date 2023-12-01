@@ -1,3 +1,17 @@
+- [Why scripting?](#why-scripting)
+  - [What is scripting?](#what-is-scripting)
+    - [Our target scripting language](#our-target-scripting-language)
+      - [JavaScript advantages over AppleScript and VBScript](#javascript-advantages-over-applescript-and-vbscript)
+      - [Coding environment](#coding-environment)
+- [Scripting basics](#scripting-basics)
+  - [Understanding objects, properties, and methods](#understanding-objects-properties-and-methods)
+  - [Using objects](#using-objects)
+    - [DOM](#dom)
+    - [How to refer to objects](#how-to-refer-to-objects)
+- [Scripting guide](#scripting-guide)
+  - [Open a new document in photoshop](#open-a-new-document-in-photoshop)
+  - [Add a layer to a newly created document](#add-a-layer-to-a-newly-created-document)
+
 # Why scripting?
 
 Scripting goes beyond the capability of actions and macros by allowing you to manipulate multiple documents and multiple applications in a single script. Additionally, scripts can very cleverly get and respond to information.
