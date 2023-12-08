@@ -8,9 +8,18 @@
   - [Using objects](#using-objects)
     - [DOM](#dom)
     - [How to refer to objects](#how-to-refer-to-objects)
+    - [data types](#data-types)
 - [Scripting guide](#scripting-guide)
   - [Open a new document in photoshop](#open-a-new-document-in-photoshop)
   - [Add a layer to a newly created document](#add-a-layer-to-a-newly-created-document)
+  - [Determine multiple properties in one go](#determine-multiple-properties-in-one-go)
+  - [Determine layer kind](#determine-layer-kind)
+  - [Resize a document's canvas](#resize-a-documents-canvas)
+  - [Merge layers](#merge-layers)
+  - [Add text to a layer in a document](#add-text-to-a-layer-in-a-document)
+  - [Alert the client](#alert-the-client)
+  - [Create an array](#create-an-array)
+  - [Open a file](#open-a-file)
 
 # Why scripting?
 
@@ -76,6 +85,23 @@ activeChannel;
 activeView;
 ```
 
+> Note | One use case of the `activeDocument` property of the `app`, is that you can store it in a variable for later reference.
+
+```js
+const mydoc = app.activeDocument;
+```
+
+### data types
+
+1. String
+2. Numeric
+   1. Integer
+   2. Real, fixed, short, long, double
+3. Variable
+4. Boolean
+5. Constant
+6. Array
+
 # Scripting guide
 
 Here is a guide on how to work with the ExtendScript language. In order to execute the script that you are writing for photoshop, you need to choose photoshop in the ESTK dropdown list. This will then show you a broken link icon, where you can click to open the photoshop software. Then your basic coding environment is ready.
@@ -94,7 +120,46 @@ app.documents.add();
 const mydoc = app.documents.add();
 ```
 
-> Note | The `add()` method on `documents` collection accepts a number of parameters as listed below.
+The `add()` method on `documents` collection accepts a number of parameters as listed below. Any of the following parameters can be left `undefined` as you may need to skip some of them in some cases.
+
+| Parameter | Determines                    |
+| --------- | ----------------------------- |
+| 1         | document's width              |
+| 2         | document's height             |
+| 3         | document's resolution (PPI)   |
+| 4         | document's name               |
+| 5         | document's mode               |
+| 6         | document's initial fill       |
+| 7         | document's pixel aspect ratio |
+
+> Note | document's `width` and `height` properties hold the numeric values to the respective document dimensions.
+
+```js
+const docHeight = mydoc.height;
+const docWidth = mydoc.width;
+```
+
+> Note | document's type can be determined using `NewDocumentMode` and then the actual mode as its property, written all in uppercase.
+
+```js
+app.documents.add(4000, 5000, 72, "My Documents", NewDocumentMode.BITMAP);
+```
+
+> Note | document's `initialFill` takes a constant value.
+
+```js
+app.documents.add(
+  5,
+  7,
+  72,
+  "Diary",
+  NewDocumentMode.BITMAP,
+  DocumentFill.TRANSPARENT,
+  4.7
+);
+```
+
+> Note | document's `pixelAspectRatio` takes a numeric value of the double type.
 
 ## Add a layer to a newly created document
 
@@ -103,4 +168,125 @@ In order to create a layer in a document, you must first refer to the document w
 ```js
 const mydoc = app.documents.add();
 const mylayer = mydoc.artLayers.add();
+```
+
+> Note | To determine the name of a layer, you should use its `name` property.
+
+```js
+const mydoc = app.documents.add();
+const mylayer = mydoc.artLayers.add();
+mylayer.name = "My New Layer";
+```
+
+> Note | To determine whether a layer should be visible or not you can use its `visible` property.
+
+```js
+const mydoc = app.documents.add();
+const mylayer = mydoc.artLayers.add();
+mylayer.visible = false;
+```
+
+> Note | To set a layer's opacity or fill opacity, you need to refer to the specific layer and then use its `opacity` or `fillOpacity` property.
+
+```js
+mylayer.opacity = 45.5;
+mylayer.fillOpacity = 65;
+```
+
+> Note | Some objects do not have the `add()` method available on them. There are other ways to create such objects.
+
+## Determine multiple properties in one go
+
+In order to define values for multiple properties you can use the `with` statement.
+
+```js
+const mydoc = app.documents.add();
+const mylayer = mydoc.artLayers.add();
+with (mylayer) {
+  name = "My New Layer";
+  visible = false;
+}
+```
+
+> Note | Some properties can only accept pre-defined values. In scripting, these pre-defined values are called **constants** or **enumerations**. In photoshop, each enumeration begins with an uppercase letter, and all words withing the combined term also begin with an upper case letter (`LayerKind`). Enumeration values are all uppercase (`TEXT`).
+
+## Determine layer kind
+
+you can set the layer types by refering to the `kind` property of that layer. For instance, to set a layer type to text:
+
+```js
+const mydoc = app.documents.add();
+const mylayer = mydoc.artLayers.add();
+mylayer.kind = LayerKind.TEXT;
+```
+
+## Resize a document's canvas
+
+To resize the canvas of a document, you need to refer to the specific document and then use the `resizeCanvas` method on it. The method accepts a couple of parameters:
+
+| Parameter | Determines     |
+| --------- | -------------- |
+| 1         | canvas' width  |
+| 2         | canvas' height |
+
+```js
+const mydoc = app.documents.add(7, 10);
+myDoc.resizeCanvas(10, 7);
+```
+
+## Merge layers
+
+Merging layers is an operation the merge some layers into a selected layer. In order to perform this action, you need to use the `merge()` method on the layer into which you want to merge other layers. The method accepts the layer that is going to be merged into the selected layer.
+
+```js
+const mydoc = app.documents.add();
+const mylayer = mydoc.artLayers.add();
+const mylayer2 = mydoc.artLayers.add();
+myLayer2.merge(mylayer);
+```
+
+## Add text to a layer in a document
+
+To insert a text frame in a layer, you need to refer to the specific layer, then use its `textFrames` property and then the `add()` method on it.
+
+```js
+const mydoc = app.documents.add();
+const mylayer = mydoc.artLayers.add();
+const mytextframe = mylayer.textFrames.add();
+```
+
+To determine the text content in a text layer, you first need to set the `kind` property of the layer to `LayerKind.TEXT` and then use `textItem.contents` on the layer.
+
+```js
+const mydoc = app.documents.add();
+const mylayer = mydoc.artLayers.add();
+mylayer.kind = LayerKind.TEXT;
+mylayer.textItem.contents = "Sample Text Here...";
+```
+
+## Alert the client
+
+To display an alert box, you use the `alert()` method.
+
+```js
+alert("Hello world!");
+alert(app.documents.length);
+```
+
+## Create an array
+
+To create an array to hold multiple values in one variable, you need to use the `new` operator along with the `Array()` constructor function.
+
+```js
+const myFiles = new Array();
+myFiles[0] = "clouds.bmp";
+myFiles[1] = "clouds.gif";
+```
+
+## Open a file
+
+```js
+const mydoc = app.open(
+  File("/c/Program Files/Adobe/Adobe Photoshop CS6/Samples/Ducky.tif")
+);
 ```
