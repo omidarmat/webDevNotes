@@ -1951,7 +1951,7 @@ This is how we use try/catch block in general:
 try {
   // actual functionality
 } catch (err) {
-  // handling logic for errors in the try block
+  // handling logic for errors happened in the try block
 }
 ```
 
@@ -1970,14 +1970,14 @@ const whereAmI = async function () {
 
 #### **Finally!**
 
-In addition to methods that we have been using on promises up until now (`.then()` and `.catch(d)`) we can also chain the `.finally()` method. This method also accepts a callback function which will be called no matter what happens with the response. So this would be a functionality that will always be performed after the chain of promises are executed.
+In addition to methods that we have been using on promises up until now (`.then()` and `.catch()`) we can also chain the `.finally()` method. This method accepts a callback function which will be called no matter what happens with the response. So this would be a functionality that will always be performed after the chain of promises are executed.
 
 ```js
 const getCountryData = function (country) {
   fetch("<URL>")
     .then((response) => response.json())
     .catch((err) => console.log(err))
-    .finally(() => console.log("Hide loading spinner"));
+    .finally(() => console.log("Finished fetching."));
 };
 ```
 
