@@ -1744,7 +1744,7 @@ We implement some functionalities to behave asynchronously. It means that we des
 >
 > If one microtask adds a new microtask, this new microtask will also be executed before running any callbacks from the callback queue. Microtasks queue can essentially starve callback queue.
 
-Some functionalities are implemented, by default, in an asynchronous way in JavaScript. For instance, the `setTimeout()` timer does its job asynchronously. But we can also implement our own asynchronous functionalities. Asynchronous code is normally coupled with callback functions. It means that when the heavy task is done processing in the background, a callback function would be put into the callback queue and called. But this does not mean that using callback functions will turn our code to an asynchronous one.
+Some functionalities are implemented, by default, in an asynchronous way in JavaScript. For instance, the `setTimeout()` timer does its job asynchronously. But we can also implement our own asynchronous functionalities. **Asynchronous code is normally coupled with callback functions**. It means that when the heavy task is done processing in the background, a callback function would be put into the callback queue and called. But **this does not mean that using callback functions will turn our code to an asynchronous one**.
 
 ## **JavaScript pre-defined asynchronous functionalities**
 
@@ -1767,16 +1767,16 @@ To perform an AJAX call in this method, we first need to create a request object
 const request = new XMLHttpRequest();
 ```
 
-We then have to `.open()` the request by specifying the HTTP method and the URL. Afterwards, we would have to `.send()` the request. Sending the request will start performing the asynchronous task of sending the request and waiting for the server's respond. So we cannot expect the resulting data to be immediately available on the request object.
+We then have to `.open()` the request by specifying the HTTP method and the URL. Afterwards, we would have to `.send()` the request. Sending the request will start performing the asynchronous task of sending the request and waiting for the server's response. So we cannot expect the resulting data to be immediately available on the request object.
 
-Once the respond from the server arrives, which means the requested data is ready, the request object will emit a `load` event, to which we can listen. The event listener would receive a callback function that will actually be called once the `load` event is detected. Note that the actualy data comming from the server will be stored on the `responseText` property of the request object.
+Once the respond from the server arrives, which means the requested data is ready, the request object will emit a `load` event, to which we can listen. The event listener would receive a callback function that will actually be called once the `load` event is detected. Note that the actual data comming from the server will be stored on the `responseText` property of the request object.
 
 ```js
 request.open("GET", "<URL>");
 request.send(); // Asynchronous
 
 request.addEventListener("load", function () {
-  console.log(this.responseText); // this = request,
+  console.log(this.responseText); // this refers to the request object,
 });
 ```
 
@@ -1808,15 +1808,15 @@ Using promises for asynchronous programming has 2 advantages:
 
 ### **A promise lifecycle**
 
-Once a promise is created, we say the promise is **pending**. While the promise is pending, the asynchronous task is doing its job in the background. When this background task is done, we say the promise is **settled**. But settled promises have two types. If the promise has successfully resulted in the expected value, it would be a **fulfilled** promise. If an error happened during the asynchronous task in the background, the promise would still be settled, but **rejected**.
+Once a promise is created, we say the promise is **pending**. While the promise is pending, the asynchronous task is doing its job in the background. When this background task is done, we say the promise is **settled**. But settled promises have two types. If the promise has successfully resulted in the expected value, it would be a **fulfilled** promise. If an error happened during the asynchronous task in the background, the promise would still be settled, but a **rejected** one.
 
-> **_Note_** | In the case of an AJAX call using the fetch API, the `fetch()` function will only reject a promise when users lose their internet connection. In other cases, for example, when a bad request is sent to the server, the promise will still be considered as fulfilled, although the response will not contain the intended data. This is important to keep in mind when handling errors.
+> **_Note_** | In the case of an AJAX call using the fetch API, the `fetch()` function will only reject a promise when the user loses their internet connection. In other cases, for example, when a bad request is sent to the server, the promise will still be considered as fulfilled, although the response will not contain the expected data. This is important to keep in mind when handling errors.
 
 When using promises, or in other words, when we **consume** promisses, we can handle the promise's state to perform different actions. We can consume a promise if there is a promise. In the case of the fetch API, the promise is automatically created by the `fetch()` function. If there is no promise, it should first be built.
 
 ### **Working with promises**
 
-Working with promises basically involves creating promises, consuming promises, handling errors that happen during the execution of promises, etc.
+Working with promises basically involves 1) **creating promises**, 2) **consuming promises**, 3) **handling errors** that happen during the execution of promises, etc.
 
 #### **Consuming a promise**
 
@@ -1824,7 +1824,7 @@ We can consume a promise using either the `.then()` method along with `.catch()`
 
 ##### **Consuming with `.then()`**
 
-In this case, we simply consume an alreadty-existing promise by using the `.then()` method on the promise. This method accepts a callback function that has access to the response of the promise. The result is actually returned as a `Response` object. Remember that the callback function will only be executed once the promise is fulfilled.
+In this case, we simply consume an already existing or a previously created promise by using the `.then()` method on the promise. This method accepts a callback function that has access to the response of the promise. The result is actually returned as a `response` object. Remember that the callback function will only be executed once the promise is fulfilled.
 
 For example, when we use the fetch API to request data from a remote server, the `fetch` function returns a promise and we can consume it.
 
@@ -1854,7 +1854,7 @@ Up until this point we have only handled fullfilment values. If the promise is r
 
 ##### **Consuming with `async` and `await`**
 
-Since ES2017, we can consume promises using `async` and `await` statements. In this syntax, we start by creating an async function. This will make the function immediately return a prom ise and start running in the background. So an async function can be consumed since what it returns is a promise. Now if the async function returns a value, that value will be the fulfilled value of the promise returned by the function.
+Since ES2017, we can consume promises using `async` and `await` statements. In this syntax, we start by creating an async function. **This will make the function immediately return a promise** and start running in the background. So an async function can be consumed since what it returns is a promise. Now if the async function returns a value, that value will be the fulfilled value of the promise returned by the function.
 
 Inside any async function, we can have one or more await statements. Await will stop the code execution at the point where it is typed until the related promise is fulfilled.
 
@@ -1869,7 +1869,7 @@ const whereAmI = async function (country) {
 
 #### **Creating a promise**
 
-To create a new promise, we use the `new` operator and then the call the `Promise()` constructor. The Promise constructor function accepts one argument, and that is the **executor function**. The executor function is called as soon as the Promise constructor is executed. The executor has access to 2 other arguments: `resolve` and `reject` functions. Calling the resolve function in the executor will mark the promise as fulfilled, while calling the reject function will mark it as rejected. Also, the value that we pass into the resolve function will be the fulfillment value of the promise, while the value that we pass into the reject function will be the error message that will then be accessible in the `.catch()` method.
+To create a new promise, we use the `new` operator and then call the `Promise()` constructor. The Promise constructor function accepts one argument, and that is the **executor function**. The executor function is called as soon as the Promise constructor is executed. The executor has access to 2 other arguments: `resolve` and `reject` functions. Calling the resolve function in the executor will mark the promise as fulfilled, while calling the reject function will mark it as rejected. Also, the value that we pass into the resolve function will be the fulfillment value of the promise, while the value that we pass into the reject function will be the error message that will then be accessible in the `.catch()` method.
 
 The executor function is where we implement the asynchronous behavior that we are trying to handle using a promise. So the executor function should eventually produce a value. That would be the future value of the promise.
 
@@ -1893,7 +1893,7 @@ promise
 
 > **_Note_** | The promise in the mentioned example does not contain any asynchronous operation. It just shows how a promise can be created and consumed.
 
-> **_Note_** | Normally we just consume promises. We only build promises when we need to wrap callback-based functions into promises. This is called promisifying. It means to convert callback-based asynchronous behavior to promise-based. For instance, to promisify the `setTimeout()` function. Notice how we don't need the `reject()` function in the executor function in the case of promisifying the timer. A timer cannot fail.
+> **_Note_** | Normally we just consume promises. We only build promises when we need to wrap callback-based functions into promises. This is called _promisifying_. It means to convert callback-based asynchronous behavior to promise-based. For instance, to promisify the `setTimeout()` function. Notice how we don't need the `reject()` function in the executor function in the case of promisifying the timer. A timer cannot fail.
 
 ```js
 const wait = function (seconds) {
