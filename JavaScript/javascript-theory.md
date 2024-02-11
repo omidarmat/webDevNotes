@@ -837,7 +837,7 @@ The bracket notation also allows us to mutate array elements.
 friends[2] = "maryam";
 ```
 
-> **_Note_** | this works becasue an array is not a primitive value. Remember that primitive values declared with `const` are not immutable. However, we cannot replace (redefine) the entire array.
+> **_Note_** | this works becasue an array is not a primitive value. Remember that primitive values declared with `const` are immutable. However, we cannot replace (redefine) the entire array.
 
 ### **Length of array**
 
@@ -888,7 +888,7 @@ There are many array methods that we can attach to arrays in order to perform so
 - Receives the element value.
 - Returns the element's index (zero-based). If there is no such element, returns `-1`.
 
-**`.find()`**: used to retrieve one element of an array based on a condition.
+**`.find()`**: retrieves one element of an array based on a condition.
 
 - Does NOT mutate the original array.
 - Receives a callback function that is called in each iteration in order to check the current element with the condition.
@@ -959,7 +959,7 @@ However, there are much better ways to loop over arrys. We can use special array
 **`.forEach()`**: used to loop over an array. It receives a callback function in order to tell it what to do. So it is the `forEach()` method that will call the callback function, not us. The method loops over the array and in each iteration, it will call the callback function.
 
 - Receives a callback function as argument.
-- Callback has access to: 1) current element of array, 2) current element's index, 3) the entire array that is being looped. (order matters)
+- Callback has access to: 1) current element of array, 2) current element's index, 3) the entire array that is being looped over. (order matters)
 
 ```js
 const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
@@ -973,13 +973,13 @@ movements.forEach((mov, i, arr) => {
 });
 ```
 
-> **_Note_** | unlike for-of loop, we cannot break out of a forEach loop. Once it starts, it will go to the end. We cannot use `continue` and `break` in a `forEach` loop.
+> **_Note_** | unlike for-of loop, we cannot break out of a `forEach` loop. Once it starts, it will go to the end. We cannot use `continue` and `break` in a `forEach` loop.
 
 ##### **Data transformation methods**
 
 There are 3 important array methods to perform data transformations, the results of each are always stored in new arrays.
 
-**`.map()`**: yet another method, used to loop over arrays. As it loops over the array, in each iteration, it calls a callback function that pass into it.
+**`.map()`**: yet another method, used to loop over arrays. As it loops over the array, in each iteration, it calls a callback function passed into it.
 
 - Does NOT mutate the original array.
 - Receives a callback function.
@@ -995,7 +995,7 @@ const movementsUSD = movements.map((mov, i, arr) => mov * 1.1);
 
 - Receives a callback function.
 - Callback has access to: 1) current element of array, 2) current element's index, 3) the entire array.
-- Returns a new array including the elements that satisfy the condition that is checked by the callback function that we pass into the callback function.
+- Returns a new array including the elements that satisfy the condition that is checked by the callback function that we pass into the method.
 
 ```js
 const movements = [200, 450, -400, 3000, 650];
@@ -1004,7 +1004,7 @@ const deposites = movements.filter((mov, i, arr) => mov > 0);
 
 **`.reduce()`**: used to boil down all the elements of an array into one single value. This is usually used to calculate totals, averages, etc. of elements stored in an array.
 
-- Receives two arguments: a callback function and the starting number for the accumulator variable. The callback loops over the array and
+- Receives two arguments: a callback function and the starting number for the accumulator variable.
 - Callback has access to: 1) accumulator variable, 2) current element, 3) current element's index, 4) the entire array.
 - Returns a single value.
 
@@ -1067,7 +1067,7 @@ console.log(arr2.reverse());
 **`.concat()`**: used to concatenate two arrays.
 
 - Does NOT mutate the original array
-- Receives the other array that should be attached to the array that the method as called upon.
+- Receives the other array that should be attached to the array that the method is called upon.
 - Returns a new array.
 
 ```js
@@ -1174,9 +1174,9 @@ So the spread operator (`...`) will take out the elements of an array and automa
 
 **In other words:** we use the spread operator whenever we would otherwise write multiple values separated by commas.
 
-> **_Note_** | spread operators work on all iterables. Iterables in JavaScript include arrays, strings, maps, and sets, but not objects.
+> **_Note_** | spread operator works on all iterables. Iterables in JavaScript include arrays, strings, maps, and sets, but not objects.
 
-> **_Note_** | the `...` syntax is considered by JavaScript as the spread operator if it is used on the right side of the equal sign. If it is on the left side of the equal sign, it will be considered as the **rest pattern**, which would usually be used together with the destructuring syntax. Also this syntax would be considered as the rest pattern if it is used in the arguments of a function.
+> **_Note_** | the `...` syntax is considered by JavaScript as the spread operator if it is used on the right side of the equal sign. If it is on the left side of the equal sign, it will be considered as the **rest pattern**, which would usually be used together with the destructuring syntax. Also this syntax would be considered as the rest pattern if it is used in defining the arguments of a function.
 
 Use cases:
 
@@ -1219,14 +1219,14 @@ The rest pattern looks exactly like the spread operator, but it does the opposit
 
 Use cases:
 
-1. to destructure multiple elements from the beginning of an array into new variables and leave all the _rest_ in another variable. In this use case, the rest pattern should be last element of the destructuring syntax.
+1. to destructure multiple elements from the beginning of an array into new variables and leave all the _rest_ in another variable. In this use case, the rest pattern should be the last element of the destructuring syntax.
 
 ```js
 const [a, b, ...others] = [1, 2, 3, 4, 5];
 console.log(others); // [3, 4, 5]
 ```
 
-2. to pass multiple arrguments into a function, and also make the function ready to receive any arbitrary amount of arguments:
+1. to pass multiple arrguments into a function, and also make the function ready to receive any arbitrary amount of arguments. This works because the rest pattern will pack any number of values into an array, and then the function would have to be programmed to work on the array in order to produce a desired result:
 
 ```js
 const add = function (...numbers) {
@@ -1279,13 +1279,13 @@ omid.location = "iran";
 
 Unlike arrays, the order of properties does not matter when we want to retrieve them. To retrieve data from an object we have two ways:
 
-- Bracket notation:
+- Dot notation:
 
 ```js
 console.log(omid.name); //omid
 ```
 
-- Dot notation: the bracket notation can receive any expression in it. We don't need to explicitely write the property name. We can generate it programmatically with an expression.
+- Bracket notation: the bracket notation can receive any expression in it. We don't need to explicitely write the property name as a string. We can generate it programmatically with an expression.
 
 ```js
 console.log(omid["name"]); //omid
@@ -1379,6 +1379,8 @@ const restaurant = {
     console.log(starterIndex, mainIndex, time, address);
   }
 }
+
+// This way the function is ready to receive an object as an argument. In order for the function to be capable of performing its process, the object passed into it needs to include the property names defined in the function expression above.
 
 restaurant.orderDelivery({
   time: '20:45',
@@ -1474,7 +1476,7 @@ const rolesUnique = [...new Set(roles)];
 
 ## **Maps**
 
-Introduced in ES6, it is data structure that we can use to map values to keys, just like objects. The big difference here is that in maps, keys can have any type, even objects or arrays, while in objects, keys can only be strings. And also note that even DOM elements, which are another type of objects, can be used as keys.
+Introduced in ES6, it is a data structure that we can use to map values to keys, just like objects. The big difference here is that in maps, keys can have any type, even objects or arrays, while in objects, keys can only be strings. And also note that even DOM elements, which are another type of objects, can be used as keys.
 
 ### **Creating maps**
 
@@ -1499,7 +1501,7 @@ me
   .set(false, 'Not working')
 ```
 
-**Passing array into map:** we can populate a map right when we create it. We would pass in an array of key-value pairs, each stored in another array.
+**Passing an array into a map:** we can populate a map right when we create it. We would pass in an array of key-value pairs, each stored in another array.
 
 ```js
 const me = new Map([
@@ -1627,7 +1629,7 @@ console.log(airline.slice(-2)); // al
 
 ### **Transforming strings**
 
-**`.toLowerCase()` and `.toUpperCase()`:** used to convert strings to lowercase and uppercase. Accepts no argument.
+**`.toLowerCase()` and `.toUpperCase()`:** used to convert strings to lowercase and uppercase.
 
 - Accepts no argument.
 - Returns a new string.
@@ -1663,20 +1665,20 @@ const priceUS = priceGB.replace("£", "$").replace(",", ".");
 
 > **_Note_** | the method can also replace whole words, not only single characters.
 
-**`.replaceAll()`:** used to replace parts of strings. Note that this will only replace all occurences of the first argument.
+**`.replaceAll()`:** used to replace parts of strings. Note that this will replace all occurences of the first argument.
 
 **`.split()`:** used to split a string into multiple parts based on a divider string that it receives as argument.
 
-- Accpets string as argument.
+- Accpets a divider character as argument typed as string.
 - Returns an array containing multiple string elements.
 
 ```js
 console.log("omid+armat+programming".split("+")); // ['omid', 'armat', 'programming'];
 ```
 
-**`.join()`:** used to join string elements stored in an array into one whole string value, each separated by a separator argument from the next element.
+**`.join()`:** used to join string elements stored in an array into one whole string value, each separated by a separator character from the next element.
 
-- Accepts a string as argument.
+- Accepts a seperator character as argument types as string.
 - Returns a new string.
 
 ```js
@@ -1684,7 +1686,7 @@ const name = ["Mr.", "Omid", "Armat"];
 console.log(name.join(" ")); // Mr. Omid Armat
 ```
 
-**`.padStart()` and `.padEnd()`:** padding means to add a number of characters to a string until the final string has a desired length. This method adds some characters to the beginning of any given string.
+**`.padStart()` and `.padEnd()`:** padding means to add a number of characters to a string until the final string has a desired length. This methods add some characters to the beginning/end of any given string.
 
 - Accepts two arguments: first, the desired length of the returned string. Second, the character that should be added until reaching the desired number of characters.
 - Returns a new string.
