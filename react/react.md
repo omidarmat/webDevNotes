@@ -74,6 +74,9 @@
   - [**How rendering works**](#how-rendering-works-1)
     - [**How components are displayed on the screen**](#how-components-are-displayed-on-the-screen)
       - [**REACAP**](#reacap)
+    - [**What is the `key` prop?**](#what-is-the-key-prop)
+    - [**Rules for render logic**](#rules-for-render-logic)
+      - [**Functional programming principles**](#functional-programming-principles)
 
 # **A first look at react**
 
@@ -2159,7 +2162,19 @@ The new Virtual DOM that was created after the state update, will get **Reconcil
 
 Up until this point, React hasn't written anything to the DOM yet, but it has figured out the so-called **List of Effects**, which is actually a list of DOM updates.
 
-3. **Commit phase:** in this phase, new elements might be placed in the DOM and already existing elements might get updated or deleted so as to correctly reflect the current state of the application. It is this phase that is responsible for what we traditionally call rendering. After all this, the browser will notice that the DOM has been updated and so it repaints the screen. Of course, this final step has nothing to do with React, but this is where the user will actually see the visual change on their screen.
+> Diffing is based on 2 fundamental assumptions:
+>
+> 1. Two elements of different types will produce different trees.
+> 2. Elements with a stable key, which is consistent over time, will stay the same across renders.
+>
+> These assumptions allow the algorithm to be much faster, improving from a billion operations per thousand elements to only one thousand operations per thousand elements.
+>
+> Diffing is comparing elements step-by-step between two renders based on their position in the tree. They are basically 2 different situations that need to be considered:
+>
+> 1. **Two different elements at the same position in the tree between two renders:** imagine a JSX syntax where a type `<div>` element is changed to type `<header>`, but its child component `<SearchBar>` is the same. In this situation React assumes the element and all its children are no longer valid. So old components are destroyed and removed from the DOM, including their state. This will include the `<SearchBar>` in the re-render process, so it will also be replaced with a new `<SearchBar>` and its state will not be recovered. This scenario works this way no matter the change happened on a DOM element or a React component instance.
+> 2. **Same element at the same position in the tree:** if after a render an element at a certain position in the tree is the same as before, the element will simply be kept in the DOM, and that includes all child elements and more importantly, the component's state. This scenario works no matter it is a DOM element or a React component instance that has remained the same. It is important to remember that for this scenario to happen, only the DOM element or React component instance itself needs to stay the same, but their props or attributes can change. If attributes or props are changed, React will simply mutate the DOM element attributes or pass in the new props. **Sometimes we don't want this standard behavior, but instead, we want to create a new component instance with the new state, and this is where the `key` prop comes to play.**
+
+1. **Commit phase:** in this phase, new elements might be placed in the DOM and already existing elements might get updated or deleted so as to correctly reflect the current state of the application. It is this phase that is responsible for what we traditionally call rendering. After all this, the browser will notice that the DOM has been updated and so it repaints the screen. Of course, this final step has nothing to do with React, but this is where the user will actually see the visual change on their screen.
 
 Continuing from the previous phase, technically, the current `workInProgress` Fiber tree also goes into this phase but let's just keep it simple here.
 
@@ -2181,3 +2196,145 @@ After the commit phase completes, the `workInProgress` fiber tree becomes the cu
 2. This then triggers the Render phase which does not produce any visual output. This phase starts by rendering all component instances that need a re-render. Rendering in React means to call the component functions. This will create one or more updated React elements placed in a new virtual DOM, which is actually a tree of React elements. You should remember that re-rendering a component will cause all of its child components to render no matter if props changed or not. The new Virtual DOM needs to be reconciled with the current Fiber tree. This is necessary becasue it would be inefficient and slow to destroy and rebuild the entire DOM tree each time that something on the screen must be updated. Instead, reconciliation tries to reuse as much of the DOM as possible by finding the smallest number of DOM updates that reflect the lates state update on the screen. The reconciliation process is done using a reconciler called Fiber, which works with a mutable data structure called the Fiber tree. In this tree, for each React element and DOM element there is a fiber. This fiber holds the actual component state, props, and a queue of work. After reconciliation, the queue of work will contain the DOM updates needed for that element. The computation of these DOM updates is performed by a Diffing algorithm, which step-by-step compares the elements in the new Virtual DOM with the elements in the current Fiber tree to see what has changed. The final result of the render phase (Reconciliation + Diffing) is a second updated fiber tree as well as a list if all necessary DOM updates. Note that the render phase is asynchronous. So Fiber can prioritize and split work into chunks and pause and resume some work later. This is neccessary for concurrent features, and also to prevent the JS engine from being blocked by complex render processes. The output of the render phase will finally be written to the DOM in the commit phase.
 3. In the commit phase, a renderer like ReactDOM will insert, delete, and update DOM elements, so that we end up with an updated DOM that reflects the new state of the app. Unlike the render phase, this phase is synchronous. So all the DOM updates are performed in one go so as to ensure a consistent UI over time.
 4. Once the browser realized that the DOM is updated, it starts a new browser paint in order to print a new UI on to the screen.
+
+### **What is the `key` prop?**
+
+It is a special prop that we use to tell the diffing algorithm that an element is unique. This works for both DOM elements and React component instances. It means that we can give each component instance a unique identification, which allows React to distinguish between multiple instances of the same type. But why we need this?
+
+Remember what the second assumption of the diffint algorithm?
+
+> **Same element at the same position in the tree.**
+
+1. Whenever an element has a stable key across renders, the element will be kept in the DOM even if the position in the tree has changed. **This is why we should always use the `key` prop in lists.** Imagine we have a list with two `Question` items but with no key props.
+
+```js
+<ul>
+  <Question question={q[1]} />
+  <Question question={q[2]} />
+</ul>
+```
+
+When we add a new item to the top of the list:
+
+```js
+<ul>
+  <Question question={q[0]} />
+  <Question question={q[1]} />
+  <Question question={q[2]} />
+</ul>
+```
+
+The two previous list items is obviously the same, but their position in the Virtual DOM. So we now have the same elements at different positions. According to diffing rules, these two DOM elements will be removed from the DOM and then recreated immediately at their new positions. This is bad for performance, but React has no way of understanding it. So we use the `key` prop to uniquely identify an element, then give React this information.
+
+```js
+<ul>
+  <Question question={q[0]} key="q0" />
+  <Question question={q[1]} key="q1" />
+  <Question question={q[2]} key="q2" />
+</ul>
+```
+
+This way `Question` instances with `q1` and `q2` keys will not be destroyed and recreated. This makes a huge impact on performance when you render long lists with thousands of elements.
+
+**Always use the `key` prop when you have multiple child elements of the same type.**
+
+2. On the other hand, when an element's key changes between renders, the element will be destroyed and a new one will be created even if the position in the tree is the same as before. **This is great to reset state in component instances**, which is the second big use case of the `key` prop. Whenever you need to reset state, make sure you give the element a key, and the key changes across renders.
+
+For instance, in this code:
+
+```js
+<QuestionBox>
+  <Question
+    question={{
+      title: "React vs JS",
+      body: "Why should we use React?",
+    }}
+  />
+</QuestionBox>
+```
+
+Now if the `question` prop changes, what React sees is that the `Question` component instance type has remained the same and its position in the Virtual DOM has not changed. So it will keep it in the DOM and preserve its `answer` state, which is not what we want. We actually want to change the `answer` state whenever the question is changed. In this case we need to insert a `key` prop into the `Question` instance.
+
+```js
+<QuestionBox>
+  <Question
+    question={{
+      title: "React vs JS",
+      body: "Why should we use React?",
+    }}
+    key="q23"
+  />
+</QuestionBox>
+```
+
+We now need to make sure that the `key` prop changes for the next question.
+
+```js
+<QuestionBox>
+  <Question
+    question={{
+      title: "Best course ever :D",
+      body: "This is THE React course!",
+    }}
+    key="q89"
+  />
+</QuestionBox>
+```
+
+### **Rules for render logic**
+
+In order for the rendering process to work in the way that we learned, your render logic needs to follow some simple rules. But what is render logic?
+
+There are 2 types of logic in React components:
+
+1. Render logic: it is all the code living at the top level of the component function, and participates in descibing how the component view looks like. For instance, state declarations and JSX return statements are considered render logic. Render logic is all the code that is executed as soon as the component is rendered, so each time that the function is called.
+2. Event handler functions: these are pieces of code that are executed as a consequence of the event that the handler is listening to.
+
+It is important to differentiate between these 2 different types of logic since they do fundamentally different things. While render logic is code that renders the component, event handlers contain code that actually **does things**, so that is code that makes things happen in the app. Event handlers contain things like state updates, HTTP requests, reading input fields, page navigation, and so on. These are things that manipulate the app in some way.
+
+This is important to understand because React requires that components are **pure** when it comes to render logic, in order for everything to work as expected.
+
+What does pure mean? we must remind ourselves of some functional programming principles.
+
+#### **Functional programming principles**
+
+**Side effects:** this happens when a function depends on any data that is outside the function scope, or even more importantly, when a function modifies data that is outside its scope. Side effect is the function's interaction with the outside world. Examples of side effects are HTTP requests, writing to the DOM, setting timers and more.
+
+**Pure functions:** these are functions without side effects. They do not change any variable outside their scope. Also, when they are given the same input, they always return the same output.
+
+Here is an example of a pure function:
+
+```js
+function circleArea(r) {
+  return 3.14 * r * r;
+}
+```
+
+But this is an example of an impure function:
+
+```js
+function circleArea(r) {
+  const date = Date.now();
+  const area = 3.14 * r * r;
+  return `${date}: ${area}`; // unpredictable output
+}
+
+const areas = {};
+function circleArea(r) {
+  areas.circle = 3.14 * r * r; // outside variable mutation
+}
+```
+
+Now it may seem that it is bad to have functions with side effects, but it is not. Actually, a program can only be useful if it has some interaction with the outside world at some point. However, in order to make useful and bug-free apps, we need to know when and how to create side effects, which brings us back to React rules for render logic.
+
+Essentially, there is just one big rule which is that **components must be pure functions when it comes to render logic**. It means that if we give a component instance the same props the component should always return the same output in the form of JSX.
+
+This practically means that **render logic is not allowed to produce any side effects**. So the logic that runs at the top level and is responsible for rendering the component should have no interaction with the outside world. This means that render logic is not allowed to perform:
+
+1. Network requests (API calls)
+2. Start timers
+3. Directly use the DOM API: listening to events with `addEventListener`
+4. Not mutate objects or variables outside the function scope: so we cannot mutate props.
+5. Update state (or refs): state updates are not side effects, but it will create an infinite loop.
+
+> Keep in mind that all this stuff are only forbidden inside render logic. It means that you have other options for running your side effects. For instance, side effects are allowed (and even encouraged) in event handler functions. There is also a special hook to register side effects `useEffect`. This is used if we need to create a side effect as soon as the component function is first executed.
