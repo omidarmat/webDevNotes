@@ -77,6 +77,9 @@
     - [**What is the `key` prop?**](#what-is-the-key-prop)
     - [**Rules for render logic**](#rules-for-render-logic)
       - [**Functional programming principles**](#functional-programming-principles)
+  - [**How events work in React**](#how-events-work-in-react)
+    - [**Synthetic events**](#synthetic-events)
+    - [**How event handlers bahave in vanilla JavaScript and React**](#how-event-handlers-bahave-in-vanilla-javascript-and-react)
 
 # **A first look at react**
 
@@ -2132,7 +2135,38 @@ The process that we are interested in starts by React each time that a new rende
 
 > The render process is triggered for the entire application, not just for one single component. However, this does not mean that the entire DOM is updated. In React, rendering is only about calling the component functions, and later figuring out what needs to change in the DOM. This might seem confusing because in practice, it looks like React only re-renders the component where the state update happens, but that is not how it works behind the scenes. Actually, React looks at the entire tree whenever a render happens.
 
-> A render is not triggered immediately, but **scheduled** for when JS engine has some 'free time'. This, however, means a few miliseconds that we don't even notice. There are also some situations like multiple `setState` function calls in the same function where renders will be **batched**.
+> A render is not triggered immediately, but **scheduled** for when JS engine has some 'free time'. This, however, means a few miliseconds that we don't even notice. There are also some situations like multiple `setState` function calls in the same function, like event handlers, where renders will be **batched**. Take this code as an example:
+>
+> ```js
+> const [answer, setAnswer] = useState("");
+> const [best, setBest] = useState(true);
+> const [solved, setSolved] = useState(false);
+> const reset = function () {
+>   setAnswer("");
+>   console.log(answer);
+>   setBest(true);
+>   setSolved(false);
+> };
+> return (
+>   <div>
+>     <button onClick={reset}>Reset</button>
+>   </div>
+> );
+> ```
+>
+> Let's focus on the `reset` event handler function. You might think that React will trigger a re-render right after each state update, but that is not how React works. The three state updates will get batched to be performed in one go and there will be only one render and commit per event handler. It is nice to note that this makes it so that at the point where `answer` state is logged to the console, it will still show the current value of this state before being changed to an empty string.
+>
+> State update will only be reflected in the state variable after the corresponding render. This is why we say that updating state in React is asynchronous. This also applies when only one state variable is updated. The updated state is only available after the re-render, not immediately. However, sometimes we need the new value of the state variable immediately after updating it. This might happen, for instance, when we need to update the state variable again, based on the updated value. In other words, this is when we need to update state based on a previous state update in the same event handler. In these situations we pass a callback function into the state setter function.
+>
+> ```js
+> setAnswer((answer) => answer + "*");
+> ```
+>
+> This is important to remember about functionalities like the tripple like button in the example you studied.
+>
+> Before React 18, React only did automatic batching in event handlers, but not in situations that happened after a browser event has already happened. However, there are some important situations when we do need to update state long after a browser event, like a click, has happened. Examples are `setTimeout()` and promises. For instance, we might want to call the `reset` function mentioned above only after 1 second, or we might want it to be called after a data has been fetched. It would be useful to have automatic batching in these situations too. Luckily, React 18 has enabled this feature, but before that, when the `reset` function was called in a `setTimeout()` function, state updates were not batched, and a re-render would be triggered for each state update. React 18 also supporta automatic batching in native events. So batching will also be done if the `reset` function is called in an `addEventListener()` function. It is nice to know that if a batch state update leads the state variables to a value that they currently have, React will not even bother doing the update and the re-render. It knows nothing will change with this update.
+
+> We can opt out of automatic batching by wrapping a state update in `ReactDOM.flushSync()`. This is almost never used.
 
 2. **Render phase:** React calls component functions and figures out how it should update the DOM, in order to reflect the latest state changes. However, it will not update the DOM in this phase. So React's definition of render is different than what we usually refer to by using the word 'render'. It is important to consider that **in React, rendering is NOT updating the DOM or displaying elements on the screen. Rendering only happens internally inside React. It does not produce visual changes.** In the common sense, the meaning of the word 'render' will actually involve this and the next phase; that is the Commit phase. But let's see the stages that happen in this phase in detail:
 
@@ -2338,3 +2372,25 @@ This practically means that **render logic is not allowed to produce any side ef
 5. Update state (or refs): state updates are not side effects, but it will create an infinite loop.
 
 > Keep in mind that all this stuff are only forbidden inside render logic. It means that you have other options for running your side effects. For instance, side effects are allowed (and even encouraged) in event handler functions. There is also a special hook to register side effects `useEffect`. This is used if we need to create a side effect as soon as the component function is first executed.
+
+## **How events work in React**
+
+[There is a useful review on events and their behavior in JavaScript in the tutorial video.]
+
+### **Synthetic events**
+
+Let's now see how event objects actually work behind the scenes. When we declare an event handler like the code example below...
+
+```js
+<input onChange={(e) => setText(e.target.value)} />
+```
+
+...React gives us access to the event object that was created, just like in JavaScript. However, in React, this event object is different. In vanilla JavaScript we get access to the native DOM event object, such as `PointerEvent`, 'MouseEvent', 'KeyboardEvent', and so on. React, on the other hand, gives us access to something called `SyntheticEvent`, which is a wrapper around the DOM's native event object. By 'wrapper', we mean that `SyntheticEvent` is very similar to the native event obejct, but they just add or change some functionalities on top of them.
+
+Synthetic events have the same interface as native event objects, such as `stopPropagation()` and `preventDefault()`. The special thing about synthetic events is that they fix some browser inconsistencies, making it so that events work in the same way in all browsers. The React team also decided most of the synthetic events bubble, including _focus_, _blur_, and _change_ events which usually do not bubble. There is one exception, and that is the _scroll_ event, which does not bubble in React also.
+
+### **How event handlers bahave in vanilla JavaScript and React**
+
+1. In React, the prop name to attach an event handler is named in camelCase. So that is `onClick` instead of `onclick` or `click`.
+2. In vanilla JavaScript, when we want to stop the default behavior of the browser in response to an event, we can return `false` from the event handler function. The big example of this, is the browser's automatic reload in response to a form submission. However, returning `false` in a React event handler would simply not work. The only way in React is to call the `preventDefault()` on the synthetic event object.
+3. In rare situations where you need to handle an event in the capturing phase rather in the bubbling phase, you can simply attach 'Capture' to the event handler name. For instance, you would write `onClickCapture` instead of `onClick`. However, you will probably never use this.
