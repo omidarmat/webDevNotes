@@ -80,6 +80,10 @@
   - [**How events work in React**](#how-events-work-in-react)
     - [**Synthetic events**](#synthetic-events)
     - [**How event handlers bahave in vanilla JavaScript and React**](#how-event-handlers-bahave-in-vanilla-javascript-and-react)
+    - [**Component lifecycle**](#component-lifecycle)
+      - [**Phase 1: mounting - initial render**](#phase-1-mounting---initial-render)
+      - [**Phase 2: re-rendering**](#phase-2-re-rendering)
+      - [**Phase 3: unmounting**](#phase-3-unmounting)
 
 # **A first look at react**
 
@@ -2394,3 +2398,32 @@ Synthetic events have the same interface as native event objects, such as `stopP
 1. In React, the prop name to attach an event handler is named in camelCase. So that is `onClick` instead of `onclick` or `click`.
 2. In vanilla JavaScript, when we want to stop the default behavior of the browser in response to an event, we can return `false` from the event handler function. The big example of this, is the browser's automatic reload in response to a form submission. However, returning `false` in a React event handler would simply not work. The only way in React is to call the `preventDefault()` on the synthetic event object.
 3. In rare situations where you need to handle an event in the capturing phase rather in the bubbling phase, you can simply attach 'Capture' to the event handler name. For instance, you would write `onClickCapture` instead of `onClick`. However, you will probably never use this.
+
+### **Component lifecycle**
+
+The lifecycle of a component encompasses the different phases that a component can go through over time. Here is a list of these phases:
+
+#### **Phase 1: mounting - initial render**
+
+This is when the component is rendered for the very first time. This is also when fresh state and props are created for the component instance, and therefore we can say that this is when the component is born. Once the component is rendered and is on the screen, it can be rendered an unlimited number of times.
+
+#### **Phase 2: re-rendering**
+
+A React application is re-rendered whenever there is a state update. However, when we mentioned this, we were talking about the entire application, not about one specific component instance.
+
+Here we can go deeper in detail and say that a component instance also re-renders when:
+
+1. State changes
+2. Props changes
+3. Parent component re-renders
+4. Context changes [more about this later...]
+
+This phase is **optional**. It does not always happen in all components. Some components are mounted and then unmounted right away, which brings us to the next phase.
+
+#### **Phase 3: unmounting**
+
+This is when a component instance dies, meaning that it is completely destroyed and removed from the screen along with its state and props. This can happen when users navigate to a new section or new page of the app, or they close the app.
+
+> Remember that after one instance of a component is unmounted, a new instance of the same component can be mounted later, but the previous instance is completely gone.
+
+> It is important to know about the lifecycle of a componenta instance, because you can hook into different phases of this lifecycle. You can basically define code to be executed at these specific points in time, which can be extremely useful. We do this using the `useEffect()` hook.
