@@ -3,13 +3,6 @@
   - [**What is React?**](#what-is-react)
   - [**Setting up a new React project: The options**](#setting-up-a-new-react-project-the-options)
     - [**Setting up a project with `create-react-app`**](#setting-up-a-project-with-create-react-app)
-- [**How React works behind the scenes**](#how-react-works-behind-the-scenes)
-  - [**Components, instances, and elements**](#components-instances-and-elements)
-  - [**How rendering works**](#how-rendering-works)
-    - [**How renders are triggered**](#how-renders-are-triggered)
-    - [**The render phase**](#the-render-phase)
-      - [**Overview**](#overview)
-      - [**More detailed look**](#more-detailed-look)
 - [**Core concepts of building React apps**](#core-concepts-of-building-react-apps)
   - [**JSX**](#jsx)
     - [**Declarative JSX**](#declarative-jsx)
@@ -35,6 +28,7 @@
       - [**Prop drilling**](#prop-drilling)
       - [**PropTypes**](#proptypes)
     - [**Props as an API**](#props-as-an-api)
+  - [**Effects**](#effects)
   - [**React Fragments**](#react-fragments)
   - [**Styling React applications**](#styling-react-applications)
     - [**Inline styling**](#inline-styling)
@@ -66,12 +60,12 @@
       - [**General guidelines**](#general-guidelines)
     - [**Component categories**](#component-categories)
     - [**Component's API**](#components-api)
-- [**How React works behind the scenes**](#how-react-works-behind-the-scenes-1)
+- [**How React works behind the scenes**](#how-react-works-behind-the-scenes)
   - [**Know more about React components, component instances and React elements**](#know-more-about-react-components-component-instances-and-react-elements)
     - [**React Component**](#react-component)
     - [**Component Instance**](#component-instance)
     - [**React element**](#react-element)
-  - [**How rendering works**](#how-rendering-works-1)
+  - [**How rendering works**](#how-rendering-works)
     - [**How components are displayed on the screen**](#how-components-are-displayed-on-the-screen)
       - [**REACAP**](#reacap)
     - [**What is the `key` prop?**](#what-is-the-key-prop)
@@ -84,6 +78,9 @@
       - [**Phase 1: mounting - initial render**](#phase-1-mounting---initial-render)
       - [**Phase 2: re-rendering**](#phase-2-re-rendering)
       - [**Phase 3: unmounting**](#phase-3-unmounting)
+- [**Fetching data in React**](#fetching-data-in-react)
+  - [**The wrong way**](#the-wrong-way)
+  - [**The `useEffect` hook: the correct way**](#the-useeffect-hook-the-correct-way)
 
 # **A first look at react**
 
@@ -176,85 +173,6 @@ import ReactDOM from "react-dom/client";
 Next up, we will create our `App` component. It is not necessary to call it App, but it is necessary to start its name with a capital letter. From here on, you can go on to the [Core Concepts](#core-concepts-of-building-react-apps) section of this file.
 
 The `public` folder contains all the assets that will end up in the final application, such as all the images and an `index.html` file that contains a `<div>` element with the id `root`. Remember that Webpack, which is the module bundler here, will automatically look into the `public` folder to find the assets of our application, such as images, etc.
-
-# **How React works behind the scenes**
-
-## **Components, instances, and elements**
-
-There are conceptual differences between React components, component instances, and React elements. Understanding these differences makes it more clear what actually happens with our components as we use them.
-
-Components are what we write to describe a piece of UI, and it is just a regular JavaScript function, but it is a function that returns React elements (element tree), usually written as JSX.
-
-A component is a generic description of the UI. We can think of a component as a blueprint or a template, and it is out of this blueprint that React then creates one or multiple component instances. React does this each time that we use the component somewhere in our code. For instance, in the code example below, we have used the `Tab` component three times, and therefore 3 instances of `Tab` are placed in a component tree.
-
-```js
-function App() {
-  return (
-    <div className='tabs'>
-      <Tab item={content[0]}>
-      <Tab item={content[1]}>
-      <Tab item={content[2]}>
-    </div>
-  )
-}
-```
-
-This means that React will call the `Tab` function three times, one time for each instance. So we can say that an instance is like the actual physical manifestation of a component living in our component tree, while the component itself is really just a function that we wrote before being called. Also, each instance holds its own state and props, and has its own lifecycle (can be born, live, and die).
-
-As React executes the code in each of these instances, each of them will return one or more React elements. This is done behind the scenes by converting JSX to multiple `React.createElement()` function calls. Then as React calls these functions, the result will be a React element. So a React element is the result of using a component in our code. It is a big immutable JavaScript object that React keeps in memory.
-
-A React element contains all the information that is necessary to create DOM elements for the current component instance. It is this React element that will eventually be converted to actual DOM elements and then painted on to the screen by the browser. Therefore, the DOM elements are the actual, visual representation of the component instance in the browser. It is NOT the React elements that are rendered to the DOM. React elements just live inside the React app and have nothing to do with the DOM. They are converted to DOM elements when they are painted on the screen in the final step.
-
-This is the journey from writing a simple component to using it multiple times in our code as a blueprint, all the way untill it is converted into a React element, and then rendered as HTML elements into the DOM.
-
-## **How rendering works**
-
-Up until this point we have understood how components are transformed to React elements. We are now going to learn about a process in which React elements end up in the DOM and are displayed on the screen.
-
-### **How renders are triggered**
-
-The whole rendering process is started by React each time that a new render is triggered. There are two situations that trigger renders:
-
-1. Initial render of the application
-2. State is updated in one or more component instances (re-render)
-
-> The render process is triggered for the entire application, not just for one single component. It does not mean that the entire DOM is updated. In React, rendering is only about calling the component functions and figuring out what needs to change in the DOM later. React looks at the entire tree when a render happens.
-
-> Renders are not triggered immediately, but scheduled for when the JS engine has some free time! This takes only a few miliseconds and we don't notice it.
-
-> There are situations where multiple `setState` calls in the same function, and renders will be batched. This will be explored later.
-
-### **The render phase**
-
-#### **Overview**
-
-In the render phase, React calls our component functions and figures out how it should update the DOM in order to reflect the state changes. However, the DOM is **NOT** updated in this phase. React's definition of render is a bit different than what we think. In React, rendering is NOT updating the DOM or displaying elements on the screen. Rendering only happens internally inside React, it does not produce any visual changes. Once React knows how to update the DOM, it does so in the **commit phase**.
-
-In the commit phase, new elements might be placed in the DOM, and already existing elements might be updated or deleted in order to correctly reflect the current state of the application. It is the commit phase that is really responsible for what we traditionally call rendering.
-
-Finally, when the browser notices that the DOM is updated, it re-paints the screen. This final step is where actual visual changes are produced.
-
-#### **More detailed look**
-
-At the beginning of the render phase, React will go through the entire component tree, take all the component instances that triggered a re-render, and actually render them, which simply means to call the corresponding component functions we have written in our code. This will created updated react elements which, altogether, make up the so-called **virtual DOM**.
-
-> **VIRTUAL DOM**
->
-> In the initial render, React takes the entire component tree and transform it into one big React element, which will basically be a React element tree. This is the virtual DOM. The virtual DOM is a tree of all React elements created from all instances in the component tree. It is relatively cheap and fast to create a tree like this. It is just a JavaScript object.
->
-> Imagine there is an update to a state in component D of an imaginary component tree. This will of course trigger a re-render. So React will call the function of component D again, and place the new React element in a new React element tree, a new virtual DOM. **Whenever React renders a component, that render will cause all of its child components to be rendered as well** no matter if the props that we passed down have changed or not. This means that if you update the highest component in the component tree, the entire application will be re-rendered.
->
-> It is not the entire DOM that is updated. It is just the virtual DOM that will be recreated, which is cheap and not a big problem in small or medium-sized applications.
-
-The new virtual DOM will get reconciled with the current **Fiber tree** as it exists before the state update. This reconciliation is done in React's reconciler which is called **Fiber**. The results of the reconciliation process is going to be an updated fiber tree that will eventually be used to write to the DOM.
-
-> **RECONCILIATION**
->
-> So Why reconciliation? Why not simply update the entire DOM whenever state changes somwhere in the app? We said previously that creating the virtual DOM is cheap and fast since it is just a JavaScript object. However, writing to the DOM is not cheap and fast. It would be inefficient to always write the entire virtual DOM to the actual DOM each time that a render is triggered. Also, usually, when the state changes in the app, only a small portion of the DOM needs to be updated, and the rest of the DOM that is already present can be reused. Whenever a render is triggered, React will try to be as efficient as possible by reusing as much of the existing DOM tree as possible.
->
-> How does React know what changed from one render to the next one? This is where **reconciliation** comes into play. Reconciliation is deciding exactly which DOM elements need to be inserted, deleted, or updated to reflect to latest state changes. The result of the reconciliation process is going to be a list of DOM operations that are necessary to update the current DOM with the new state. This process is done by a reconciler. So in a sense, we can say that the reconciler is the **engine of React**. This reconciler allows us to never touch the DOM directly. Instead, we simply tell React what the next snapshot of the UI shouldd look like based on state. This reconciler is called **Fiber**.
-
-> Don't confuse the virtual DOM with the **shadow DOM**. They have nothing to do with each other.
 
 # **Core concepts of building React apps**
 
@@ -964,6 +882,8 @@ StarRating.propTypes = {
 ### **Props as an API**
 
 This is directly related to the issue of thinking about components' reusability that comes with props acting as the [component's API](#components-api).
+
+## **Effects**
 
 ## **React Fragments**
 
@@ -2427,3 +2347,69 @@ This is when a component instance dies, meaning that it is completely destroyed 
 > Remember that after one instance of a component is unmounted, a new instance of the same component can be mounted later, but the previous instance is completely gone.
 
 > It is important to know about the lifecycle of a componenta instance, because you can hook into different phases of this lifecycle. You can basically define code to be executed at these specific points in time, which can be extremely useful. We do this using the `useEffect()` hook.
+
+# **Fetching data in React**
+
+Let's first learn the wrong way of fetching data in a React app. This way you can learn more effectively.
+
+## **The wrong way**
+
+As we learned before, we should never update state in render logic. Let's break this rule so we can see why this rule exists.
+
+We now want to fetch some movie data as soon as the `App` component mounts for the very first time in the usePopcorn project.
+
+To fetch data we use the OMDB API, which is something like the open version of IMDB.
+
+```js
+export default function App() {
+  const [movies, setMovies] = useState([]);
+  const [watched, setWatched] = useState([]);
+
+  fetch(`http://www.omdbapi.com/?apikey=${KEY}&s=interstellar`)
+    .then((res) => res.json())
+    .then((data) => console.log(data));
+
+    return (
+      // JSX
+    )
+}
+```
+
+This is the wrong way because this data fetching is introducing side effect into the component's render logic. This is an interaction with the outside world, which should never be allowed in render logic. The fetching code, written in the top level of the function, runs as the component first runs, which is actually why it is called render logic. But what is the problem?
+
+As you run your app with this fetching approach, you can observe in the Network tab of the browser that your app is endlessly attempting to fetch data from the API. Why? Setting the state in the render logic causes the component to re-render itself again. However, as the component is re-rendered, the fetching function is executed again, leading to another state update, which in turn, will cause the component to re-render itself in an **infinite loop**.This is why it is not allowed to `setState` in render logic.
+
+> "React limits the number of renders to prevent an infinite loop."
+
+But we actually need to update the state here. So let's now learn the correct way to do this, which is the `useEffect` hook.
+
+## **The `useEffect` hook: the correct way**
+
+The idea of the `useEffect` hook is to give us a place where we can safely introduce side effects. The side effects registered with the `useEffect` hook will only be executed after certain renders, for instance, only right after the initial render. [more about what this hook actually is later on ...]
+
+```js
+export default function App() {
+  const [movies, setMovies] = useState([]);
+  const [watched, setWatched] = useState([]);
+
+  useEffect(function() {
+    fetch(`http://www.omdbapi.com/?apikey=${KEY}&s=interstellar`)
+    .then((res) => res.json())
+    .then((data) => setMovies(data));
+  }, []);
+
+    return (
+      // JSX
+    )
+}
+```
+
+> When you want to use the `useEffect` hook, make sure you import it from the `react` library into your script file.
+
+The `useEffect` does not return anything, so we don't store its result in any variable, but instead, we pass in a function, and this function is called the 'effect', containing the code that we want to run as a side effect.
+
+The `useEffect` hook accepts as the first argument, a function which holds the code that we want it to run as the side effect, and as the second argument, the dependancy arra. [more about this later...] For now we just pass in an empty array, which means that this effect will only run on the mount phase.
+
+Now if you check your Network tab of your browser, you will see that the problem with your infinite loop is now gone. This is the very bare bones way of data fetching in simple React app, at least if we want to fetch our data as soon as the app loads. In a larger, more real-world app, we may use some **external library** for data fectching.
+
+> When we say that we 'register' a side effect, we mean that we want a specific code not to run as the component renders, but after it has been painted on the screen. This is what `useEffect` does.
