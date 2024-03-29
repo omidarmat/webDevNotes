@@ -29,6 +29,16 @@
       - [**PropTypes**](#proptypes)
     - [**Props as an API**](#props-as-an-api)
   - [**Effects**](#effects)
+    - [**Effects vs. event handlers**](#effects-vs-event-handlers)
+      - [Syncronization and lifecycle](#syncronization-and-lifecycle)
+      - [When are effects executed?](#when-are-effects-executed)
+    - [**RECAP**](#recap)
+    - [**Effect use cases**](#effect-use-cases)
+      - [**Fetching data in React**](#fetching-data-in-react)
+        - [**The wrong way**](#the-wrong-way)
+        - [**The `useEffect` hook: the correct way**](#the-useeffect-hook-the-correct-way)
+        - [**Handling errors**](#handling-errors)
+    - [**Dependancy array**](#dependancy-array)
   - [**React Fragments**](#react-fragments)
   - [**Styling React applications**](#styling-react-applications)
     - [**Inline styling**](#inline-styling)
@@ -78,9 +88,6 @@
       - [**Phase 1: mounting - initial render**](#phase-1-mounting---initial-render)
       - [**Phase 2: re-rendering**](#phase-2-re-rendering)
       - [**Phase 3: unmounting**](#phase-3-unmounting)
-- [**Fetching data in React**](#fetching-data-in-react)
-  - [**The wrong way**](#the-wrong-way)
-  - [**The `useEffect` hook: the correct way**](#the-useeffect-hook-the-correct-way)
 
 # **A first look at react**
 
@@ -884,6 +891,467 @@ StarRating.propTypes = {
 This is directly related to the issue of thinking about components' reusability that comes with props acting as the [component's API](#components-api).
 
 ## **Effects**
+
+What is an effect, and how is it different from an event handler function?
+
+First, let's review what a side effect is. In React, any interaction between the component and the world outsite that component is a side effect. Side effect is a code that make something useful happen, for example, fetching some data from an API. We always need side effects when we build React apps. What we know for sure is that side effects should not happen during the component's render. In other words, side effects should not be in render logic. Instead, we can create side effects in 2 different places:
+
+1. **Inside event handlers:** these are functions that are triggered when the event that they are listening to, happens.
+2. **Effects (`useEffect`):** simply reacting to events is sometimes not enough for what an app needs. Instead in some situations we need to write some code that will be executed automatically as the component renders. This is when we can create an effect to run code at different moments of a component lifecycle; mounting, re-rendering, or unmounting. This activates a whole new door of posibilities.
+
+### **Effects vs. event handlers**
+
+Let's compare these two in the case of fetching movie data in our app.
+
+Fetching movie data is clearly a side effect since it is an interaction with the outside world. There are two possibilities of when we might want to create this side effect.
+
+1. We might want to fetch movie data when a certain event happens. This is when we use an event handler function.
+2. We might want to fetch movie data immediately after the component mounts.
+
+We can say that the two pieces of code produce the exact same result, but they do so at different moments in time. The exact moment in which the effect is executed depends on its **[dependancy array](#dependancy-array)**. We can use the dependancy array to tell an effect to also run after a component re-renders.
+
+This dependancy array is only on of the three parts that an effect can have. Besides the dependancy array, we have the effect code itself, inserted into the `useEffect()` function call as the first argument. As the third part, each effect can `return` a **cleanup** function, which is called before the component re-renders or unmounts.
+
+Thinking about the different moments of a component lifecycle, can be very helpful to understand how effects work. However, we should not think about lifecycles, but about **synchronization**. The real reason that effects exist is not to run code at differnt points of the lifecycle, but to keep a component synchronized with some external system. That would mean, in our example, to keep the component in sync with the movie data that comes from an external API. What we mean by 'external system' can be, for instance, the document title, which is the webpage title in the browser.
+
+`useEffect` is truly a synchronization mechanism to synchronize effect with the state of the application. Refer to [Synchronization and lifecycle](#syncronization-and-lifecycle) for a deeper dive into this.
+
+#### Syncronization and lifecycle
+
+When a dependancy changes, the effect is executed again. But now let's remember that dependancies are alaways state or props. What happens to a component when its state or prop is updated? The component will re-render. This means that effects and the lifecycle of a component are deeply inter-connected. When the `useEffect` hook was first introduced, many thought that it was a lifecycle hook, rather than a hook for syncing a component with a side effect.
+
+The conclusion here is that we can use the dependancy array to run effects when the component renders or re-renders. The `useEffect` is about synchronization and about the component lifecycle.
+
+Let's now look at 3 different types of dependancy arrays that we can specify, and also how they effect both synchronization and lifecycle.
+
+```js
+// 1.
+useEffect(fn, [x, y, z]);
+
+// In this example, where we have multiple dependancies, it means that the effect synchronizes with `x`, `y` or `z`. In terms of the lifecycle it means that the effect runs on the initial render and also on each re-render triggered by updating one or all of the dependancies. If some other piece of state or prop is updated, then this effect will not be executed.
+```
+
+```js
+// 2.
+useEffect(fn, []);
+
+// In this example, where we have an empty dependancy array, it means that the effect syncs with no state or props. Therefore, it will only run on mount. In other words, if an effect has no dependancies, it does not use any values that are relevant for rendering a component, and therefore it is safe to be executed only once.
+```
+
+```js
+// 3.
+useEffect(fn);
+
+// In this example, where we have no dependancy array, we know that the effect will run on every render, which is a bad practice. This means that the effect syncs with everything. Every state and every prop will be dependancies in this case.
+```
+
+#### When are effects executed?
+
+Let's see when are effects executed during the render and commit process?
+
+We previously mentioned that effects are executed after render, but this is not the full story. There is a timeline of events that happen as components render and re-render.
+
+1. The whole process starts with **mounting** the component instance, which is the initial render.
+2. The result of rendering is commited to the DOM.
+3. In React there is another type of effect called the **layout effect**, which runs before the browser paints the changes on the screen. This is the only difference between layout effects and regular effects. We almost never need this. It is just good to know that this exists.
+4. Finally the DOM changes are painted on the screen by the browser.
+5. Here is another step that we will discover later. [more about this later...]
+6. Effects are only executed at this point, after the browser has painted the component instance on the screen, not immediately after render. This is why we say effects run asynchronously after the render has been painted on the screen. The reason why effect works this way, is that effects may contain long-running process, such as fetching data. So in such situations, if React would execute the effect before the browser paints a new screen, it would block this entire process, and users would see an old version of the component for too long. One important consequence of the fact the effects don't run during a render, is that if an effect sets state, then a second additional render is required to display the UI correctly. This is why you should not overuse `useEffect`.
+7. As one of the props change, the component will re-render, and the DOM changes will be commited and painted to the screen again. Now if the updated state is part of the dependancy array of the effect, the effect will be executed again at this point.
+8. This whole process can be repeated over and over again until the component is **unmounted**.
+9. Here is another step that we will discover later. [more about this later...]
+
+### **RECAP**
+
+We use effects to keep a component in sync with the external world. On the other hand, we use event handlers to react to a certain event that happens in the UI.
+
+> Event handlers are always the preferred way of creating side effects. Do not overuse the `useEffect` hook.
+
+### **Effect use cases**
+
+#### **Fetching data in React**
+
+Let's first learn the wrong way of fetching data in a React app. This way you can learn more effectively.
+
+##### **The wrong way**
+
+As we learned before, we should never update state in render logic. Let's break this rule so we can see why this rule exists.
+
+We now want to fetch some movie data as soon as the `App` component mounts for the very first time in the usePopcorn project.
+
+To fetch data we use the OMDB API, which is something like the open version of IMDB.
+
+```js
+export default function App() {
+  const [movies, setMovies] = useState([]);
+  const [watched, setWatched] = useState([]);
+
+  fetch(`http://www.omdbapi.com/?apikey=${KEY}&s=interstellar`)
+    .then((res) => res.json())
+    .then((data) => console.log(data));
+
+    return (
+      // JSX
+    )
+}
+```
+
+This is the wrong way because this data fetching is introducing side effect into the component's render logic. This is an interaction with the outside world, which should never be allowed in render logic. The fetching code, written in the top level of the function, runs as the component first runs, which is actually why it is called render logic. But what is the problem?
+
+As you run your app with this fetching approach, you can observe in the Network tab of the browser that your app is endlessly attempting to fetch data from the API. Why? Setting the state in the render logic causes the component to re-render itself again. However, as the component is re-rendered, the fetching function is executed again, leading to another state update, which in turn, will cause the component to re-render itself in an **infinite loop**.This is why it is not allowed to `setState` in render logic.
+
+> "React limits the number of renders to prevent an infinite loop."
+
+But we actually need to update the state here. So let's now learn the correct way to do this, which is the `useEffect` hook.
+
+##### **The `useEffect` hook: the correct way**
+
+The idea of the `useEffect` hook is to give us a place where we can safely introduce side effects. The side effects registered with the `useEffect` hook will only be executed after certain renders, for instance, only right after the initial render.
+
+```js
+export default function App() {
+  const [movies, setMovies] = useState([]);
+  const [watched, setWatched] = useState([]);
+
+  useEffect(function() {
+    fetch(`http://www.omdbapi.com/?apikey=${KEY}&s=interstellar`)
+    .then((res) => res.json())
+    .then((data) => setMovies(data));
+  }, []);
+
+    return (
+      // JSX
+    )
+}
+```
+
+> When you want to use the `useEffect` hook, make sure you import it from the `react` library into your script file.
+
+The `useEffect` does not return anything, so we don't store its result in any variable, but instead, we pass in a function, and this function is called the 'effect', containing the code that we want to run as a side effect.
+
+The `useEffect` hook accepts as the first argument, a function which holds the code that we want it to run as the side effect, and as the second argument, the **dependancy array**. For now we just pass in an empty array, which means that this effect will only run on the mount phase.
+
+Now if you check your Network tab of your browser, you will see that the problem with your infinite loop is now gone. This is the very bare bones way of data fetching in simple React app, at least if we want to fetch our data as soon as the app loads. In a larger, more real-world app, we may use some **external library** for data fectching.
+
+> When we say that we 'register' a side effect, we mean that we want a specific code not to run as the component renders, but after it has been painted on the screen. This is what `useEffect` does.
+
+Note that we used `then()` to handle the fetch promise. Instead, we can use `async` functions to do this, but let's see in detail how we can do this. At first, you might think that we can simply put an `async` keyword at the beginning of the effect's callback function, but this won't work, because the effect function that we place in the `useEffect` hook cannot return a promise, which is what an `async` function does.
+
+```js
+export default function App() {
+  const [movies, setMovies] = useState([]);
+  const [watched, setWatched] = useState([]);
+
+  useEffect(async function() {
+    fetch(`http://www.omdbapi.com/?apikey=${KEY}&s=interstellar`)
+    .then((res) => res.json())
+    .then((data) => setMovies(data));
+  }, []);
+
+    return (
+      // JSX
+    )
+}
+```
+
+So instead of the code above, we can do this:
+
+```js
+export default function App() {
+  const [movies, setMovies] = useState([]);
+  const [watched, setWatched] = useState([]);
+
+  useEffect(function () {
+    async function fetchMovies() {
+      const res = await fetch(
+        `http://www.omdbapi.com/?i=tt3896198&apikey=${KEY}&s=${query}`
+      );
+      const data = await res.json();
+      setMovies(data.Search);
+    }
+    fetchMovies();
+  }, []);
+```
+
+So we basically define an `async` function `fetchMovies` inside the `useEffect` hook, and called it immediately afterwards. Inside this `async` function, we can use as many `await` expressions as we need.
+
+> Whenever we are using `async` functions, especially to load data from an API, it is a good practice to indicate for the user that some data is being loaded. This way the user would know that they should wait for their expected result. To do this, we usually define another state variable for the loading status. See code example below:
+
+```js
+export default function App() {
+  const [movies, setMovies] = useState([]);
+  const [watched, setWatched] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(function () {
+    async function fetchMovies() {
+      setIsLoading(true);
+      const res = await fetch(
+        `http://www.omdbapi.com/?i=tt3896198&apikey=${KEY}&s=${query}`
+      );
+
+      const data = await res.json();
+      setMovies(data.Search);
+      setIsLoading(false);
+    }
+    fetchMovies();
+  }, []);
+
+  return (
+    <>
+      <NavBar>
+        <Logo />
+        <Search />
+        <NumResults movies={movies} />
+      </NavBar>
+
+      <Main>
+        <Box>{isLoading ? <Loader /> : <MovieList movies={movies} />}</Box>
+
+        <Box>
+          <WatchedSummary watched={watched} />
+          <WatchedMoviesList watched={watched} />
+        </Box>
+      </Main>
+    </>
+  );
+}
+```
+
+The `<Loader />` component simply returns a `<p></p>`.
+
+##### **Handling errors**
+
+Whenever we deal with `async` functions to fetch some data from a remote server, we need to take care of errors, because we should always assume that something might go wrong.
+
+**1. Situation 1: user loses internet connection**
+
+On of these situations is when the user suddenly loses their connection. This is when your app encounters an error saying 'Failed to fetch'. So if this happens, we want to show something to user, and not keep the app in the loading status.
+
+Handling error main strategies are no different than what you have learned in JavaScript. So what we need to do is to look for the `ok` property of the response object (`res`) and based on it, `throw` a `new Error()` if the response is not ok. This thrown error can be caught in the `catch` block if we wrap all the functionality inside your `async` function into a `try` block. Then the `catch` block would simply only deal with the error.
+
+Now in order to display this error in the UI for the user, we need yet another piece of state. This state would determine what JSX will be rendered on the screen.
+
+```js
+export default function App() {
+  const [movies, setMovies] = useState([]);
+  const [watched, setWatched] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(function () {
+    async function fetchMovies() {
+      try {
+        setIsLoading(true);
+        const res = await fetch(
+          `http://www.omdbapi.com/?i=tt3896198&apikey=${KEY}&s=${query}`
+        );
+
+        if (!res.ok)
+          throw new Error("Something went wrong with fetching movies");
+
+        const data = await res.json();
+        setMovies(data.Search);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchMovies();
+  }, []);
+
+  return (
+    <>
+      <NavBar>
+        <Logo />
+        <Search />
+        <NumResults movies={movies} />
+      </NavBar>
+
+      <Main>
+        <Box>
+          {isLoading && <Loader />}
+          {!isLoading && !error && <MovieList movies={movies} />}
+          {error && <ErrorMessage message={error} />}
+        </Box>
+
+        <Box>
+          <WatchedSummary watched={watched} />
+          <WatchedMoviesList watched={watched} />
+        </Box>
+      </Main>
+    </>
+  );
+}
+```
+
+Note how we used a `finally` block in order to set the loading state to `false` eventually, because whether the data is fetched with no problem or there was an error in the fetching process, we need to remove the 'Loading...' text from the UI.
+
+**2. Situation 2: there is no result for the search query**
+
+Let's say that the user searches for an invalid movie name like 'lauksflabj'. We should also be able to display an appropriate error for this situation. This is when the response object no longer contains the `Search` property, it is basically `undefined', and we get a `Response` property set to the straing 'False'. Remember that this is specific to the OMDB API that you are using for this app.
+
+```js
+export default function App() {
+  const [movies, setMovies] = useState([]);
+  const [watched, setWatched] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(function () {
+    async function fetchMovies() {
+      try {
+        setIsLoading(true);
+        const res = await fetch(
+          `http://www.omdbapi.com/?i=tt3896198&apikey=${KEY}&s=${query}`
+        );
+
+        if (!res.ok)
+          throw new Error("Something went wrong with fetching movies");
+
+        const data = await res.json();
+
+        if (res.Response === "False") throw new Error("Movie not found");
+
+        setMovies(data.Search);
+        setIsLoading(false);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchMovies();
+  }, []);
+
+  return (
+    <>
+      <NavBar>
+        <Logo />
+        <Search />
+        <NumResults movies={movies} />
+      </NavBar>
+
+      <Main>
+        <Box>
+          {isLoading && <Loader />}
+          {!isLoading && !error && <MovieList movies={movies} />}
+          {error && <ErrorMessage message={error} />}
+        </Box>
+
+        <Box>
+          <WatchedSummary watched={watched} />
+          <WatchedMoviesList watched={watched} />
+        </Box>
+      </Main>
+    </>
+  );
+}
+```
+
+### **Dependancy array**
+
+By default, an effect will run after each and every render. However, that is almost never what we want. We can change this default behavior by passing a dependancy array into the `useEffect()` hook as the second argument.
+
+Why the `useEffect` hook need the dependancy array? Without this array, React does not know when to run the effect, but if we specify the effect dependancies by passing in the dependancy array, the effect will be executed each time that a dependancy changes.
+
+We can think of the `useEffect` hook as an event listener that listens for one or more dependancies to change. When one or more dependecies change, `useEffect` will execute the effect again. This is similar to a regular even listener, but for effects.
+
+What exactly are the dependencies? These are state variables and props used inside the effect. The rule is that **each and every one of state variables and props must be included in the dependency array**. Take a look at the code example below:
+
+```js
+const title = props.movie.Title;
+const [userRating, setUserRating] = useState("");
+
+useEffect(
+  function () {
+    if (!title) return;
+    document.title = `${title} ${userRating && `(Rated ${userRating})`}`;
+  },
+  [title, userRating]
+);
+```
+
+So the effect function depends on the `title` and `userRating` variables to do its job. If we don't pass these variables into the dependancy array, React will not know about them, and it won't be able to re-execute the effect code, and this would lead to a bug called **stale closure**.
+
+Whenever the `title` or `userRating` changes, the effect is executed again. This will, in turn, update the `document.title`. Essentially, effects react to updates to state and props that are used inside the effect. Effects are reactive, just like React reacts to state updates by re-rendering the UI. This is extremely useful as you will see.
+
+Let's now look at a real-world example of using the `useEffect` hook, which actually utilize the ability of effects to synchornize with state.
+
+In this example project called ''usePopcorn', we want to implement a feature so that as the user types something in the search bar, the app starts fetching data from a remote server, without the user having to click on a button or hitting on the enter key on the keyboard. This is when we can introduce an effect and set the query that the user types in the search bar as the effect's dependancy.
+
+```js
+export default function App() {
+  const [query, setQuery] = useState("");
+  const [movies, setMovies] = useState([]);
+  const [watched, setWatched] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(
+    function () {
+      async function fetchMovies() {
+        try {
+          setIsLoading(true);
+          setError("");
+          const res = await fetch(
+            `http://www.omdbapi.com/?i=tt3896198&apikey=${KEY}&s=${query}`
+          );
+
+          if (!res.ok)
+            throw new Error("Something went wrong with fetching movies");
+
+          const data = await res.json();
+
+          if (res.Response === "False") throw new Error("Movie not found");
+
+          setMovies(data.Search);
+          setIsLoading(false);
+        } catch (err) {
+          setError(err.message);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+
+      if (query.length < 3) {
+        setMovies([]);
+        setError("");
+        return;
+      }
+
+      fetchMovies();
+    },
+    [query]
+  );
+
+  return (
+    <>
+      <NavBar>
+        <Logo />
+        <Search query={query} setQuery={setQuery} />
+        <NumResults movies={movies} />
+      </NavBar>
+
+      <Main>
+        <Box>
+          {isLoading && <Loader />}
+          {!isLoading && !error && <MovieList movies={movies} />}
+          {error && <ErrorMessage message={error} />}
+        </Box>
+
+        <Box>
+          <WatchedSummary watched={watched} />
+          <WatchedMoviesList watched={watched} />
+        </Box>
+      </Main>
+    </>
+  );
+}
+```
+
+> Note that we have lifted up the `query` state from the `<SearchBar />` component to this parent `<App />` component.
 
 ## **React Fragments**
 
@@ -2347,69 +2815,3 @@ This is when a component instance dies, meaning that it is completely destroyed 
 > Remember that after one instance of a component is unmounted, a new instance of the same component can be mounted later, but the previous instance is completely gone.
 
 > It is important to know about the lifecycle of a componenta instance, because you can hook into different phases of this lifecycle. You can basically define code to be executed at these specific points in time, which can be extremely useful. We do this using the `useEffect()` hook.
-
-# **Fetching data in React**
-
-Let's first learn the wrong way of fetching data in a React app. This way you can learn more effectively.
-
-## **The wrong way**
-
-As we learned before, we should never update state in render logic. Let's break this rule so we can see why this rule exists.
-
-We now want to fetch some movie data as soon as the `App` component mounts for the very first time in the usePopcorn project.
-
-To fetch data we use the OMDB API, which is something like the open version of IMDB.
-
-```js
-export default function App() {
-  const [movies, setMovies] = useState([]);
-  const [watched, setWatched] = useState([]);
-
-  fetch(`http://www.omdbapi.com/?apikey=${KEY}&s=interstellar`)
-    .then((res) => res.json())
-    .then((data) => console.log(data));
-
-    return (
-      // JSX
-    )
-}
-```
-
-This is the wrong way because this data fetching is introducing side effect into the component's render logic. This is an interaction with the outside world, which should never be allowed in render logic. The fetching code, written in the top level of the function, runs as the component first runs, which is actually why it is called render logic. But what is the problem?
-
-As you run your app with this fetching approach, you can observe in the Network tab of the browser that your app is endlessly attempting to fetch data from the API. Why? Setting the state in the render logic causes the component to re-render itself again. However, as the component is re-rendered, the fetching function is executed again, leading to another state update, which in turn, will cause the component to re-render itself in an **infinite loop**.This is why it is not allowed to `setState` in render logic.
-
-> "React limits the number of renders to prevent an infinite loop."
-
-But we actually need to update the state here. So let's now learn the correct way to do this, which is the `useEffect` hook.
-
-## **The `useEffect` hook: the correct way**
-
-The idea of the `useEffect` hook is to give us a place where we can safely introduce side effects. The side effects registered with the `useEffect` hook will only be executed after certain renders, for instance, only right after the initial render. [more about what this hook actually is later on ...]
-
-```js
-export default function App() {
-  const [movies, setMovies] = useState([]);
-  const [watched, setWatched] = useState([]);
-
-  useEffect(function() {
-    fetch(`http://www.omdbapi.com/?apikey=${KEY}&s=interstellar`)
-    .then((res) => res.json())
-    .then((data) => setMovies(data));
-  }, []);
-
-    return (
-      // JSX
-    )
-}
-```
-
-> When you want to use the `useEffect` hook, make sure you import it from the `react` library into your script file.
-
-The `useEffect` does not return anything, so we don't store its result in any variable, but instead, we pass in a function, and this function is called the 'effect', containing the code that we want to run as a side effect.
-
-The `useEffect` hook accepts as the first argument, a function which holds the code that we want it to run as the side effect, and as the second argument, the dependancy arra. [more about this later...] For now we just pass in an empty array, which means that this effect will only run on the mount phase.
-
-Now if you check your Network tab of your browser, you will see that the problem with your infinite loop is now gone. This is the very bare bones way of data fetching in simple React app, at least if we want to fetch our data as soon as the app loads. In a larger, more real-world app, we may use some **external library** for data fectching.
-
-> When we say that we 'register' a side effect, we mean that we want a specific code not to run as the component renders, but after it has been painted on the screen. This is what `useEffect` does.
