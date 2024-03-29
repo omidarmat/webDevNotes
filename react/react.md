@@ -894,10 +894,10 @@ This is directly related to the issue of thinking about components' reusability 
 
 What is an effect, and how is it different from an event handler function?
 
-First, let's review what a side effect is. In React, any interaction between the component and the world outsite that component is a side effect. Side effect is a code that make something useful happen, for example, fetching some data from an API. We always need side effects when we build React apps. What we know for sure is that side effects should not happen during the component's render. In other words, side effects should not be in render logic. Instead, we can create side effects in 2 different places:
+First, let's review what a side effect is. In React, any interaction between the component and the world outsite that component is a side effect. Side effect is a code that make something useful happen, for example, fetching some data from an API. We always need side effects when we build React apps. What we know for sure is that **side effects should not happen during the component's render**. In other words, side effects should not be in render logic. Instead, we can create side effects in 2 different places:
 
 1. **Inside event handlers:** these are functions that are triggered when the event that they are listening to, happens.
-2. **Effects (`useEffect`):** simply reacting to events is sometimes not enough for what an app needs. Instead in some situations we need to write some code that will be executed automatically as the component renders. This is when we can create an effect to run code at different moments of a component lifecycle; mounting, re-rendering, or unmounting. This activates a whole new door of posibilities.
+2. **Effects (`useEffect`):** simply reacting to events is sometimes not enough for what an app needs. Instead, in some situations, we need to write some **code that will be executed automatically as the component renders or re-renders**. This is when we can create an effect to run code at different moments of a component lifecycle; mounting, re-rendering, or unmounting. This activates a whole new door of posibilities.
 
 ### **Effects vs. event handlers**
 
@@ -906,19 +906,39 @@ Let's compare these two in the case of fetching movie data in our app.
 Fetching movie data is clearly a side effect since it is an interaction with the outside world. There are two possibilities of when we might want to create this side effect.
 
 1. We might want to fetch movie data when a certain event happens. This is when we use an event handler function.
-2. We might want to fetch movie data immediately after the component mounts.
+
+```js
+function handleClick() {
+  fetch(`http://www.omdbapi.com/?s=inception`)
+    .then((res) => res.json())
+    .then((data) => setMovies(data.Search));
+}
+```
+
+2. We might want to fetch movie data immediately after the component mounts, and also after subsequent re-renders (according to dependancy array)
+
+```js
+useEffect(function() {
+  function handleClick() {
+  fetch(`http://www.omdbapi.com/?s=inception`)
+    .then((res) => res.json())
+    .then((data) => setMovies(data.Search));
+
+    return () => console.log('cleanup');
+}, [])
+```
 
 We can say that the two pieces of code produce the exact same result, but they do so at different moments in time. The exact moment in which the effect is executed depends on its **[dependancy array](#dependancy-array)**. We can use the dependancy array to tell an effect to also run after a component re-renders.
 
-This dependancy array is only on of the three parts that an effect can have. Besides the dependancy array, we have the effect code itself, inserted into the `useEffect()` function call as the first argument. As the third part, each effect can `return` a **cleanup** function, which is called before the component re-renders or unmounts.
+This dependancy array is only one of the three parts that an effect can have. Besides the dependancy array, we have the effect code itself, inserted into the `useEffect()` function call as the first argument. As the third part, each effect can `return` a **cleanup** function, which is called before the component re-renders or unmounts.
 
-Thinking about the different moments of a component lifecycle, can be very helpful to understand how effects work. However, we should not think about lifecycles, but about **synchronization**. The real reason that effects exist is not to run code at differnt points of the lifecycle, but to keep a component synchronized with some external system. That would mean, in our example, to keep the component in sync with the movie data that comes from an external API. What we mean by 'external system' can be, for instance, the document title, which is the webpage title in the browser.
+Thinking about the different moments of a component lifecycle can be very helpful to understand how effects work. However, we should not think about lifecycles, but about **synchronization**. The real reason that effects exist is not to run code at differnt points of the lifecycle, but to keep a component synchronized with some **external system**. That would mean, in our example, to keep the component in sync with the movie data that comes from an external API.
 
 `useEffect` is truly a synchronization mechanism to synchronize effect with the state of the application. Refer to [Synchronization and lifecycle](#syncronization-and-lifecycle) for a deeper dive into this.
 
 #### Syncronization and lifecycle
 
-When a dependancy changes, the effect is executed again. But now let's remember that dependancies are alaways state or props. What happens to a component when its state or prop is updated? The component will re-render. This means that effects and the lifecycle of a component are deeply inter-connected. When the `useEffect` hook was first introduced, many thought that it was a lifecycle hook, rather than a hook for syncing a component with a side effect.
+When a dependancy changes, the effect is executed again. But now let's remember that dependancies are alaways states or props. What happens to a component when its state or prop is updated? The component will re-render. This means that effects and the lifecycle of a component are deeply inter-connected. When the `useEffect` hook was first introduced, many thought that it was a lifecycle hook, rather than a hook for syncing a component with a side effect.
 
 The conclusion here is that we can use the dependancy array to run effects when the component renders or re-renders. The `useEffect` is about synchronization and about the component lifecycle.
 
