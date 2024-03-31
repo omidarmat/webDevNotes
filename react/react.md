@@ -983,9 +983,34 @@ We previously mentioned that effects are executed after render, but this is not 
 
 ### **RECAP**
 
-We use effects to keep a component in sync with the external world. On the other hand, we use event handlers to react to a certain event that happens in the UI.
+We need side effects in all our React apps. It is a good thing, but it is not allowed everywhere. Side effects are not allowed in the render logic at all. We can, however, introduce side effects in two places:
+
+1. Event handlers - this is usually the preferred way of introducing side effects, but it is not enough, because sometimes we need more than just reacting to a certain event, like a click.
+2. `useEffect` hooks - in some situations we need some code to be automatically executed as the component mounts, and/or re-renders, or unmounts. We use the dependency array to tell the effect when to execute. The ability to hook into all of these phases opens a whole new door of possibilities. An effect has 3 parts: the effect code, the dependency array, a cleanup function which is called before a component re-renders or unmounts.
+
+> Thinking about the lifecycle of a component instance is useful for understanding how effects work, but it doesn't explain why effects actually exist. Effects are meant to be used as a way to keep components synchronized with an external system. Effects and component lifecycle are in fact deeply connected, but this is just the nature of effects. When states or props of a component changes, the component is re-rendered. Now if an effect actually depends on the same states or props, this effect will be executed again as they change.
+
+So we use effects to keep a component in sync with the external world. On the other hand, we use event handlers to react to a certain event that happens in the UI.
 
 > Event handlers are always the preferred way of creating side effects. Do not overuse the `useEffect` hook.
+
+The dependency array is a requirement for the effect, because without that, React doesn't know when to run the effect. By setting the dependecies in the dependency array, we are actually telling React that each time one of those dependencies changes, the effect will be executed again.
+
+But how should we determine the dependency array? Basically, every state variable and prop used inside the effect must be included in the dependency array. Otherwise, React will not know about the changes happened to states and props used in the effect, and this would lead to a bug called stale closure.
+
+Now that we know about the dependency array, we can think of `useEffect` hook as an event listener that listens for one dependency to change. Once it changes, the effect will be executed again.
+
+> There are 3 different ways of defining the dependency array:
+>
+> 1. `useEffect(fn, [x, y, z])`: This means that the effect synchronizes with x, y, and z. From the lifecycle viewpoint, the effect will run on mount and re-renders triggered by updating x, y, or z.
+> 2. `useEffect(fn, [])`: This means that the effect synchronizes with no states or props. From the lifecycle viewpoint, the effect will run only on mount. Since the effect does not depend on any state or props, it is actually safe to be executed once on mount.
+> 3. `useEffect(fn)`: This means that the effect synchronizes with everything. This is usually a bad thing to be implemented in a React app.
+
+Let's now review when effects are actually executed regarding the lifecycle of a component. A component is first mounted, which is its initial render. After this, the result of rendering is commited to the DOM. Finally, the DOM changes are painted to the screen by the browser. Effect are executed after the browser paint. This is why effects run asynchronously, as effects may contain long-running processes like fetching data. In such situations, if React executed the effect before the browser paint, it would block the entire process and users would have to see the old version of the component for too long.
+
+> An important consequence of effects not running during render is that if an effect sets state, then an additional render is needed to display the UI correctly.
+
+As one of the states of the component changes, it will go through the process of re-render, then commit, and then another browser paint. Then the effect will run again. This process can repeat again and again until the component is unmounted.
 
 ### **Effect use cases**
 
