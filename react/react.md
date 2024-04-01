@@ -92,6 +92,8 @@
       - [**Phase 1: mounting - initial render**](#phase-1-mounting---initial-render)
       - [**Phase 2: re-rendering**](#phase-2-re-rendering)
       - [**Phase 3: unmounting**](#phase-3-unmounting)
+  - [**Hooks**](#hooks)
+    - [**Rules of hooks**](#rules-of-hooks)
 
 # **A first look at react**
 
@@ -3004,3 +3006,75 @@ This is when a component instance dies, meaning that it is completely destroyed 
 > Remember that after one instance of a component is unmounted, a new instance of the same component can be mounted later, but the previous instance is completely gone.
 
 > It is important to know about the lifecycle of a componenta instance, because you can hook into different phases of this lifecycle. You can basically define code to be executed at these specific points in time, which can be extremely useful. We do this using the `useEffect()` hook
+
+## **Hooks**
+
+React hooks are special built-in functions that allow us to hook into some of React internal mechanisms. In other words, hooks are APIs that expose some internal React functionality such as creating and accessing state from the fiber tree, or registering side effects in the fiber tree.
+
+The fiber tree is somewhere deep inside React, and usually not accessible to us at all. But using the `useState` or `useEffect` hook, we can hook into that internal mechanism. Hooks also allow us to manually select and store DOM nodes, and many more things.
+
+All React hooks start with the word `use`. We can even create our own custom hooks which should also start with the `use` keyword. Custom hooks are very useful since they enable easy reusing of non-visual logic. We can compose multiple hooks into our own custom hook.
+
+Hooks has enabled React function components the ability to own state and run side effects at different lifecycle points.
+
+Up until now we know about `useState` and `useEffect` hooks, but React has almost twenty built-hooks. Some of them are used very often:
+
+1. `useState`
+2. `useEffect`
+3. `useReducer`
+4. `useContext`
+
+Some others are less used:
+
+1. `useRef`
+2. `useCallback`
+3. `useMemo`
+4. `useTransition`
+5. `useDeferredValue`
+6. `useLayoutEffect`
+7. `useDebugValue`
+8. `useImperativeHandle`
+9. `useId`
+
+Some others also exist, but only for library authors:
+
+1. `useSyncExternalStore`
+2. `useInsertionEffect`
+
+### **Rules of hooks**
+
+In order for hooks to work as intended there are 2 simple rules that we must follow:
+
+- Hooks can only be called at the **top level**. We cannot call hooks inside conditionals, loops, functions nested inside the component, or after an early return because that is also similar to a condition. Why this rule exists? Hooks only work if they are always called in the same exact order, which can only be ensured if they are called at the top level. But why do hooks need to be called in the same order on every render? Let's dive deeper into the reasons behind this rule.
+
+Remember that when an app is rendered, React creates a tree of React elements (Virtual DOM). On the initial render, React also builds a Fiber tree out of the virtual DOM where each element is a fiber. Each fiber contains a lot of stuff, like the received props, list of work, and more importantly, a linked list of all the hooks that were used in the component instance. Let's build ourselves a linked list of used hooks based on the hypothetical code example below to understand how hooks work behind the scenes. It is hypothetical because it won't actually work. It even violates the rule that we just mentioned. By breaking this rule we are trying to understand why hooks rely on the order in which they are called.
+
+```js
+const [A, setA] = useState(23);
+
+if(A===23) const [B, setB] = useState('');
+
+useEffect(fnZ, []);
+```
+
+Speaking of the order, our linked list will be built based on the call order of the used hooks:
+
+1. State A
+2. State B
+3. Effect Z
+
+So this is the list of our hooks, but how are they linked? It means that the first list element contains a reference to the second list element, which in turn, has a link to the third list element. Linked list is a common data structure in computer science.
+
+Moving back to our code example, let's imagine that a re-render happened because state A updated from 23 to 7. This creates a huge problem. Notice how state B was only created initially because the condition `A === 23` was true. However, after the re-render the condition is false, which means that the `useState` hook for state B would not be called, and therefore, it would no longer exist in the linked list of hooks after the re-render. Now the problem is that the first hook is still pointing to the original second hook. But that link is now broken. So state A is now linked to a hook that no longer exists, and nothing is pointing to the effect hook Z, meaning that the linked list is now destroyed. It works this way because fibers are not recreated on every render. So the linked list is also not recreated. So if one of the hooks just disappears from the list, then the order of the list is completely broken. So if we conditionally use a hook, it would completely mess up the linked list of hooks between renders, which will leave React confused and unable to correctly track all the hooks that are used. So this is why hooks need to be called in the same order on every render. Following this rule, the code example above should be corrected to:
+
+```js
+const [A, setA] = useState(23);
+const [B, setB] = useState("");
+useEffect(fnZ, []);
+```
+
+> Why even bother having the linked list? A linked list which relies on the hook call order is the simplest way to associate each hook with its value. The order in which the hook is called, uniquely identifies the hook. This is very convenient, because by using the call order, we developers don't have to manually assign names to each hook.
+
+- Hooks can only be called from **React functions**. This means that hooks can only be called from **function components** or from **custom hooks**, but not from regular functions or class components.
+
+> You don't have to worry about these rules if you are using a linter. These rules are automatically enforced by React's ESLint rules.
