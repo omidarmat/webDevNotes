@@ -32,13 +32,17 @@
     - [**Effects vs. event handlers**](#effects-vs-event-handlers)
       - [Syncronization and lifecycle](#syncronization-and-lifecycle)
       - [When are effects executed?](#when-are-effects-executed)
-    - [**RECAP**](#recap)
+    - [**Dependancy array**](#dependancy-array)
+    - [**Cleanup functions**](#cleanup-functions)
+      - [**When to use a cleanup function?**](#when-to-use-a-cleanup-function)
     - [**Effect use cases**](#effect-use-cases)
       - [**Fetching data in React**](#fetching-data-in-react)
         - [**The wrong way**](#the-wrong-way)
         - [**The `useEffect` hook: the correct way**](#the-useeffect-hook-the-correct-way)
         - [**Handling errors**](#handling-errors)
-    - [**Dependancy array**](#dependancy-array)
+        - [**Preventing race conditions**](#preventing-race-conditions)
+      - [**Listening for keypress event on the document object**](#listening-for-keypress-event-on-the-document-object)
+    - [**RECAP**](#recap)
   - [**React Fragments**](#react-fragments)
   - [**Styling React applications**](#styling-react-applications)
     - [**Inline styling**](#inline-styling)
@@ -973,44 +977,146 @@ We previously mentioned that effects are executed after render, but this is not 
 
 1. The whole process starts with **mounting** the component instance, which is the initial render.
 2. The result of rendering is commited to the DOM.
-3. In React there is another type of effect called the **layout effect**, which runs before the browser paints the changes on the screen. This is the only difference between layout effects and regular effects. We almost never need this. It is just good to know that this exists.
-4. Finally the DOM changes are painted on the screen by the browser.
-5. Here is another step that we will discover later. [more about this later...]
-6. Effects are only executed at this point, after the browser has painted the component instance on the screen, not immediately after render. This is why we say effects run asynchronously after the render has been painted on the screen. The reason why effect works this way, is that effects may contain long-running process, such as fetching data. So in such situations, if React would execute the effect before the browser paints a new screen, it would block this entire process, and users would see an old version of the component for too long. One important consequence of the fact the effects don't run during a render, is that if an effect sets state, then a second additional render is required to display the UI correctly. This is why you should not overuse `useEffect`.
-7. As one of the props change, the component will re-render, and the DOM changes will be commited and painted to the screen again. Now if the updated state is part of the dependancy array of the effect, the effect will be executed again at this point.
-8. This whole process can be repeated over and over again until the component is **unmounted**.
-9. Here is another step that we will discover later. [more about this later...]
+3. Finally the DOM changes are painted on the screen by the browser.
+4. Effects are only executed at this point, after the browser has painted the component instance on the screen, not immediately after render. This is why we say effects run asynchronously after the render has been painted on the screen. The reason why effect works this way, is that effects may contain long-running process, such as fetching data. So in such situations, if React would execute the effect before the browser paints a new screen, it would block this entire process, and users would see an old version of the component for too long. One important consequence of the fact the effects don't run during a render, is that if an effect sets state, then a second additional render is required to display the UI correctly. This is why you should not overuse `useEffect`.
+5. As one of the props change, the component will re-render.
+6. DOM changes will be commited.
+7. In React there is another type of effect called the **layout effect**, which runs before the browser paints the changes on the screen. This is the only difference between layout effects and regular effects. We almost never need this. It is just good to know that this exists.
+8. DOM changes will be painted to the screen again.
+9. This is a point in a component's lifecycle where the effect's cleanup function is executed.
+10. Now if the updated state is part of the dependancy array of the effect, the effect will be executed again at this point.
+11. This whole process can be repeated over and over again until the component is **unmounted**.
+12. This is another point in a component's lifecycle where the effect's cleanup function is executed.
 
-### **RECAP**
+### **Dependancy array**
 
-We need side effects in all our React apps. It is a good thing, but it is not allowed everywhere. Side effects are not allowed in the render logic at all. We can, however, introduce side effects in two places:
+By default, an effect will run after each and every render. However, that is almost never what we want. We can change this default behavior by passing a dependancy array into the `useEffect()` hook as the second argument.
 
-1. Event handlers - this is usually the preferred way of introducing side effects, but it is not enough, because sometimes we need more than just reacting to a certain event, like a click.
-2. `useEffect` hooks - in some situations we need some code to be automatically executed as the component mounts, and/or re-renders, or unmounts. We use the dependency array to tell the effect when to execute. The ability to hook into all of these phases opens a whole new door of possibilities. An effect has 3 parts: the effect code, the dependency array, a cleanup function which is called before a component re-renders or unmounts.
+Why the `useEffect` hook need the dependancy array? Without this array, React does not know when to run the effect, but if we specify the effect dependancies by passing in the dependancy array, the effect will be executed each time that a dependancy changes.
 
-> Thinking about the lifecycle of a component instance is useful for understanding how effects work, but it doesn't explain why effects actually exist. Effects are meant to be used as a way to keep components synchronized with an external system. Effects and component lifecycle are in fact deeply connected, but this is just the nature of effects. When states or props of a component changes, the component is re-rendered. Now if an effect actually depends on the same states or props, this effect will be executed again as they change.
+We can think of the `useEffect` hook as an event listener that listens for one or more dependancies to change. When one or more dependecies change, `useEffect` will execute the effect again. This is similar to a regular even listener, but for effects.
 
-So we use effects to keep a component in sync with the external world. On the other hand, we use event handlers to react to a certain event that happens in the UI.
+What exactly are the dependencies? These are state variables and props used inside the effect. The rule is that **each and every one of state variables and props must be included in the dependency array**. Take a look at the code example below:
 
-> Event handlers are always the preferred way of creating side effects. Do not overuse the `useEffect` hook.
+```js
+const title = props.movie.Title;
+const [userRating, setUserRating] = useState("");
 
-The dependency array is a requirement for the effect, because without that, React doesn't know when to run the effect. By setting the dependecies in the dependency array, we are actually telling React that each time one of those dependencies changes, the effect will be executed again.
+useEffect(
+  function () {
+    if (!title) return;
+    document.title = `${title} ${userRating && `(Rated ${userRating})`}`;
+  },
+  [title, userRating]
+);
+```
 
-But how should we determine the dependency array? Basically, every state variable and prop used inside the effect must be included in the dependency array. Otherwise, React will not know about the changes happened to states and props used in the effect, and this would lead to a bug called stale closure.
+So the effect function depends on the `title` and `userRating` variables to do its job. If we don't pass these variables into the dependancy array, React will not know about them, and it won't be able to re-execute the effect code, and this would lead to a bug called **stale closure**.
 
-Now that we know about the dependency array, we can think of `useEffect` hook as an event listener that listens for one dependency to change. Once it changes, the effect will be executed again.
+Whenever the `title` or `userRating` changes, the effect is executed again. This will, in turn, update the `document.title`. Essentially, effects react to updates to state and props that are used inside the effect. Effects are reactive, just like React reacts to state updates by re-rendering the UI. This is extremely useful as you will see.
 
-> There are 3 different ways of defining the dependency array:
->
-> 1. `useEffect(fn, [x, y, z])`: This means that the effect synchronizes with x, y, and z. From the lifecycle viewpoint, the effect will run on mount and re-renders triggered by updating x, y, or z.
-> 2. `useEffect(fn, [])`: This means that the effect synchronizes with no states or props. From the lifecycle viewpoint, the effect will run only on mount. Since the effect does not depend on any state or props, it is actually safe to be executed once on mount.
-> 3. `useEffect(fn)`: This means that the effect synchronizes with everything. This is usually a bad thing to be implemented in a React app.
+Let's now look at a real-world example of using the `useEffect` hook, which actually utilize the ability of effects to synchornize with state.
 
-Let's now review when effects are actually executed regarding the lifecycle of a component. A component is first mounted, which is its initial render. After this, the result of rendering is commited to the DOM. Finally, the DOM changes are painted to the screen by the browser. Effect are executed after the browser paint. This is why effects run asynchronously, as effects may contain long-running processes like fetching data. In such situations, if React executed the effect before the browser paint, it would block the entire process and users would have to see the old version of the component for too long.
+In this example project called ''usePopcorn', we want to implement a feature so that as the user types something in the search bar, the app starts fetching data from a remote server, without the user having to click on a button or hitting on the enter key on the keyboard. This is when we can introduce an effect and set the query that the user types in the search bar as the effect's dependancy.
 
-> An important consequence of effects not running during render is that if an effect sets state, then an additional render is needed to display the UI correctly.
+```js
+export default function App() {
+  const [query, setQuery] = useState("");
+  const [movies, setMovies] = useState([]);
+  const [watched, setWatched] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
-As one of the states of the component changes, it will go through the process of re-render, then commit, and then another browser paint. Then the effect will run again. This process can repeat again and again until the component is unmounted.
+  useEffect(
+    function () {
+      async function fetchMovies() {
+        try {
+          setIsLoading(true);
+          setError("");
+          const res = await fetch(
+            `http://www.omdbapi.com/?i=tt3896198&apikey=${KEY}&s=${query}`
+          );
+
+          if (!res.ok)
+            throw new Error("Something went wrong with fetching movies");
+
+          const data = await res.json();
+
+          if (res.Response === "False") throw new Error("Movie not found");
+
+          setMovies(data.Search);
+          setIsLoading(false);
+        } catch (err) {
+          setError(err.message);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+
+      if (query.length < 3) {
+        setMovies([]);
+        setError("");
+        return;
+      }
+
+      fetchMovies();
+    },
+    [query]
+  );
+
+  return (
+    <>
+      <NavBar>
+        <Logo />
+        <Search query={query} setQuery={setQuery} />
+        <NumResults movies={movies} />
+      </NavBar>
+
+      <Main>
+        <Box>
+          {isLoading && <Loader />}
+          {!isLoading && !error && <MovieList movies={movies} />}
+          {error && <ErrorMessage message={error} />}
+        </Box>
+
+        <Box>
+          <WatchedSummary watched={watched} />
+          <WatchedMoviesList watched={watched} />
+        </Box>
+      </Main>
+    </>
+  );
+}
+```
+
+> Note that we have lifted up the `query` state from the `<SearchBar />` component to this parent `<App />` component.
+
+> Sometimes we pass state setter functions as props into a component where we are introducing an effect, and the effect that we have introduced is actually using that state setter function to perform some action. In these situations, you should include the function in the dependency array. [more about this later...]
+
+### **Cleanup functions**
+
+Take the example of the usePopcorn project, where we wanted the title of the page to change whenever we select a movie to display its details. We actually want the title go back to it's primary value if the movie details column is closed and no movie is selected. This is one situation where we need the cleanup function of the effect that is responsible for changing the page title.
+
+What we are basically trying to do here is to make sure that the page title stayes in sync with the application even after the component is unmounted. So we need a way of executing some code as a component unmounts. This is done by `return`ing a cleanup function from the effect. This would simply be a function that sets the title back to its primary value.
+
+It is optional to return a cleanup function from an effect. We can simply omit it. This cleanup function runs on 2 occasions:
+
+1. Before the effect is executed again in order to cleanup the results of the previous side effect.
+2. After a component has unmounted in order to enable us to reset the side effect that we created if it is necessary.
+
+#### **When to use a cleanup function?**
+
+Using a cleanup function in an effect is necessary whenever the side effect keeps happening after the component has been re-rendered or unmounted.
+
+For example, you might be doing an HTTP request in your effect. If the component is re-rendered while the first request is still running, a new request will be fired off. This might create a bug called **race condition**. Therefore, it is a good idea to cancel the request in a cleanup function when the component re-renders or unmounts.
+
+Other examples include:
+
+- Subscribing to an API service: you should cancel subscription in a cleanup function.
+- Starting a timer: you should stop the timer in a cleanup function.
+- Adding an event listener: you should cleanup by removing it.
+
+> In order to make effects easier to cleanup, you should always follow one rule. That is, each effect should do only one thing. So use the `useEffect` hook for each side effect seperately.
 
 ### **Effect use cases**
 
@@ -1295,108 +1401,146 @@ export default function App() {
 }
 ```
 
-### **Dependancy array**
+##### **Preventing race conditions**
 
-By default, an effect will run after each and every render. However, that is almost never what we want. We can change this default behavior by passing a dependancy array into the `useEffect()` hook as the second argument.
+Currently, with each key stroke on the keyboard, the effect the we have introduced is executed again, starting `fetch` requests one after another. This creates a race condition where the results displayed on the UI will be the result of any request that takes longer to be responded with actual data from the API. However, that is not what we want. We only want the result of the last request to be displayed on the UI. So what we need to do now is to **cleanup** the previous `fetch` request each time the the effect is going to be executed again.
 
-Why the `useEffect` hook need the dependancy array? Without this array, React does not know when to run the effect, but if we specify the effect dependancies by passing in the dependancy array, the effect will be executed each time that a dependancy changes.
-
-We can think of the `useEffect` hook as an event listener that listens for one or more dependancies to change. When one or more dependecies change, `useEffect` will execute the effect again. This is similar to a regular even listener, but for effects.
-
-What exactly are the dependencies? These are state variables and props used inside the effect. The rule is that **each and every one of state variables and props must be included in the dependency array**. Take a look at the code example below:
+In this specific example, we are going to use the `AbortController` API that belongs to the browser. We are going to use it in the cleanup function of the effect.
 
 ```js
-const title = props.movie.Title;
-const [userRating, setUserRating] = useState("");
-
 useEffect(
   function () {
-    if (!title) return;
-    document.title = `${title} ${userRating && `(Rated ${userRating})`}`;
+    const controller = new AbortController();
+
+    async function fetchMovie() {
+      try {
+        setIsLoading(true);
+        setError("");
+        const res = await fetch(
+          `http://www.omdbapi.com/?apikey=${KEY}&s=${query}`,
+          { signal: controller.signal }
+        );
+
+        if (!res.ok)
+          throw new Error("Something went wrong with fetching movies.");
+
+        const data = await res.json();
+
+        if (data.Response === "False") throw new Error("Movie not found");
+
+        setMovies(data.Search);
+        setError("");
+      } catch (err) {
+        if (err.name !== "AbortError") {
+          setError(err.message);
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    if (query.length < 3) {
+      setMovies([]);
+      setError("");
+      return;
+    }
+    fetchMovie();
+
+    return function () {
+      controller.abort();
+    };
   },
-  [title, userRating]
+  [query]
 );
 ```
 
-So the effect function depends on the `title` and `userRating` variables to do its job. If we don't pass these variables into the dependancy array, React will not know about them, and it won't be able to re-execute the effect code, and this would lead to a bug called **stale closure**.
+As you can see in the code above, in order to use the browser's `AbortController` API, we should first create a new instance from the `AbortController` constructor function. This new instance has a property called `signal` which we use to plug the `AbortController` API into the `fetch` function. The `fetch` function accepts as the second argument an object with the `signal` property set to the controller's signal property. So we can now send the abort signal in the cleanup function. In order to send the abord signal we should call the `.abort()` method on the controller object.
 
-Whenever the `title` or `userRating` changes, the effect is executed again. This will, in turn, update the `document.title`. Essentially, effects react to updates to state and props that are used inside the effect. Effects are reactive, just like React reacts to state updates by re-rendering the UI. This is extremely useful as you will see.
-
-Let's now look at a real-world example of using the `useEffect` hook, which actually utilize the ability of effects to synchornize with state.
-
-In this example project called ''usePopcorn', we want to implement a feature so that as the user types something in the search bar, the app starts fetching data from a remote server, without the user having to click on a button or hitting on the enter key on the keyboard. This is when we can introduce an effect and set the query that the user types in the search bar as the effect's dependancy.
+In this example, we want to listen for the event in which the Escape key on the keyboard is pressed.
 
 ```js
-export default function App() {
-  const [query, setQuery] = useState("");
-  const [movies, setMovies] = useState([]);
-  const [watched, setWatched] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  useEffect(
-    function () {
-      async function fetchMovies() {
-        try {
-          setIsLoading(true);
-          setError("");
-          const res = await fetch(
-            `http://www.omdbapi.com/?i=tt3896198&apikey=${KEY}&s=${query}`
-          );
-
-          if (!res.ok)
-            throw new Error("Something went wrong with fetching movies");
-
-          const data = await res.json();
-
-          if (res.Response === "False") throw new Error("Movie not found");
-
-          setMovies(data.Search);
-          setIsLoading(false);
-        } catch (err) {
-          setError(err.message);
-        } finally {
-          setIsLoading(false);
-        }
+useEffect(
+  function () {
+    function callback(e) {
+      if (e.code === "Escape") {
+        onCloseMovie();
+        console.log("CLOSING");
       }
+    }
 
-      if (query.length < 3) {
-        setMovies([]);
-        setError("");
-        return;
-      }
-
-      fetchMovies();
-    },
-    [query]
-  );
-
-  return (
-    <>
-      <NavBar>
-        <Logo />
-        <Search query={query} setQuery={setQuery} />
-        <NumResults movies={movies} />
-      </NavBar>
-
-      <Main>
-        <Box>
-          {isLoading && <Loader />}
-          {!isLoading && !error && <MovieList movies={movies} />}
-          {error && <ErrorMessage message={error} />}
-        </Box>
-
-        <Box>
-          <WatchedSummary watched={watched} />
-          <WatchedMoviesList watched={watched} />
-        </Box>
-      </Main>
-    </>
-  );
-}
+    document.addEventListener("keydown", callback);
+  },
+  [onCloseMovie]
+);
 ```
 
-> Note that we have lifted up the `query` state from the `<SearchBar />` component to this parent `<App />` component.
+> Note how we passed the `onCloseMovie` function into the dependency array. This function was passed into the component where this effect is introduced through props. We will later learn why we can and we should pass a function into the dependency array. [more about this later...]
+
+The problem with this implementation is that each time this effect is re-executed, another event listener is attached to the document object. So when it is executed for the second time, we would now have 2 event listeners that will respond to the event. This is not what we want. We want to remove the event listener that was previously attached by the effect in the previous execution. So, again, we need a cleanup function.
+
+```js
+useEffect(
+  function () {
+    function callback(e) {
+      if (e.code === "Escape") {
+        onCloseMovie();
+        console.log("CLOSING");
+      }
+    }
+
+    document.addEventListener("keydown", callback);
+
+    return function () {
+      document.removeEventListener("keydown", callback);
+    };
+  },
+  [onCloseMovie]
+);
+```
+
+> Note that the callback function mentioned in the `removeEventListener()` method should be exactly the same function that was used in the `addEventListener()` method. So we have to define the callback function outside of the methods, and simply refer to them in the methods.
+
+#### **Listening for keypress event on the document object**
+
+In order to listen for a key press event on the whole document object, we can introduce an effect. Inside this effect we can use the native `addEventListener()` JavaScript method on the `document` object.
+
+### **RECAP**
+
+We need side effects in all our React apps. It is a good thing, but it is not allowed everywhere. Side effects are not allowed in the render logic at all. We can, however, introduce side effects in two places:
+
+1. Event handlers - this is usually the preferred way of introducing side effects, but it is not enough, because sometimes we need more than just reacting to a certain event, like a click.
+2. `useEffect` hooks - in some situations we need some code to be automatically executed as the component mounts, and/or re-renders, or unmounts. We use the dependency array to tell the effect when to execute. The ability to hook into all of these phases opens a whole new door of possibilities. An effect has 3 parts: the effect code, the dependency array, a cleanup function which is called before a component re-renders or unmounts.
+
+> Thinking about the lifecycle of a component instance is useful for understanding how effects work, but it doesn't explain why effects actually exist. Effects are meant to be used as a way to keep components synchronized with an external system. Effects and component lifecycle are in fact deeply connected, but this is just the nature of effects. When states or props of a component changes, the component is re-rendered. Now if an effect actually depends on the same states or props, this effect will be executed again as they change.
+
+So we use effects to keep a component in sync with the external world. On the other hand, we use event handlers to react to a certain event that happens in the UI.
+
+> Event handlers are always the preferred way of creating side effects. Do not overuse the `useEffect` hook.
+
+The dependency array is a requirement for the effect, because without that, React doesn't know when to run the effect. By setting the dependecies in the dependency array, we are actually telling React that each time one of those dependencies changes, the effect will be executed again.
+
+But how should we determine the dependency array? Basically, every state variable and prop used inside the effect must be included in the dependency array. Otherwise, React will not know about the changes happened to states and props used in the effect, and this would lead to a bug called stale closure.
+
+Now that we know about the dependency array, we can think of `useEffect` hook as an event listener that listens for one dependency to change. Once it changes, the effect will be executed again.
+
+> There are 3 different ways of defining the dependency array:
+>
+> 1. `useEffect(fn, [x, y, z])`: This means that the effect synchronizes with x, y, and z. From the lifecycle viewpoint, the effect will run on mount and re-renders triggered by updating x, y, or z.
+> 2. `useEffect(fn, [])`: This means that the effect synchronizes with no states or props. From the lifecycle viewpoint, the effect will run only on mount. Since the effect does not depend on any state or props, it is actually safe to be executed once on mount.
+> 3. `useEffect(fn)`: This means that the effect synchronizes with everything. This is usually a bad thing to be implemented in a React app.
+
+Let's now review when effects are actually executed regarding the lifecycle of a component. A component is first mounted, which is its initial render. After this, the result of rendering is commited to the DOM. Finally, the DOM changes are painted to the screen by the browser. Effect are executed after the browser paint. This is why effects run asynchronously, as effects may contain long-running processes like fetching data. In such situations, if React executed the effect before the browser paint, it would block the entire process and users would have to see the old version of the component for too long.
+
+> An important consequence of effects not running during render is that if an effect sets state, then an additional render is needed to display the UI correctly.
+
+As one of the states of the component changes, it will go through the process of re-render, then commit, and then another browser paint. Then the effect will run again. This process can repeat again and again until the component is unmounted.
+
+So up until now, we can use the dependency array to execute an effect on component's mount and/or re-renders. What if we want to execute a certain code when the component is unmounted? What if we want to do so just before the effect is executed again? This is where we can use the effect's cleanup function.
+
+The cleanup function is an optional part of any effect. It means that we don't have to include this cleanup function in every effect that we create. But if we need to execute some code after a component is unmounted, or if we need to do so right before the effect is executed again, we should use the effect's cleanup function.
+
+So as a practical guideline, remember that using a cleaup function becomes necessary whenever the side effect you introduced is executed again when the component is re-rendered or unmounted. For example, if you have implemented an HTTP request in your effect, this may create a situation in which your component re-renders while your first request is being done, starting a new second HTTP request, leading to the **race condition** bug. So you need to cleanup the previous request in such situations. Other examples include API subscription, starting a timer, or adding an event listener.
+
+> Remember a good rule about introducing effects: each effect should do only one thing. use the `useEffect` hook for each side effect seperately. This makes effects easier to cleanup.
 
 ## **React Fragments**
 
@@ -2859,4 +3003,4 @@ This is when a component instance dies, meaning that it is completely destroyed 
 
 > Remember that after one instance of a component is unmounted, a new instance of the same component can be mounted later, but the previous instance is completely gone.
 
-> It is important to know about the lifecycle of a componenta instance, because you can hook into different phases of this lifecycle. You can basically define code to be executed at these specific points in time, which can be extremely useful. We do this using the `useEffect()` hook.
+> It is important to know about the lifecycle of a componenta instance, because you can hook into different phases of this lifecycle. You can basically define code to be executed at these specific points in time, which can be extremely useful. We do this using the `useEffect()` hook
