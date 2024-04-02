@@ -94,6 +94,7 @@
       - [**Phase 3: unmounting**](#phase-3-unmounting)
   - [**Hooks**](#hooks)
     - [**Rules of hooks**](#rules-of-hooks)
+    - [**`useState` in detail**](#usestate-in-detail)
 
 # **A first look at react**
 
@@ -3065,7 +3066,7 @@ Speaking of the order, our linked list will be built based on the call order of 
 
 So this is the list of our hooks, but how are they linked? It means that the first list element contains a reference to the second list element, which in turn, has a link to the third list element. Linked list is a common data structure in computer science.
 
-Moving back to our code example, let's imagine that a re-render happened because state A updated from 23 to 7. This creates a huge problem. Notice how state B was only created initially because the condition `A === 23` was true. However, after the re-render the condition is false, which means that the `useState` hook for state B would not be called, and therefore, it would no longer exist in the linked list of hooks after the re-render. Now the problem is that the first hook is still pointing to the original second hook. But that link is now broken. So state A is now linked to a hook that no longer exists, and nothing is pointing to the effect hook Z, meaning that the linked list is now destroyed. It works this way because fibers are not recreated on every render. So the linked list is also not recreated. So if one of the hooks just disappears from the list, then the order of the list is completely broken. So if we conditionally use a hook, it would completely mess up the linked list of hooks between renders, which will leave React confused and unable to correctly track all the hooks that are used. So this is why hooks need to be called in the same order on every render. Following this rule, the code example above should be corrected to:
+Moving back to our code example, let's imagine that a re-render happened because state A updated from 23 to 7. This creates a huge problem. Notice how state B was only created initially because the condition `A === 23` was true. However, after the re-render the condition is false, which means that the `useState` hook for state B would not be called, and therefore, it would no longer exist in the linked list of hooks after the re-render. Now the problem is that the first hook is still pointing to the original second hook. But that link is now broken. So state A is now linked to a hook that no longer exists, and nothing is pointing to the effect hook Z, meaning that the linked list is now destroyed. It works this way because **fibers are not recreated on every render**. So the linked list is also not recreated. So if one of the hooks just disappears from the list, then the order of the list is completely broken. So if we conditionally use a hook, it would completely mess up the linked list of hooks between renders, which will leave React confused and unable to correctly track all the hooks that are used. So this is why hooks need to be called in the same order on every render. Following this rule, the code example above should be corrected to:
 
 ```js
 const [A, setA] = useState(23);
@@ -3078,3 +3079,13 @@ useEffect(fnZ, []);
 - Hooks can only be called from **React functions**. This means that hooks can only be called from **function components** or from **custom hooks**, but not from regular functions or class components.
 
 > You don't have to worry about these rules if you are using a linter. These rules are automatically enforced by React's ESLint rules.
+
+### **`useState` in detail**
+
+Up until now we have always used the `useState` hook. But let's now take a deeper look inside.
+
+```js
+const [movie, setMovie] = useState({});
+```
+
+The initial value passed into the `useState` hook only matters for the initial render.
