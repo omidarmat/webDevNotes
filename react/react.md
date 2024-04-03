@@ -3088,4 +3088,80 @@ Up until now we have always used the `useState` hook. But let's now take a deepe
 const [movie, setMovie] = useState({});
 ```
 
-The initial value passed into the `useState` hook only matters for the initial render.
+The initial value passed into the `useState` hook only matters for the initial render. Let's take this code as an example:
+
+```js
+// This code is inside a component which asynchronously loads movie data from an external API
+const { title, year, imdbRating } = movie;
+
+const [isTop, setIsTop] = useState(imdbRating > 8);
+console.log(isTop);
+```
+
+As you can see, here we are actually assigning an initial value to the `isTop` state variable based on a condition. So if the `imdbRating` of the `movie` is higher than `8`, a `true` value would be assigned to the `isTop` state.
+
+But as we select a movie with an IMDB rating of 9 to be loaded into the UI, we see in the console that the `isTop` state is holding a `false` value, while we expect it to be true. Why is that? The answer is that whatever we pass into the `useState` hook, is the initial state, and React only look at this initial state on the inital render, so when the component first mounts. But when the component first mounts, the `imdbRating` is still `undefined`. So `imdbRating > 8` is false, and it will stay false even after the movie has been loaded, because we have not used the `setIsTop` to update the state as the `imdbRating` becomes available. To fix this, we can use a `useEffect` hook.
+
+```js
+// This code is inside a component which asynchronously loads movie data from an external API
+const { title, year, imdbRating } = movie;
+
+const [isTop, setIsTop] = useState(imdbRating > 8);
+console.log(isTop);
+
+useEffect(
+  function () {
+    setIsTop(imdbRating > 8);
+  },
+  [imdbRating]
+);
+```
+
+But let's now take a look at the bigger picture. If this is what we want to do, we can simply use a **derived state**. We don't need the `useState` hook.
+
+```js
+// This code is inside a component which asynchronously loads movie data from an external API
+const { title, year, imdbRating } = movie;
+
+const isTop = imdbRating > 8;
+console.log(isTop);
+```
+
+This solution works seamlessly, because `isTop` variable is regenerated each time that the component is rendered. So as the component is mounted, the `imdbRating` variable is `undefined` and we will see in the console that `isTop` is `false`. But when the movie data arrives, the component function is called again to render the data to the UI, and therefore `imdbRating` becomes available, and therefore `isTop` will become true since the exmample movie is rated 9. So we have used the power of derived state which is that it updates as the component gets re-rendered.
+
+Another important thing to remember about the `useState` hook is that the state updating process really happes asynchronously. We need to use a callback function to update state in certain situations. So we cannot access the updated state variable right after updating it.
+
+```js
+const [avgRating, setIsRating] = useState(0);
+
+// Some other handler function code...
+
+setAvgRating(Number(imdbRating));
+alert(avgRating);
+```
+
+in the code example above, although the `avgRating` state is updated to the `imdbRating` value, the `alert` function in the next line will return `0` as the initial value passed into the `useState` hook. Let's take another example:
+
+```js
+const [avgRating, setIsRating] = useState(0);
+
+// Some other handler function code...
+
+setAvgRating(Number(imdbRating));
+setAvgRating((avgRating + userRating) / 2);
+```
+
+This will return a wrong average value, since the updated value of `avgRating` is not yet available at this point. So the second `setAvgRating` call to calculate the average based on the updated value of `avgRating` will result in a wrong outcome, because `avgRating` state is still `0` (initial value) at this point.
+
+We know how to go around this. We should use a callback function in the state setter function. This callback function has access to the current value of the state variable.
+
+```js
+const [avgRating, setIsRating] = useState(0);
+
+// Some other handler function code...
+
+setAvgRating(Number(imdbRating));
+setAvgRating((avgRating) => (avgRating + userRating) / 2);
+```
+
+There is just one final thing to learn about the `useState` hook, which is besides using a callback function to update state, as we did in the example above, we can use callback functions to initialize state.
