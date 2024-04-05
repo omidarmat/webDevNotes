@@ -94,7 +94,17 @@
       - [**Phase 3: unmounting**](#phase-3-unmounting)
   - [**Hooks**](#hooks)
     - [**Rules of hooks**](#rules-of-hooks)
-    - [**`useState` in detail**](#usestate-in-detail)
+    - [**The `useState` hook**](#the-usestate-hook)
+      - [**Creating state**](#creating-state)
+      - [**Updating state**](#updating-state)
+      - [**`useState`: some useful details**](#usestate-some-useful-details)
+        - [**Initial state value only matters for initial render**](#initial-state-value-only-matters-for-initial-render)
+        - [**State is always updated asynchronously**](#state-is-always-updated-asynchronously)
+        - [**Initialize state with a callback function: Lazy evaluation**](#initialize-state-with-a-callback-function-lazy-evaluation)
+    - [**`useRef` hook**](#useref-hook)
+      - [**`useState` vs. `useRef`**](#usestate-vs-useref)
+      - [**`useRef` to count something behind the scenes**](#useref-to-count-something-behind-the-scenes)
+    - [**custom hooks**](#custom-hooks)
 
 # **A first look at react**
 
@@ -1777,8 +1787,8 @@ State is the most important concept in React. Mastering state is the most diffic
 
 1. What is state and why we need it?
 2. How to use state in practice?
-   - `useState`
-   - `useReducer`
+   - `useState` hook
+   - `useReducer` hook
    - Context API
 3. Thinking about state
    - When to use state
@@ -3080,13 +3090,52 @@ useEffect(fnZ, []);
 
 > You don't have to worry about these rules if you are using a linter. These rules are automatically enforced by React's ESLint rules.
 
-### **`useState` in detail**
+### **The `useState` hook**
+
+We use the `useState` hook to create a state, and then the setter function to update state.
+
+#### **Creating state**
+
+We can creat state in its simple way which is to pass a value into the `useState` hook.
+
+```js
+const [count, setCount] = useState(23);
+```
+
+We can also create state by passing a callback function into the `useState` hook which makes it so that the initial value of the state would be computed. This second option is also called _Lazy Evaluation_. The callback is only called by the `useState` hook on the **initial render**. On subsequent renders, this callback function will simply be ignored. The callback function needs to fulfill 2 requirements:
+
+1. It should be a pure function
+2. It should require no arguments in order to work
+
+```js
+const [count, setCount] = useState(() => localStorage.getItem("count"));
+```
+
+#### **Updating state**
+
+We can update state in a simple way just by passing a value into the setter function.
+
+```js
+setCount(1000);
+```
+
+In many situations we want to update state, based on current state. The callback function here also should be a pure one.
+
+```js
+setCount((c) => c + 1);
+```
+
+> It is very important to remember that we should not mutate objects or arrays, but to replace them with a new object or array which incorporates your changes.
+
+#### **`useState`: some useful details**
 
 Up until now we have always used the `useState` hook. But let's now take a deeper look inside.
 
 ```js
 const [movie, setMovie] = useState({});
 ```
+
+##### **Initial state value only matters for initial render**
 
 The initial value passed into the `useState` hook only matters for the initial render. Let's take this code as an example:
 
@@ -3129,6 +3178,8 @@ console.log(isTop);
 
 This solution works seamlessly, because `isTop` variable is regenerated each time that the component is rendered. So as the component is mounted, the `imdbRating` variable is `undefined` and we will see in the console that `isTop` is `false`. But when the movie data arrives, the component function is called again to render the data to the UI, and therefore `imdbRating` becomes available, and therefore `isTop` will become true since the exmample movie is rated 9. So we have used the power of derived state which is that it updates as the component gets re-rendered.
 
+##### **State is always updated asynchronously**
+
 Another important thing to remember about the `useState` hook is that the state updating process really happes asynchronously. We need to use a callback function to update state in certain situations. So we cannot access the updated state variable right after updating it.
 
 ```js
@@ -3164,4 +3215,380 @@ setAvgRating(Number(imdbRating));
 setAvgRating((avgRating) => (avgRating + userRating) / 2);
 ```
 
-There is just one final thing to learn about the `useState` hook, which is besides using a callback function to update state, as we did in the example above, we can use callback functions to initialize state.
+##### **Initialize state with a callback function: Lazy evaluation**
+
+There is just one final thing to learn about the `useState` hook, which is, besides using a callback function to update state, as we did in the example above, we can use callback functions to initialize state. This is particularly needed when the initial value of the `useState` hook depends on some sort of computaion.
+
+> Remember that this function must be pure and it cannot receive any argument.
+
+Take the usePopcorn project as an example. We need to implement a functionality that whenever the user adds a movie to their watched list, we want to store the movie in the local storage, so that when the app is refreshed and the `App` component is mounted again, the data stored in the local storage would be read and loaded into the watched list. Of course, this is possible by introducing a `useEffect` hook, but there is a better way, which is to put a callback function into the `useState` hook as the state's initial value.
+
+```js
+// This code is inside a component
+const [watched, setWatched] = useState(function () {
+  const storedValue = localStorage.getItem("watched");
+  return JSON.parse(storedValue);
+});
+
+useEffect(
+  function () {
+    localStorage.setItem("watched", JSON.stringify(watched));
+  },
+  [watched]
+);
+```
+
+> As a consequence of implementing the `useEffect` in the example above, we now have also enabled the application to automatically delete e watched movie from the local storage if we click on the delete button in the application. This is because, as we have learned before, the `useEffect` hook is used to keep a component in sync with an external system, which here is the local storage.
+
+> Note that the function passed into the `useState` hook should be callback function. We cannot call the function right in the `useState` hook. Eventhough React will simply ignore the value of the function call, it would still call this function on every render. Based on the example above, we cannot do this:
+
+```js
+const [watched, setWatched] = useState(localStorage.getItem("watched"));
+```
+
+### **`useRef` hook**
+
+Imagine we want a search bar in our application to become focused once the `Search` component is mounted. We can implement an effect in the component like this:
+
+```js
+function Search({ query, setQuery }) {
+  useEffect(function () {
+    const el = document.querySelector(".search");
+    el.focus();
+  }, []);
+
+  return (
+    <input
+      className="search"
+      type="text"
+      placeholder="Search movies..."
+      value={query}
+      onChange={(e) => setQuery(e.target.value)}
+    />
+  );
+}
+```
+
+However, we know that React is all about being declarative. So manually selecting a DOM element is not the React way of doing things. So what should we do? We should use the `useRef` hook.
+
+We use the `useRef` hook to create something called a ref. But what is a ref? Ref stands for reference, and it is like a box into which we can put any data that we want to be preserved between renders. In practice, when we use the `useRef` hook, React gives us an object with a **mutable** `current` property, into which we can write any data, and we can read from it.
+
+```js
+const myRef = useRef(23);
+
+// Some code
+
+myRef.current = 1000;
+```
+
+This `current` property is actually mutable unlike everything else in React. The special thing about refs is that they are persisted across renders. Their `current` property value stays the same between renders like states. This makes refs useful in 2 situations:
+
+1. We can use refs to create variables what stay the same between renders (e.g. preserving previous state or storing the ID of a `setTimeout` function, etc.)
+2. We can use refs to select and store DOM elements. Just like the ID of a `setTimeout` function, a DOM element is a peice of data that we want store and preserve between renders.
+
+> Refs are usually only used for data that is NOT rendered. Refs usually only appear in event handlers or effects, not in JSX. We can use them in JSX but usually that is not the place for them. So if you need data that participates in the visual output of the component, that is usually a good sign that you need a state, not a ref.
+
+> You are not allowed to read the `.current` property or write to it in the render logic as it will create an undesirable side effect. Instead, we usually perform these mutations inside a `useEffect` hook.
+
+#### **`useState` vs. `useRef`**
+
+Let's now compare the two in order to fully understand their similarities and differences.
+
+| `usestate`                                                                          | `useRef`                                                                            |
+| ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| persists across renders, so the component rememebrs its value even after re-renders | persists across renders, so the component rememebrs its value even after re-renders |
+| cause the component to re-render                                                    | does not cause the component to re-render                                           |
+| immutable                                                                           | mutable                                                                             |
+| updated asynchronously                                                              | updated synchronously                                                               |
+
+A conclusion is that we use state when we want to store data that should re-render the component, and refs for data that should only be remembered by the component over time but never re-render it.
+
+So returning to the example mentioned above, the better way to select the search bar in the DOM is to use refs. Using a ref with a DOM element happens in 3 steps:
+
+1. Create the ref
+
+```js
+const inputEl = useRef(null);
+// Remember to import useRef from 'react'.
+```
+
+> The value passed into the `useRef` hook is the initial value that we are assigning to the `current` property of the ref object. In case we are using ref for selecting a DOM element, we usually pass `null` into the hook.
+
+2. Then in the JSX, pass the `ref` prop into the DOM element that you want to select. This way the `ref` and the DOM element are now connected in a declarative way.
+
+```js
+function Search({ query, setQuery }) {
+  const inputEl = useRef(null);
+
+  return (
+    <input
+      className="search"
+      type="text"
+      placeholder="Search movies..."
+      value={query}
+      onChange={(e) => setQuery(e.target.value)}
+      ref={inputEl}
+    />
+  );
+}
+```
+
+3. Then we use a `useEffect` hook in order to use the implemented `useRef` hook that contains a DOM element. This is because the ref only gets added to the DOM element after the DOM is loaded. Therefore we can only access it in an effect which also runs after the DOM is loaded. From this point, `inputEl.current` is really the `<input>` element itself. So we can call the `.focus()` method on it.
+
+```js
+function Search({ query, setQuery }) {
+  const inputEl = useRef(null);
+
+  useEffect(function () {
+    inputEl.current.focus();
+  }, []);
+
+  return (
+    <input
+      className="search"
+      type="text"
+      placeholder="Search movies..."
+      value={query}
+      onChange={(e) => setQuery(e.target.value)}
+      ref={inputEl}
+    />
+  );
+}
+```
+
+We now want to implement a feature that whenever we press the Enter key on the keyboard, the input element gets focused. So we should listen for the `keydown` event on the document, and there is a point here:
+
+> In order to add event listeners to the document, we have no way but to do it manually. So just as we normally do in vanilla JavaScript using the `addEventListener` method on the `document.`
+
+```js
+function Search({ query, setQuery }) {
+  const inputEl = useRef(null);
+
+  useEffect(
+    function () {
+      function callback(e) {
+        if (e.code === "Enter") {
+          inputEl.current.focus();
+          setQuery("");
+        }
+      }
+      document.addEventListener("keydown", callback);
+      return () => document.removeEventListener("keydown", callback);
+    },
+    [setQuery]
+  );
+
+  return (
+    <input
+      className="search"
+      type="text"
+      placeholder="Search movies..."
+      value={query}
+      onChange={(e) => setQuery(e.target.value)}
+      ref={inputEl}
+    />
+  );
+}
+```
+
+#### **`useRef` to count something behind the scenes**
+
+We now want to use the `useRef` hook to create a variable that persists across renders without triggering a re-render.
+
+As a real-world example, in the usePopcorn project, we want a counter variable to store the number of clicks that the user does on the star rating component, basically to evaluate how long it takes for the user to rate a specific movie. So for example, if the user first clicks for rate 3, then for 7, and then for 9, we want store this three clicks in a variable behind the scenes. So in this case, we actually want a variable that is persisted between re-renders, but does not trigger a re-render itself.
+
+```js
+const countRef = useRef(0);
+// So now 0 is the initial value for the 'current' property of the ref object.
+```
+
+Now we want to update the ref each time the user clicks on a rate. Now again, in order to implement the updating logic of the ref, we should use a `useEffect` hook, because we are not allowed to mutate the ref in render logic.
+
+```js
+useEffect(
+  function () {
+    if (userRating) countRef.current = countRef.current + 1;
+  },
+  [userRating]
+);
+```
+
+### **custom hooks**
+
+Custom hooks are all about reusablity. In React, we have 2 types of things that we can reuse:
+
+1. A piece of UI: we use a component
+2. A piece of Logic: In this case we should first ask ourselves that does the logic contain any hook? If not, all you need is a regular function, which can live either inside or outside any component. But if the logic does contain any React hook, you cannot extract the logic into a regular function. Instead, what you need is a custom hook.
+
+Custom hooks allow us to reuse stateful logic in multiple components, and actually not only stateful logic, but any logic that contains one or more React hooks. In more general terms, custom hooks allow us to reuse **non-visual logic**.
+
+One hook should only have one purpose. It should only do one specific, well-defined thing. The idea is not to simply put all the hooks of a component into one custom hooks, but it is to make custom hooks reusable and portable, so that you can reuse them across different projects.
+
+> Rules of hooks mentioned earlier apply to custom hooks.
+
+A custom hook is really just a JS function. So it can receive and return any data that is relevant to the custom hook. It is very common to return an object or array from a custom hook. Notice how this is different from components which are also just regular JS functions, but which can only receive props and always have to return some JSX.
+
+The difference between regular functions and custom hooks is that custom hooks need to use one or more React hooks.
+
+In order for us and React to recognize this function as a hook, the function name needs to start with the word `use`. This is really not optional. It is a rule that you should follow in order to introduce a custom hook.
+
+Take this code example:
+
+```js
+function useFetch(url) {
+  const [data, setData] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(function () {
+    fetch("<URL>")
+      .then((res) => res.json())
+      .then((data) => setData(data));
+  }, []);
+
+  return [data, isLoading];
+}
+```
+
+Let's now create a real-world custom hook for the usePopcorn project. In this project, we want to implement a custom hook where we can place all our logic related to fetching a movie data. So here is the process:
+
+1. Create a new file in your `src` folder and call it `useMovies.js`.
+2. Export a function which has the same name as the newly create file.
+
+```js
+// ./useMovies.js
+export function useMovies() {}
+```
+
+3. import this function into the main `App.js` file.
+
+```js
+// ./App.js
+import { useMovies } from "./useMovies";
+```
+
+4. Place the functionality code inside the function. Remember that this is a regular JS function. So it can receive any argument and it can return anything. Note that when moving code like this, you will find out that this code now needs some values and variables that were available in the previous file. So you either need to move those variables to the new file, or pass them as arguments into this function. For things that are only needed in this new file, and they are actually not needed in the `App.js` file, you usually want to move them into the new file.
+
+```js
+// ./useMovies.js
+export function useMovies(query, callback) {
+  const [movies, setMovies] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(
+    function () {
+      callback?.();
+      const controller = new AbortController();
+
+      async function fetchMovie() {
+        try {
+          setIsLoading(true);
+          setError("");
+          const res = await fetch(
+            `http://www.omdbapi.com/?apikey=${KEY}&s=${query}`,
+            { signal: controller.signal }
+          );
+
+          if (!res.ok)
+            throw new Error("Something went wrong with fetching movies.");
+
+          const data = await res.json();
+
+          if (data.Response === "False") throw new Error("Movie not found");
+
+          setMovies(data.Search);
+          setError("");
+        } catch (err) {
+          if (err.name !== "AbortError") {
+            setError(err.message);
+          }
+        } finally {
+          setIsLoading(false);
+        }
+      }
+      if (query.length < 3) {
+        setMovies([]);
+        setError("");
+        return;
+      }
+
+      fetchMovie();
+
+      return function () {
+        controller.abort();
+      };
+    },
+    [query]
+  );
+}
+```
+
+5. Return what the logic in the previous `App.js` file actually needed to perform its operations. We know that the main `App.js` file needs the `movies`, `isLoading` and `error` states in oreder to correctly render the JSX. So we should return these from this custom hooks.
+
+```js
+// ./useMovies.js
+export function useMovies(query, callback) {
+  const [movies, setMovies] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(
+    function () {
+      callback?.(); // notice the use of optional chaining in calling a function
+      const controller = new AbortController();
+
+      async function fetchMovie() {
+        try {
+          setIsLoading(true);
+          setError("");
+          const res = await fetch(
+            `http://www.omdbapi.com/?apikey=${KEY}&s=${query}`,
+            { signal: controller.signal }
+          );
+
+          if (!res.ok)
+            throw new Error("Something went wrong with fetching movies.");
+
+          const data = await res.json();
+
+          if (data.Response === "False") throw new Error("Movie not found");
+
+          setMovies(data.Search);
+          setError("");
+        } catch (err) {
+          if (err.name !== "AbortError") {
+            setError(err.message);
+          }
+        } finally {
+          setIsLoading(false);
+        }
+      }
+      if (query.length < 3) {
+        setMovies([]);
+        setError("");
+        return;
+      }
+
+      fetchMovie();
+
+      return function () {
+        controller.abort();
+      };
+    },
+    [query]
+  );
+
+  return { movies, isLoading, error };
+}
+```
+
+> Note that we have used the `callback` inside the effect, and therefore we have to mention it in the dependency array. But doing this will lead to an infinit loop of errors, which we cannot deal with just yet. So we remove the ability of this custom hook to receive a callback function as an argument.
+
+6. Call the custom hook in the `App.js` and pass the required arguments into it. You should store the returned values from it into related variables. We can use destructuring since we are actually returning an object from the custom hook:
+
+```js
+// ./App.js
+const { movies, isLoading, error } = useMovies(query, handleCloseMovie);
+```
+
+> Remember that a custom hook can be called and used anywhere in our logic code. So it can act like the `useState` hook that returns a state variable and its setter function, or it can be used like a `useEffect` hook which performs some logic in an abstracted way. We can say, in a sense, that a custom hook can be based on either a `useState` or a `useEffect` hook, although a custome hook can use more than one React hooks.
