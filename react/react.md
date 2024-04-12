@@ -104,6 +104,9 @@
     - [**`useRef` hook**](#useref-hook)
       - [**`useState` vs. `useRef`**](#usestate-vs-useref)
       - [**`useRef` to count something behind the scenes**](#useref-to-count-something-behind-the-scenes)
+    - [**`useReducer` hook**](#usereducer-hook)
+      - [**Reducers in detail**](#reducers-in-detail)
+      - [**`useReducer` vs. `useState`**](#usereducer-vs-usestate)
     - [**custom hooks**](#custom-hooks)
 
 # **A first look at react**
@@ -3056,7 +3059,7 @@ Some others also exist, but only for library authors:
 
 In order for hooks to work as intended there are 2 simple rules that we must follow:
 
-- Hooks can only be called at the **top level**. We cannot call hooks inside conditionals, loops, functions nested inside the component, or after an early return because that is also similar to a condition. Why this rule exists? Hooks only work if they are always called in the same exact order, which can only be ensured if they are called at the top level. But why do hooks need to be called in the same order on every render? Let's dive deeper into the reasons behind this rule.
+- **RULE 1:** Hooks can only be called at the **top level**. We cannot call hooks inside conditionals, loops, functions nested inside the component, or after an early return because that is also similar to a condition. Why this rule exists? Hooks only work if they are always called in the same exact order, which can only be ensured if they are called at the top level. But why do hooks need to be called in the same order on every render? Let's dive deeper into the reasons behind this rule.
 
 Remember that when an app is rendered, React creates a tree of React elements (Virtual DOM). On the initial render, React also builds a Fiber tree out of the virtual DOM where each element is a fiber. Each fiber contains a lot of stuff, like the received props, list of work, and more importantly, a linked list of all the hooks that were used in the component instance. Let's build ourselves a linked list of used hooks based on the hypothetical code example below to understand how hooks work behind the scenes. It is hypothetical because it won't actually work. It even violates the rule that we just mentioned. By breaking this rule we are trying to understand why hooks rely on the order in which they are called.
 
@@ -3086,7 +3089,7 @@ useEffect(fnZ, []);
 
 > Why even bother having the linked list? A linked list which relies on the hook call order is the simplest way to associate each hook with its value. The order in which the hook is called, uniquely identifies the hook. This is very convenient, because by using the call order, we developers don't have to manually assign names to each hook.
 
-- Hooks can only be called from **React functions**. This means that hooks can only be called from **function components** or from **custom hooks**, but not from regular functions or class components.
+- **RULE 2:**Hooks can only be called from **React functions**. This means that hooks can only be called from **function components** or from **custom hooks**, but not from regular functions or class components.
 
 > You don't have to worry about these rules if you are using a linter. These rules are automatically enforced by React's ESLint rules.
 
@@ -3238,7 +3241,7 @@ useEffect(
 );
 ```
 
-> As a consequence of implementing the `useEffect` in the example above, we now have also enabled the application to automatically delete e watched movie from the local storage if we click on the delete button in the application. This is because, as we have learned before, the `useEffect` hook is used to keep a component in sync with an external system, which here is the local storage.
+> As a consequence of implementing the `useEffect` in the example above, we now have also enabled the application to automatically delete a watched movie from the local storage if we click on the delete button in the application. This is because, as we have learned before, the `useEffect` hook is used to keep a component in sync with an external system, which here is the local storage.
 
 > Note that the function passed into the `useState` hook should be callback function. We cannot call the function right in the `useState` hook. Eventhough React will simply ignore the value of the function call, it would still call this function on every render. Based on the example above, we cannot do this:
 
@@ -3288,7 +3291,7 @@ This `current` property is actually mutable unlike everything else in React. The
 
 > Refs are usually only used for data that is NOT rendered. Refs usually only appear in event handlers or effects, not in JSX. We can use them in JSX but usually that is not the place for them. So if you need data that participates in the visual output of the component, that is usually a good sign that you need a state, not a ref.
 
-> You are not allowed to read the `.current` property or write to it in the render logic as it will create an undesirable side effect. Instead, we usually perform these mutations inside a `useEffect` hook.
+> You are not allowed to read the `.current` property or write to it in the render logic as it will create an undesirable side effect. Instead, we usually perform these mutations inside a `useEffect` hook. So keep in mind that **whenever you are planning to use a `useRef` hook, you would very likely want to use a `useEffect` hook to update the ref**.
 
 #### **`useState` vs. `useRef`**
 
@@ -3298,7 +3301,7 @@ Let's now compare the two in order to fully understand their similarities and di
 | ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
 | persists across renders, so the component rememebrs its value even after re-renders | persists across renders, so the component rememebrs its value even after re-renders |
 | cause the component to re-render                                                    | does not cause the component to re-render                                           |
-| immutable                                                                           | mutable                                                                             |
+| immutable                                                                           | mutable (`.current`)                                                                |
 | updated asynchronously                                                              | updated synchronously                                                               |
 
 A conclusion is that we use state when we want to store data that should re-render the component, and refs for data that should only be remembered by the component over time but never re-render it.
@@ -3412,6 +3415,367 @@ useEffect(
   [userRating]
 );
 ```
+
+### **`useReducer` hook**
+
+The `useReducer` hook is a more advanced and more complex way of managing state instead of `useState`. We usually use the `useReducer` hook when we have a complex state to manage. It means that we usually don't use the `useReducer` hook for managing a state that includes only one single value. Instead, we use it when the state actually holds an object.
+
+The `useReducer` hook works with a **reducer** function, which is a pure function that will always take in the previous state and an action, and will return the next state. Note that the reducer function must always **return** something. The `useReducer` hook itself receives not only the initial state, but also the reducer function we just described.
+
+> What the reducer function returns must be similar in shape to the initial state we passed into the `useReducer` hook. This is especially important when we pass an object of states into the the reducer hook, which is what we actully use this hook for.
+
+The `useReducer` hook works similar to the `useState` hook. It returns the current state and a so-called `dispatch` function which is used to update state, but works in a slightly different way compared to the state setter function returned by the `useState` hook. We might ask when the reducer function provided to the `useReducer` hook will be called? This is actually where the `dispatch` function comes to play.
+
+Let's now use it in practice.
+
+```js
+function reducer(state, action) {
+  console.log(state, action);
+  return state + action;
+}
+
+function DateCounter() {
+  const [count, dispatch] = useReducer(reducer, 0);
+  const [step, setStep] = useState(1);
+
+  const inc = function () {
+    dispatch(1);
+  };
+
+  //some other handler functions
+
+  // returning <JSX>
+}
+```
+
+Now as we click on the `+` button to increment the date, we see the console shows `0 1` in response. So the state is `0` and the action is `1`. So what is happening here? The reducer function has access to the **current state**, and then it also gets access to the **action**, which currently is the `1` value we passed into the `dispatch` function. So whatever we pass into the `dispatch` function will be received in the reducer function as the action. **The idea in the reducer function is to take the current state and the action and, based on these, return the next state**.
+
+Now to implement a simlir functionality to decrease the date. So we now need to call the `dispatch` function again. In terms of `useReducer` is considered as dispatching an action.
+
+```js
+function reducer(state, action) {
+  console.log(state, action);
+  return state + action;
+}
+
+function DateCounter() {
+  const [count, dispatch] = useReducer(reducer, 0);
+  const [step, setStep] = useState(1);
+
+  const inc = function () {
+    dispatch(1);
+  };
+
+  const dec = function () {
+    dispatch(-1);
+  };
+
+  //some other handler functions
+
+  // returning <JSX>
+}
+```
+
+This might not seem to be a useful way of updating a state variable, but it will make sense as we go further in this example.
+
+Let's now think how we can set the date according to the input number that the user types. We might think that we can do this:
+
+```js
+function reducer(state, action) {
+  console.log(state, action);
+  return state + action;
+}
+
+function DateCounter() {
+  const [count, dispatch] = useReducer(reducer, 0);
+  const [step, setStep] = useState(1);
+
+  const inc = function () {
+    dispatch(1);
+  };
+
+  const dec = function () {
+    dispatch(-1);
+  };
+
+  const defineCount = function (e) {
+    dispatch(Number(e.target.value));
+    // setCount(Number(e.target.value));
+  };
+
+  //some other handler functions
+
+  // returning <JSX>
+}
+```
+
+But this makes us totally lose control over the input value. So we can now think about the action provided to the reducer function. In this case we have 3 actions: decreasing the count, increasing it, and setting it. So we should actually name these actions. we are no longer going to pass single values to the `dispatch` function, but an object which contains an action as well as the single values.
+
+```js
+const dec = function () {
+  dispatch({ type: "dec", payload: 1 });
+};
+```
+
+The object passed into the dispatch function is what we call an action when working with reducer functions. This object can, in theory, have any shape, but it is a convention to include just the `type` and `payload` properties in it. Let's now do the same thing for increasing the date.
+
+```js
+const inc = function () {
+  dispatch({ type: "inc", payload: 1 });
+};
+```
+
+Let's also implement the action object for the handler function that is responsible for updating date based on user input number:
+
+```js
+const defineCount = function (e) {
+  dispatch({ type: "setCount", payload: Number(e.target.value) });
+};
+```
+
+And we now have to update the `reducer` function to acount for the different `type` properties in the action object.
+
+```js
+function reducer(state, action) {
+  console.log(state, action);
+  if (action.type === "inc") return state + action.payload;
+  if (action.type === "dec") return state + action.payload;
+  if (action.type === "setCount") return action.payload;
+}
+```
+
+Now we can understand that it is not necessary to pass the `payload` property for the `inc` and `dec` functions. We can simply ignore them and implement the logic in the reducer function itself. However, in the `defineCount` function we still need the `payload` since we actually receive the payload based on the user input. The `payload` property is optional.
+
+```js
+function reducer(state, action) {
+  console.log(state, action);
+  if (action.type === "inc") return state + 1;
+  if (action.type === "dec") return state - 1;
+  if (action.type === "setCount") return action.payload;
+}
+
+function DateCounter() {
+  const [count, dispatch] = useReducer(reducer, 0);
+  const [step, setStep] = useState(1);
+
+  const dec = function () {
+    dispatch({ type: "dec" });
+  };
+
+  const inc = function () {
+    dispatch({ type: "inc" });
+  };
+
+  const defineCount = function (e) {
+    dispatch({ type: "setCount", payload: Number(e.target.value) });
+  };
+
+  //some other handler functions
+
+  // returning <JSX>
+}
+```
+
+Up until now, we have transformed the previous count state from a simple `useState` to a `useReducer`. We now want to incorporate a step state into the `useReducer` hook we just introduced to our code. This will enable the increase and decrease buttons to change the date by the step state value. First, let's convert the code we have been writing into a fully-fledged `useReducer` hook application, which is to incorporate an object of states into the reducer hook we have been using.
+
+In order to do this, we first need to define an object as the initial state passed into the reducer hook:
+
+```js
+function DateCounter() {
+  const initialState = { count: 0, step: 1 };
+  const [state, dispatch] = useReducer(reducer, initialState);
+}
+```
+
+We then let the handler functions remain as before:
+
+```js
+function DateCounter() {
+  // const [count, setCount] = useState(0);
+  const initialState = { count: 0, step: 1 };
+
+  const [state, dispatch] = useReducer(reducer, initialState);
+  const { count, step } = state;
+
+  const dec = function () {
+    dispatch({ type: "dec" });
+  };
+
+  const inc = function () {
+    dispatch({ type: "inc" });
+  };
+
+  const defineCount = function (e) {
+    dispatch({ type: "setCount", payload: Number(e.target.value) });
+  };
+}
+```
+
+But then we update the reducer function declaration to perform its logic based on a `switch` statement.
+
+```js
+function reducer(state, action) {
+  console.log(state, action);
+
+  switch (action.type) {
+    case "dec":
+      return { ...state, count: state.count - 1 };
+    case "inc":
+      return { ...state, count: state.count + 1 };
+    case "setCount":
+      return { ...state, count: action.payload };
+
+    default:
+      throw new Error("Unknown action");
+  }
+}
+```
+
+This should now make the app work just like before. We are now going to implement the step state in the reducer hook. So we implement the handler function like this:
+
+```js
+const defineStep = function (e) {
+  dispatch({ type: "setStep", payload: Number(e.target.value) });
+  // setStep(Number(e.target.value));
+};
+```
+
+And update the reducer function as:
+
+```js
+function reducer(state, action) {
+  console.log(state, action);
+
+  switch (action.type) {
+    case "dec":
+      return { ...state, count: state.count - 1 };
+    case "inc":
+      return { ...state, count: state.count + 1 };
+    case "setCount":
+      return { ...state, count: action.payload };
+    case "setStep":
+      return { ...state, step: action.payload };
+
+    default:
+      throw new Error("Unknown action");
+  }
+}
+```
+
+We now have to take into acount the step value when we increase or decrease the date.
+
+```js
+function reducer(state, action) {
+  console.log(state, action);
+
+  switch (action.type) {
+    case "dec":
+      return { ...state, count: state.count - state.step };
+    case "inc":
+      return { ...state, count: state.count + state.step };
+    case "setCount":
+      return { ...state, count: action.payload };
+    case "setStep":
+      return { ...state, step: action.payload };
+
+    default:
+      throw new Error("Unknown action");
+  }
+}
+```
+
+We are fine now. But you might still ask that why bother doing all this work? What we have been doing until this point could have been done with some simple `useState` hooks. Let's now do something different to understand the advantage of the reducer hook more clearly. We now want to implement a reset functionality that resets the count and step values. What we did previously was to take the state setter functions seperately and call them while passing the initial values into each.
+
+```js
+const reset = function () {
+  setCount(0);
+  setStep(1);
+};
+```
+
+But now we can do one big state transition doing all the state reset functionality in one go.
+
+```js
+const reset = function () {
+  dispatch({ type: "reset" });
+};
+```
+
+We now update the reducer function again to account for the `reset` case:
+
+```js
+function reducer(state, action) {
+  console.log(state, action);
+
+  switch (action.type) {
+    case "dec":
+      return { ...state, count: state.count - state.step };
+    case "inc":
+      return { ...state, count: state.count + state.step };
+    case "setCount":
+      return { ...state, count: action.payload };
+    case "setStep":
+      return { ...state, step: action.payload };
+    case "reset":
+      return initialState;
+
+    default:
+      throw new Error("Unknown action");
+  }
+}
+```
+
+> Note that we can place the `initialState` object outside the component, in the top level, so as to make it accessible in both the reducer function and the component.
+
+If you take a look at your handler functions now, you will see that what we are doing in each of them is just to dispatch. This means that we could implement the dispatch codes into the `onChange` props of the JSX elements, and let the logic reside in the reducer function. But let's keep it as we have wrote them now.
+
+So basically, we have all the possible state updates that can happen in our application in one central place which is the reducer function. This makes it a lot easier to understand the entire app without having to go over all the components and functions. As we proceed, the advantages of the `useReducer` hook start to emerge.
+
+#### **Reducers in detail**
+
+Let's now see how reducers can make our application a lot better in certain situations.
+
+Before knowing about the `useReducer` hook, we used the `useState` hook to manage all our states. But as components and state updates become more complex, using `useState` to manage all states is, in certain situations, not enough. What situations are those:
+
+1. When components have a lot of state variables and a lot of state updates spread across many event handlers all over the component, or maybe even multiple components. This can quickly become overwhelming and hard to manage.
+2. When multiple state updates need to happen at the same time (as a reaction to certain events, like starting a game where we might have to set score to 0, set an `isPlaying` status, and start a timer.)
+3. When updaing one piece of state depends on one or multiple other pieces of state.
+
+In all these situations the `useReducer` hook is really helpful. Reducers try to solve problems with these situations.
+
+`useReducer` is an alternative way of setting and managing state, which is ideal for complex state and also for related pieces of state.
+
+We call the `useReducer` hook with a reducer function and an initial state. The hook then returns a state and a dispatch function.
+
+When we use `useReducer` hook, we usually store related states in a state object that is returned from the `useReducer` hook. As we know, `useReducer` needs a reducer function where all the logic that is responsible for updating the state resides. This enables us to completely decouple state logic from the component, making our components a lot cleaner and much more readable.
+
+So when we manage state with `useReducer`, it is the reducer function that will be updating the state object. In a sense, we can say that the reducer function is like the state setter function, but with superpowers.
+
+The reducer funtion is simply a JS function that gets access to `state` and an `action`, and based on these, returns the next state, that is the updated state.
+
+> State is immutable in React. So the reducer is not allowed to mutate the state. In fact, no side effects are allowed in the reducer function at all. A reducer must be a pure function that always returns a new state based on the current state and a defined action.
+
+The action that the reducer function has access to is passed to it as an object that describes how state should be updated. It usually contains an action `type` and `payload`. Based on these 2 properties, the reducer determines how to create the next state.
+
+There is one last piece of the puzzle here. How do we trigger a state update? This is where the `dispatch` function comes to play. The `useReducer` hook returns a dispatch function which we can use to trigger state updates. We use the dispatch function to send an action from the event handler where we are calling the dispatch to the reducer. The reducer function will then use this action object to compute the next state. Once it updates the state, a re-render will be triggered.
+
+So in conclusion there are different parts that should fit together in the whole reducer concept:
+
+1. The `useReducer` hook
+2. The state object
+3. The reducer function, responsible for updating the state object based on the action object received via the dispatch funciton
+4. The dispatch function, responsible for sending an action object to the reducer funciton
+5. The action object, usually including a `type` and a `payload` property, which the latter is optional. The object does not need to have this exact shap, but this is the convention followed by developers.
+
+> Curious why the reducer function is called a reducer? Becasue it follows the exact same idea as the array `.reduce()` method. While the reduce method of arrays accumulates all the array values into one single value, the React reducer accumulates all actions into one single state over time.
+
+Behind the scenes the dispatch function has access to the reducer function because we passed it into the `useReducer` hook. So dispatch function coordinates the whole thing and also gives the reducer access to the current state.
+
+#### **`useReducer` vs. `useState`**
+
+when we use the `useState` we get back a setter function like `setState`. Then when we want to update state, we just pass the updated state value and React will simply update the state which in turn will trigger a re-render.
+
+It is a lot simpler to work with the `useState` hook, but since the `useReducer` hook solves the problems we mentioned earlier, it is a great choice in manu situations, although it is a bit more difficult to set it up. We will later talk more about the `useReducer` advantages. [more about this later...]
 
 ### **custom hooks**
 
@@ -3582,7 +3946,7 @@ export function useMovies(query, callback) {
 }
 ```
 
-> Note that we have used the `callback` inside the effect, and therefore we have to mention it in the dependency array. But doing this will lead to an infinit loop of errors, which we cannot deal with just yet. So we remove the ability of this custom hook to receive a callback function as an argument.
+> Note that we have used the `callback` inside the effect, and therefore we have to mention it in the dependency array. But doing this will lead to an infinit loop of errors, which we cannot deal with just yet. So we remove the ability of this custom hook to receive a callback function as an argument. [more about this later...]
 
 6. Call the custom hook in the `App.js` and pass the required arguments into it. You should store the returned values from it into related variables. We can use destructuring since we are actually returning an object from the custom hook:
 
