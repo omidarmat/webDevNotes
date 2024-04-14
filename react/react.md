@@ -107,6 +107,7 @@
     - [**`useReducer` hook**](#usereducer-hook)
       - [**Reducers in detail**](#reducers-in-detail)
       - [**`useReducer` vs. `useState`**](#usereducer-vs-usestate)
+      - [**When to use `useReducer`**](#when-to-use-usereducer)
     - [**custom hooks**](#custom-hooks)
 
 # **A first look at react**
@@ -3773,9 +3774,43 @@ Behind the scenes the dispatch function has access to the reducer function becau
 
 #### **`useReducer` vs. `useState`**
 
-when we use the `useState` we get back a setter function like `setState`. Then when we want to update state, we just pass the updated state value and React will simply update the state which in turn will trigger a re-render.
+| `useState`                                                                                                        | `useReducer`                                                                                                                                                                                 |
+| ----------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Ideal for single, independent pieces of state (numbers, strings, single arrays, etc.)                             | Ideal for multiple related pieces of state and comples state (object with many values and nested objects or arrays)                                                                          |
+| Logic to update state is placed directly in event handlers or effects, spread all over one or multiple components | Logic to update state lives in one central place, decoupled from components: the reducer function.                                                                                           |
+| State is updated by calling the state setter function, which makes it a lot more imparative.                      | State is updated by _dispatching_ an **action** to the reducer function. Essentially, reducers map state transitions to actions with well-defined names, making them a lot more declarative. |
+| Easy to understand and use                                                                                        | More difficult to understand and implement                                                                                                                                                   |
 
-It is a lot simpler to work with the `useState` hook, but since the `useReducer` hook solves the problems we mentioned earlier, it is a great choice in manu situations, although it is a bit more difficult to set it up. We will later talk more about the `useReducer` advantages. [more about this later...]
+> Most of the time, using `useState` is perfectly fine.
+
+#### **When to use `useReducer`**
+
+We would have to think about answers to a couple of questions in order to figure out when we do need to use the `useReducer` hook.
+
+1. Just one piece of state?
+
+   - Yes: just use one `useState` hook.
+   - No: go to question No. 2
+
+2. Do states frequently update together?
+
+   - Yes: possible `useReducer` case. Before that, you need to answer one more question. Are you willing to implement slightly more complex code?
+     - Yes: Definately use the `useReducer` hook.
+     - No: Go for `useState` hook.
+   - No: Go to question No. 3
+
+3. Over 3 or 4 pieces of related state, including objects? This is called complex state.
+   - Yes: possible `useReducer` case. Before that, you need to answer one more question. Are you willing to implement slightly more complex code?
+     - Yes: Definately use the `useReducer` hook.
+     - No: Go for `useState` hook.
+   - No: Go to question No. 4
+4. Too many event handlers that make components too large and confusing?
+   - Yes: possible `useReducer` case. Before that, you need to answer one more question. Are you willing to implement slightly more complex code?
+     - Yes: Definately use the `useReducer` hook.
+     - No: Go for `useState` hook.
+   - No: use `useState` hook.
+
+> The `useState` hook should remain your default choice for managing state. But if `useState` is causing one of the problems mentioned above, you may want to opt for the `useReducer` hook.
 
 ### **custom hooks**
 
