@@ -3,6 +3,7 @@
   - [**What is React?**](#what-is-react)
   - [**Setting up a new React project: The options**](#setting-up-a-new-react-project-the-options)
     - [**Setting up a project with `create-react-app`**](#setting-up-a-project-with-create-react-app)
+    - [**Setting up a project with Vite**](#setting-up-a-project-with-vite)
 - [**Core concepts of building React apps**](#core-concepts-of-building-react-apps)
   - [**JSX**](#jsx)
     - [**Declarative JSX**](#declarative-jsx)
@@ -30,8 +31,8 @@
     - [**Props as an API**](#props-as-an-api)
   - [**Effects**](#effects)
     - [**Effects vs. event handlers**](#effects-vs-event-handlers)
-      - [Syncronization and lifecycle](#syncronization-and-lifecycle)
-      - [When are effects executed?](#when-are-effects-executed)
+      - [**Syncronization and lifecycle**](#syncronization-and-lifecycle)
+      - [**When are effects executed?**](#when-are-effects-executed)
     - [**Dependancy array**](#dependancy-array)
     - [**Cleanup functions**](#cleanup-functions)
       - [**When to use a cleanup function?**](#when-to-use-a-cleanup-function)
@@ -50,6 +51,7 @@
     - [**CSS modules**](#css-modules)
     - [**Tailwind CSS**](#tailwind-css)
   - [**Separation of concerns in React**](#separation-of-concerns-in-react)
+  - [**Routing and Single-Page Applications (SPA)**](#routing-and-single-page-applications-spa)
 - [**State, Events and Forms: interactive components**](#state-events-and-forms-interactive-components)
   - [**Handling events**](#handling-events)
   - [**State in React**](#state-in-react)
@@ -109,6 +111,8 @@
       - [**`useReducer` vs. `useState`**](#usereducer-vs-usestate)
       - [**When to use `useReducer`**](#when-to-use-usereducer)
     - [**custom hooks**](#custom-hooks)
+- [**React 3rd party libraries**](#react-3rd-party-libraries)
+  - [**React Router**](#react-router)
 
 # **A first look at react**
 
@@ -201,6 +205,99 @@ import ReactDOM from "react-dom/client";
 Next up, we will create our `App` component. It is not necessary to call it App, but it is necessary to start its name with a capital letter. From here on, you can go on to the [Core Concepts](#core-concepts-of-building-react-apps) section of this file.
 
 The `public` folder contains all the assets that will end up in the final application, such as all the images and an `index.html` file that contains a `<div>` element with the id `root`. Remember that Webpack, which is the module bundler here, will automatically look into the `public` folder to find the assets of our application, such as images, etc.
+
+### **Setting up a project with Vite**
+
+In order to start a project with Vite, you need to insert this command in the terminal:
+
+```
+npm create vite@latest
+```
+
+However, to follow the tutorials seamlessly, we would have to use version 4 of Vite:
+
+```
+npm create vite@4
+```
+
+This will cause the terminal ask us for the name of our project,the framework and the language that we want to use. Then a folder with the name of our project will be created at the location where we opened the terminal. We would then open up VS code inside the project folder, and use this npm command to install all necessary dependencies:
+
+```
+npm install
+```
+
+This will eventually give us a file structure as:
+
+```
+- node_modules
+- public
+- src
+  - Assets
+  App.css
+  App.jsx
+  index.css
+  main.jsx
+.gitignore
+index.html
+package-lock.json
+package.json
+vite.config.js
+```
+
+> Note that the `index.html` file is outside of `public` folder.
+
+Inside the `src` folder, we see that instead of `main.js` or `index.js` in the `create-react-app` method, we now have a `main.jsx` file as the entry point. Vite needs the extension of this file to be JSX, but there is actually no difference between `.jsx` and `.js`.
+
+There is also an `App.jsx` file, where there are some default code written, which we get rid of and start from scratch. We also remove all `.css` files since we will introduce our own styles.
+
+```js
+// Starting a simple code in App.jsx
+function App() {
+  return <div>Worldwise</div>;
+}
+
+export default App;
+```
+
+Finally, in order to start developing our project, we don't use the `npm start` script. There actually is no such script implemented in the `package.json` file. If we We use this command instead:
+
+```
+npm run dev
+```
+
+This will run a local server, but unlike `create-react-app`, it won't open the browser. You should do it manually.
+
+However, the great thing about `create-react-app` is that it comes with all the important dev tools installed. The most important one of those is ESLint which helps us avoid so many bugs. Building a React app without ESLint is a bit like coding half blind. So we should manually config ESLint. This can be annoying but there is no other choice.
+
+We should first install 3 packages using the terminal command below:
+
+```
+npm install eslint vite-plugin-eslint eslint-config-react-app --save-dev
+```
+
+As they are being installed, we need config our project to integrate it with the 3 packages. So we create a file in the root of our project called `.eslintrc.json`. We should configure ESLint's behavior in this file.
+
+```json
+// .eslintrc.json
+{
+  "extends": "react-app"
+}
+```
+
+Then we go to `vite.config.js` file in the root where we can config our Vite project. Here we can configure everything about development and building of our project. Here we now have to add the ESLint plugin and update the code as:
+
+```js
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import eslint from "vite-plugin-eslint";
+
+// https://vitejs.dev/config/
+export default defineConfig({
+  plugins: [react(), eslint()],
+});
+```
+
+Now we have Vite correctly set up.
 
 # **Core concepts of building React apps**
 
@@ -957,7 +1054,7 @@ Thinking about the different moments of a component lifecycle can be very helpfu
 
 `useEffect` is truly a synchronization mechanism to synchronize effect with the state of the application. Refer to [Synchronization and lifecycle](#syncronization-and-lifecycle) for a deeper dive into this.
 
-#### Syncronization and lifecycle
+#### **Syncronization and lifecycle**
 
 When a dependancy changes, the effect is executed again. But now let's remember that dependancies are alaways states or props. What happens to a component when its state or prop is updated? The component will re-render. This means that effects and the lifecycle of a component are deeply inter-connected. When the `useEffect` hook was first introduced, many thought that it was a lifecycle hook, rather than a hook for syncing a component with a side effect.
 
@@ -986,7 +1083,7 @@ useEffect(fn);
 // In this example, where we have no dependancy array, we know that the effect will run on every render, which is a bad practice. This means that the effect syncs with everything. Every state and every prop will be dependancies in this case.
 ```
 
-#### When are effects executed?
+#### **When are effects executed?**
 
 Let's see when are effects executed during the render and commit process?
 
@@ -1656,6 +1753,33 @@ function App() {
 [Notes will be added later.]
 
 Before React we had one technology per file, but with React we have one component per file. So separation of concerns is still there, but in a different paradigm.
+
+## **Routing and Single-Page Applications (SPA)**
+
+When we use routing in a web app, we basically match different URLs to different views in the UI. In the specific case of React, we match each URL to a specific React component. We call each match between a URL and a component a **route**. Then when one of the specific URLs gets visited, the corresponding React component will gbeet rendered.
+
+For instance, we show the homepage of our application at the `www.example.com/` URL which is also called the root URL. Then we render the login page for the `www.example.com/login` URL, and also when the user is logged in, we load the main functionality of our app for the `www.example.com/app` URL.
+
+This enable users to navigate between different screens of the app by simply using links in the browser. At the same time, routing like this, keeps the UI in sync with the current browser URL, which has a couple of nice advantages [more about this later...]
+
+This type of routing only works this way on the client side. There is also another routing that happens on the server side, but not in client-side React apps that we build during this tutorial.
+Most front-end frameworks have this client-side routing capablities baked right into the framework, but React is different, because it relies on 3rd-party packages for many different functionalities, and routing is one of them.
+
+In React, routing is usually handled by [**React Router**](#react-router) library. This is the most important and most used React 3rd-party library. If you want to learn React development you need to learn React Router. The reason for this is that routing is fundamental for building sing-page applications (SPA).
+
+Sing-page apps are web applications that are executed entirely on the client, so only in the user's browser. SPAs rely heavily on the concept of routes where different URLs corresponds to different views.
+
+Here is how single-page apps works:
+
+Whenever a user clicks on a special link provided by the router, the URL in the broswer simply changes. In the case of React, this job is usually done by `react-router` package. Chainging the URL will then trigger the DOM to be updated as a result. In single-page apps it is always JavaScript that will update the DOM and therefore the page.
+
+Usually, on a normal webpage, when we click on a link, the broswer loads a completely new page and then show us that new page. But SPAs are different. The page is updated by JavaScript which means that there will never be a complete page reload, and that is the whole point of SPAs. This makes the web app feel just like a native desktop or a mobile app, which is a fantastic user experience.
+
+Going back to React, whenever the URL is changed, React Router and React itself will update the DOM by rendering the component that corresponds to the new URL. Then the whole cycle can be repeated as many times as necessary. Each time a user clicks on a router link, it will change the URL and the component that is being displayed, all without reloading the whole page.
+
+It is quite common that some pages need to display some external data, but that is not a problem at all. When that happens, a component can load some additional data from a server, usually from some kind of a web API. While the SPA itself runs entirely on the client side, it can always communicate with a server to fetch some data. What we cannot do in SPAs is to load a completely new page, because then it would no longer be an SPA.
+
+Big and complex applications rely on URLs and need the routing capabilities, because only then they can become real SPAs.
 
 # **State, Events and Forms: interactive components**
 
@@ -3991,3 +4115,7 @@ const { movies, isLoading, error } = useMovies(query, handleCloseMovie);
 ```
 
 > Remember that a custom hook can be called and used anywhere in our logic code. So it can act like the `useState` hook that returns a state variable and its setter function, or it can be used like a `useEffect` hook which performs some logic in an abstracted way. We can say, in a sense, that a custom hook can be based on either a `useState` or a `useEffect` hook, although a custome hook can use more than one React hooks.
+
+# **React 3rd party libraries**
+
+## **React Router**
