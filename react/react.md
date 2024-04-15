@@ -49,7 +49,9 @@
     - [**Inline styling**](#inline-styling)
     - [**External CSS or Sass**](#external-css-or-sass)
     - [**CSS modules**](#css-modules)
-    - [**Tailwind CSS**](#tailwind-css)
+    - [**CSS-in-JS**](#css-in-js)
+    - [**Utility-first CSS**](#utility-first-css)
+    - [**No CSS!**](#no-css)
   - [**Separation of concerns in React**](#separation-of-concerns-in-react)
   - [**Routing and Single-Page Applications (SPA)**](#routing-and-single-page-applications-spa)
 - [**State, Events and Forms: interactive components**](#state-events-and-forms-interactive-components)
@@ -113,6 +115,8 @@
     - [**custom hooks**](#custom-hooks)
 - [**React 3rd party libraries**](#react-3rd-party-libraries)
   - [**React Router**](#react-router)
+    - [**Basic implementation**](#basic-implementation)
+    - [**Linking between routes**](#linking-between-routes)
 
 # **A first look at react**
 
@@ -1698,6 +1702,8 @@ function Menu() {
 
 There are several ways to style components. React does not really care about how we do it. React is more of a library than a framework.
 
+But why there are so many ways of styling a React app? One fundamental philosophy of React is to be unopinionated in regards to many common aspects of building web apps, and one of them is styling. So React does not really care about how you do it.
+
 ### **Inline styling**
 
 In HTML, we can style elements using the `style` attribute. But it works a bit different in JSX. We cannot assign a string to the style attribute as we did with the normal HTML syntax. The style attribute in JSX should receive a JavaScript object containing the styles defined as properties.
@@ -1711,6 +1717,8 @@ function Header() {
 ```
 
 Note how we used the first set of `{}` to enter JavaScript mode in the JSX, and then used another set of `{}` which indicates the JavaScript object that is used to define style properties.
+
+> Inline stylings are scoped to the JSX element where they have been inserted. It applies only to the exact element to which they are attached.
 
 > There is no problem in using inline styles in JSX, but this can easily get out of control when designing large-scale applications.
 
@@ -1740,13 +1748,31 @@ function App() {
 }
 ```
 
+> Styles applied in this way are scoped to the entire app. Every single JSX element in the entire app can use the class names introduced in the CSS files. This can cause huge problems, especially in big apps. For instance, you won't know which components are using which classes. So when you update one of the classes it will have repercussions in other components and other problems. So global CSS is a nightmare in large apps.
+
 > The external CSS file should normally be located in the `src` folder.
 
 > Styles included here as an external CSS file are global styles, they are not scoped to the components where they are used.
 
 ### **CSS modules**
 
-### **Tailwind CSS**
+This option scopes the CSS styles to a single component which is the proper way of applying styles to big React apps.
+
+CSS modules are similar to regular CSS files with the difference that we write one CSS file for each component. This also better reflects React's separation of concerns.
+
+### **CSS-in-JS**
+
+If you want to further with the moduling option, you write your CSS inside a JavaScript file, so in the same file where you define your component. This allows us to create React components that have our styles directly applied to them which we can then use like regular components.
+
+This fully embraces the React philosophy that a component should contain all the information about its appearance, and that includes CSS.
+
+### **Utility-first CSS**
+
+This is getting more popular everyday. In this method, you use predefined utility classes to define individual styles, to use flexbox, to make layout responsive, to make hover effects, and to design your entire UI without ever having to leave the JSX markup.
+
+### **No CSS!**
+
+You can build your entire project using a fully-fledged UI component library. A component library contains all kinds of pre-built and pre-styled components that are common in most applications.
 
 ## **Separation of concerns in React**
 
@@ -4119,3 +4145,265 @@ const { movies, isLoading, error } = useMovies(query, handleCloseMovie);
 # **React 3rd party libraries**
 
 ## **React Router**
+
+To implement routing, we start by creating the file structure for the components that correspond to different URLs. Usually, we create a folder in the `src` folder and call it `pages`. This folder will basically include our structural components. So inside the `pages` folder, we now create a file, for instance, called `Product.jsx`, and remember to write `jsx` as the file's extension.
+
+### **Basic implementation**
+
+In the beginning of this process, we normally don't write any specific code in each component file, but just a simple React component function:
+
+```js
+function Product() {
+  return <div>Product</div>;
+}
+
+export default Product;
+```
+
+We would then continue with creating other structural component files in the `pages` folder to implement the base of our routing.
+
+Eventually we get to create the routes. To do this we go to the terminal and use this command to install the latest version of React Router:
+
+```
+npm install react-router-dom
+```
+
+However, on this tutorial we use the 6th version of it.
+
+```
+npm install react-router-dom@6
+```
+
+Since React version 6.4, there are 2 huge ways of defining routes in our code. We are now going to use the more traditional approach which is to define our routes in a declarative way. This means that we will use a couple of special components that React Router gives us to define our routes right in the JSX. This might seem confusing.
+
+So inside the `App.jsx` file, we use the `<BrowserRouter></BrowserRouter>` tag and make sure that it is imported in the file:
+
+```js
+import { BrowserRouter } from "react-router-dom";
+
+function App() {
+  return <BrowserRouter></BrowserRouter>;
+}
+
+export default App;
+```
+
+Then inside the `<BrowserRouter>` component, we need the actual `<Routes></Routes>` component.
+
+```js
+import { BrowserRouter, Routes } from "react-router-dom";
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes></Routes>
+    </BrowserRouter>
+  );
+}
+
+export default App;
+```
+
+Now inside the `<Routes>` component, we do the actual rout definition, which brings us eventually to the `<Route />` component in which we should define `path` and `element` as props.
+
+The `path` prop will include the URL route after the root address, and the `element` prop will include the component which you want to be rendered for the specified `path`.
+
+```js
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import Product from "./pages/Product";
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="product" element={<Product />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
+export default App;
+```
+
+> Don't forget to import all `BrowserRouter`, `Routes` and `Route` components from `reaect-router-dom`, and also your own components that are passed as props to the `<Route />` component.
+
+> We can pass props into the components that we insert in the `element` prop of the `<Route />` component.
+
+We can keep on adding different routes for different components of our app.
+
+```js
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import Product from "./pages/Product";
+import Pricing from "./pages/Pricing";
+import Homepage from "./pages/Homepage";
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Homepage />} />
+        <Route path="product" element={<Product />} />
+        <Route path="pricing" element={<Pricing />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
+export default App;
+```
+
+> If we wrap the whole `<BrowserRouter>` component in a `div` element and in it, we define an `h1` element, the browser will render the `h1` tag and its content on all routes, and it will render the URL's corresponding component afterwards:
+
+```js
+function App() {
+  return (
+    <div>
+      <h1>Hello Router!</h1>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Homepage />} />
+          <Route path="product" element={<Product />} />
+          <Route path="pricing" element={<Pricing />} />
+        </Routes>
+      </BrowserRouter>
+    </div>
+  );
+}
+// However, Usually we just have our `App` component decide which page should be displayed on the UI.
+```
+
+> If you want to show a _Page not found_ message for all other routes that are not defined in your SPA, you can define another final `<Route />` component where you set the `path` prop to `*`, and the `element` to a proper component you defined in your file structure.
+
+```js
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Homepage />} />
+        <Route path="product" element={<Product />} />
+        <Route path="pricing" element={<Pricing />} />
+        <Route path="*" element={<PageNotFound />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+```
+
+Up until this point, we have half of our routing implemented. We have our routes, but we cannot transition between them without a page reload. We currently need to change the URL manually, and then our app goes to that page. This is not what we want though. So we need to stablish some sort of **linking** between the routes.
+
+### **Linking between routes**
+
+To start, let's follow an example. Let's say that on our `Homepage` we want a link to the `Pricing` page. We would traditionally and obviously create an anchor element in the `Homepage` component.
+
+```js
+function Homepage() {
+  return (
+    <div>
+      <h1>WorldWise</h1>
+
+      <a href="/pricing">Pricing</a>
+    </div>
+  );
+}
+```
+
+This actually works, but if you look closely, it makes the app fully reload. You can examine this in detail via the Network tab of your browser console.
+
+So what should we do to avoide this kind of hard reload? We should use the `<Link>` element provided by the React Router. Remember to import the `Link` component from `react-router-dom`.
+
+```js
+import { Link } from "react-router-dom";
+
+function Homepage() {
+  return (
+    <div>
+      <h1>WorldWise</h1>
+
+      <Link to="/pricing">Pricing</Link>
+    </div>
+  );
+}
+
+export default Homepage;
+```
+
+the Network tab would prove that now the app does not reload; there is no additional request initiated when clicking on the `Pricing` link. So we have now implemented the linking between the Homepage and the Pricing page. What about other pages of our app? We now have to create a page navigation component which we can reuse in all the pages so we can implement transition between them.
+
+We actually create our `PageNav.jsx` component in a different folder than our `pages` folder that contains our structural components. In this file:
+
+```js
+import { Link } from "react-router-dom";
+
+function PageNav() {
+  return (
+    <nav>
+      <ul>
+        <li>
+          <Link to="/">Home</Link>
+        </li>
+        <li>
+          <Link to="/pricing">Pricing</Link>
+        </li>
+        <li>
+          <Link to="/product">Product</Link>
+        </li>
+      </ul>
+    </nav>
+  );
+}
+
+export default PageNav;
+```
+
+Now this is a reusable component which we can use in every single one of our pages.
+
+```js
+// HomePage.jsx
+import PageNav from "../components/PageNav";
+function Homepage() {
+  return (
+    <div>
+      <PageNav />
+      <h1>WorldWise</h1>
+    </div>
+  );
+}
+export default Homepage;
+
+
+// Pricing.jsx
+import PageNav from "../components/PageNav";
+function Pricing() {
+  return (
+    <div>
+      <PageNav />
+      <h1>Pricing</h1>
+    </div>
+  );
+}
+export default Pricing;
+```
+
+What we usually do in navigations like these is to display which one is the currently rendered page by, for instance, highlighting the related link. React router gives us a tool for that, which is to use the `NavLink` component instead of `Link` components we used in the `PageNav` component.
+
+```js
+function PageNav() {
+  return (
+    <nav>
+      <ul>
+        <li>
+          <Link to="/">Home</Link>
+        </li>
+        <li>
+          <Link to="/pricing">Pricing</Link>
+        </li>
+        <li>
+          <Link to="/product">Product</Link>
+        </li>
+      </ul>
+    </nav>
+  );
+}
+```
+
+You will not see any apparent difference as a result, but if you inspect you elements in the browser, you see that the navigation link corresponding to the currently rendered page has the `active` class added to it. You can use this class in your CSS file to style it. We will learn how to use a different way of incorporating CSS into our project. [more about this later...]
