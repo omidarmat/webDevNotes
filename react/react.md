@@ -49,6 +49,7 @@
     - [**Inline styling**](#inline-styling)
     - [**External CSS or Sass**](#external-css-or-sass)
     - [**CSS modules**](#css-modules)
+      - [**Global CSS**](#global-css)
     - [**CSS-in-JS**](#css-in-js)
     - [**Utility-first CSS**](#utility-first-css)
     - [**No CSS!**](#no-css)
@@ -117,6 +118,7 @@
   - [**React Router**](#react-router)
     - [**Basic implementation**](#basic-implementation)
     - [**Linking between routes**](#linking-between-routes)
+    - [**Nested routes and index route**](#nested-routes-and-index-route)
 
 # **A first look at react**
 
@@ -1759,6 +1761,179 @@ function App() {
 This option scopes the CSS styles to a single component which is the proper way of applying styles to big React apps.
 
 CSS modules are similar to regular CSS files with the difference that we write one CSS file for each component. This also better reflects React's separation of concerns.
+
+Let's first learn all the fundamentals of CSS modules that you need. CSS moduels already comes with `create-react-app` and Vite. So you don't need to install any additional package. We should create one CSS file per component.
+
+For instance, for a component file called `PageNav.jsx` we need to create a `PageNav.module.css` file in the `components` folder of our project.
+
+Inside the CSS file we need to define class names. We don't use, for instance, the element selector. That is because if you do so you will be applying your styles to all elements of the specified type throughout the whole application. This would obviously cancel the whole purpose of CSS modules.
+
+```css
+.nav {
+  display: flex;
+  justify-content: space-between;
+}
+
+/* Element selector (below) does not work */
+ul {
+  list-style: none;
+}
+```
+
+However, you can select native HTML elements under class names:
+
+```css
+.homepage section {
+  display: flex;
+  flex-direction: column;
+  height: 83%;
+}
+```
+
+We now have to use the class name `nav` in our JSX markup in the component JSX file. We first need to import the CSS file into the component file and then add the class names to our elements. All the classes that we define in the CSS module are exported in one big object, which we usually call `styles` as we import them.
+
+```js
+// PageNav.jsx file
+import styles from "./PageNav.module.css";
+```
+
+Now the `nav` class defined in the CSS module is available at `styles.nav`.
+
+```js
+function PageNav() {
+  return (
+    <nav className={styles.nav}>
+      <ul>
+        <li>
+          <NavLink to="/">Home</NavLink>
+        </li>
+        <li>
+          <NavLink to="/pricing">Pricing</NavLink>
+        </li>
+        <li>
+          <NavLink to="/product">Product</NavLink>
+        </li>
+      </ul>
+    </nav>
+  );
+}
+```
+
+> If you inspect the `nav` element in your browser you will see that the class name inserted into the element is not actually just `nav`. A random string is added to it which act as a unique ID for the `nav` class name attached to this specific component. This means that if you have another component, the CSS module of which contains a class also named `nav`, you will not see any conflict in applying CSS styles. This is because the `nav` class name applied to the second component will actually be inserted into the HTML element with another random string attached to it as another unique ID.
+
+#### **Global CSS**
+
+Sometimes, in addition to CSS modules, we need some global CSS settings, such as global reset, or setting some font properties on the `body` element of the document. For this purpose, we can keep including an external CSS file as we have been doing up until now.
+
+In this case, we create an `index.css` file in the `src` folder of our project. Then we import this file usually into the `main.jsx` file of our project.
+
+This global CSS file normally does not contain any class names. It only defines styles for native HTML elements. As a simple guide, this can be the content of a global CSS file:
+
+```css
+@import "https://unpkg.com/leaflet@1.7.1/dist/leaflet.css";
+@import "https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap";
+
+/* These CSS variables are global, so they are available in all CSS modules */
+:root {
+  --color-brand--1: #ffb545;
+  --color-brand--2: #00c46a;
+
+  --color-dark--0: #242a2e;
+  --color-dark--1: #2d3439;
+  --color-dark--2: #42484d;
+  --color-light--1: #aaa;
+  --color-light--2: #ececec;
+  --color-light--3: #d6dee0;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: inherit;
+}
+
+html {
+  font-size: 62.5%;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Manrope", sans-serif;
+  color: var(--color-light--2);
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+label {
+  font-size: 1.6rem;
+  font-weight: 600;
+}
+
+input,
+textarea {
+  width: 100%;
+  padding: 0.8rem 1.2rem;
+  font-family: inherit;
+  font-size: 1.6rem;
+  border: none;
+  border-radius: 5px;
+  background-color: var(--color-light--3);
+  transition: all 0.2s;
+}
+
+input:focus {
+  outline: none;
+  background-color: #fff;
+}
+
+.cta:link,
+.cta:visited {
+  display: inline-block;
+  background-color: var(--color-brand--2);
+  color: var(--color-dark--1);
+  text-transform: uppercase;
+  text-decoration: none;
+  font-size: 1.6rem;
+  font-weight: 600;
+  padding: 1rem 3rem;
+  border-radius: 5px;
+}
+```
+
+> Note that you can define class names in global CSS files. This will make it so that whenever you use that class name in your components, the corresponding styles will get applied unless you define the same class names in your CSS modules.
+
+But let's now see how we can define some more global CSS properties inside CSS modules. Imagine for some reason we want a `background-color: red` CSS property to be availabel in our homepage, but we don't want to import this CSS module into the `HomePage.jsx` file. To do this we can use the `:global()` function in our CSS module file and pass the class name to it.
+
+```css
+:global(.test) {
+  background-color: red;
+}
+```
+
+This will now allow us to use the `test` string as the value for the `className` prop in any of our JSX elements.
+
+```js
+function Homepage() {
+  return (
+    <div>
+      <PageNav />
+      <h1 className="test">WorldWise</h1>
+
+      <Link to="/app">Go to the app</Link>
+    </div>
+  );
+}
+```
+
+> The class name inserted in the actual DOM element in this case will be exactly the string `test` and no random string will be added to it. This is a global style. This option is useful, for instance, when we want to style the active link in a navigation bar. In order to introduce a global style in a CSS module we use the `.global()` function like this:
+
+```css
+.nav :global(.active) {
+  background-color: green;
+}
+```
+
+This means that the element with the `active` class name that also has the `nav` class name will get the background color of green.
 
 ### **CSS-in-JS**
 
@@ -4392,13 +4567,13 @@ function PageNav() {
     <nav>
       <ul>
         <li>
-          <Link to="/">Home</Link>
+          <NavLink to="/">Home</NavLink>
         </li>
         <li>
-          <Link to="/pricing">Pricing</Link>
+          <NavLink to="/pricing">Pricing</NavLink>
         </li>
         <li>
-          <Link to="/product">Product</Link>
+          <NavLink to="/product">Product</NavLink>
         </li>
       </ul>
     </nav>
@@ -4406,4 +4581,99 @@ function PageNav() {
 }
 ```
 
-You will not see any apparent difference as a result, but if you inspect you elements in the browser, you see that the navigation link corresponding to the currently rendered page has the `active` class added to it. You can use this class in your CSS file to style it. We will learn how to use a different way of incorporating CSS into our project. [more about this later...]
+You will not see any apparent difference as a result, but if you inspect your elements in the browser, you see that the navigation link corresponding to the currently rendered page has the `active` class added to it. You can use this class in your CSS file to style it. We will learn how to use a different way of incorporating CSS into our project, which is [CSS modules](#css-modules) and [global CSS](#global-css).
+
+In this approach to CSS styling, we can insert global styling in the CSS module created for the `PageNav` component as below:
+
+```css
+.nav :global(.active) {
+  background-color: green;
+}
+```
+
+This means that the element with the `active` class name that also has the `nav` class name will get the background color of green.
+
+> Just remember that the `active` class is given to us by React Router as a result of using the `<Navlink>` element. Otherwise, if we just want to define some global classes we would not do it inside a module, but we would do it in a normal CSS file. Refer to [global CSS](#global-css).
+
+### **Nested routes and index route**
+
+We need nested routes when we want a part of the UI to be controlled by a part of the URL. In our exmaple, we want to show a list of cities in the app layout, and we want the URL to be like:
+
+```
+localhost:3000/app/cities
+```
+
+So the cities will be displayed if the `cities` route is nested inside the `app` route. Then we would also want to display a form as we click on the map. So clicking on the map would also have to update the URL to request another nested URL under `app` route. So nested routes are used when we want to show a part of the UI based on a part of the URL.
+
+> Note how nested routes are not simply routes made up of multiple parts like the example mentioned above. Just because we have a longer path including the `cities` after `app` route, it does not mean that `cities` route is nested under `app` route. Instead, it is a nested route because the `cities` route influences what component is being rendered in the bigger component corresponding to the `app` route.
+
+In order to implement nested routes, we need to use the `<Route />` element with its opening and closing forms.
+
+```js
+<Route path="app" element={<AppLayout />}>
+  <Route path="cities" element={<p>List of cities</p>} />
+  <Route path="countries" element={<p>List of countries</p>} />
+  <Route path="form" element={<p>Form</p>} />
+</Route>
+```
+
+> Note that in the `path` prop of the nested apps, you don't need to rewrite the parent route. React is smart enough to understand the hierarchy of routes that you have implemented. Also note that for the `element` prop of the nested routes, it is no longer necessary to insert a component. You can simply insert regular HTML elements.
+
+But now you might ask where would the `<p>` elements passed to the child routes be displayed in the UI? How are we now going to display one component or element inside another component? That is where the `<Outlet />` component provied by React Router comes into play.
+
+In our example, the child components corresponding to the nested routes defined above should be rendered inside the `Sidebar` component. So in the `Sidebar.jsx` file we use the outlet component:
+
+```js
+function Sidebar() {
+  return (
+    <div className={styles.sidebar}>
+      <Logo />
+      <AppNav />
+
+      <Outlet />
+
+      <footer className={styles.footer}>
+        <p className={styles.copyright}>
+          &copy; Copyright {new Date().getFullYear()} by WorldWise Inc.
+        </p>
+      </footer>
+    </div>
+  );
+}
+```
+
+So when React detects a nested route in the URL, it goes through the `<Route />` elements defined inside the parent `<Route>` element and selects the one corresponding to the nested route. Then it takes the related JSX from the corresponding component file and puts it in the place of the `<Outlet />` element defined in the parent component JSX. This is pretty similar to the concept of children prop, but in this case for the routes.
+
+> In this example, as it would be the case with many examples of nested routes, we may actually not want the bare parent route empty of any of the possible child components corresponding to the defined nested routes. This means that we show a list of `Cities` in the `App` layout component for the `app/cities` route, and we show a list of `Countries` in the `App` layout component for the `app/countries` route, but we actually don't want the page to render empty for the `/app` URL. So we want to display, for instance, the list of cities or any other content as a default render. This is where the **index route** comes to play. To implement an index route, we should another nested route in the parent route and pass an `index` prop to it in order to define it as an index route. See the code exmaple below:
+
+```js
+<Route path="app" element={<AppLayout />}>
+  <Route index element={<p>List</p>} />
+  <Route path="cities" element={<p>List of cities</p>} />
+  <Route path="countries" element={<p>List of countries</p>} />
+  <Route path="form" element={<p>Form</p>} />
+</Route>
+```
+
+We also need to create some buttons on the UI in order to enable the user go through different URLs by clicking on them, and not by changing the URL manually.
+
+```js
+function AppNav() {
+  return (
+    <nav className={styles.nav}>
+      <ul>
+        <li>
+          <NavLink to="cities">Cities</NavLink>
+        </li>
+        <li>
+          <NavLink to="countries">Countries</NavLink>
+        </li>
+      </ul>
+    </nav>
+  );
+}
+```
+
+Having implemented such rounting along with some buttons on the UI that will change the URL accordingly, reminds us of showing content in the UI based on the value of a state variable when creating a tabbed component. Before, when we implemented such components, we would have to use the `useState` hook to manage the currently active tab. But with React Router we do it in a completely different way. Instead of using the `useState` to manage state, we allow the React Router and the URL to store the state of the active tab. We now decide which tab is active based on the URL.
+
+> We still build components like tabbed or accordion components with the `useState` hook all the time. But from now on, the overall navigation of the application is controlled by the React Router. This includes a small sub-navigation as mentioned in the example code above.
