@@ -119,6 +119,9 @@
     - [**Basic implementation**](#basic-implementation)
     - [**Linking between routes**](#linking-between-routes)
     - [**Nested routes and index route**](#nested-routes-and-index-route)
+    - [**Storing state in the URL**](#storing-state-in-the-url)
+      - [**Dynamic routes with URL parameters**](#dynamic-routes-with-url-parameters)
+      - [**Reading and setting a query string**](#reading-and-setting-a-query-string)
 
 # **A first look at react**
 
@@ -4677,3 +4680,198 @@ function AppNav() {
 Having implemented such rounting along with some buttons on the UI that will change the URL accordingly, reminds us of showing content in the UI based on the value of a state variable when creating a tabbed component. Before, when we implemented such components, we would have to use the `useState` hook to manage the currently active tab. But with React Router we do it in a completely different way. Instead of using the `useState` to manage state, we allow the React Router and the URL to store the state of the active tab. We now decide which tab is active based on the URL.
 
 > We still build components like tabbed or accordion components with the `useState` hook all the time. But from now on, the overall navigation of the application is controlled by the React Router. This includes a small sub-navigation as mentioned in the example code above.
+
+### **Storing state in the URL**
+
+We can now take the usefulness of React Router to the next level. Storing state in the URL enables us to use the state in different places of the app.
+
+But you might ask, don't we actully use the `useState` hook to manage state? That is true most of the time, but the URL is also an excelent place to store state, especially a UI state. With UI state, we mean a state that affects what the UI looks like. This include things like an open or close panel, or a currently applied list sorting order or filter. These examples of state are greate candidates to be stored in the URL, and to be managed by the URL with React Router.
+
+Why we would want to do that? The first reason is that placing state in the URL is an easy way to store state in a gloabl place that is easily accessible to all components in the app. Before, if we wanted a state to be accessible everywhere, we would have to store it in a parent component, and then pass it down to all child components using props. But if you place state in the URL we can easily just read the value from there wherever the component is in the component tree.
+
+So we can move some state management from React to the URL. Also, placing state in the URL is in many situations a good way to pass data from one page into the next page without having to store that data in a temporary place inside the app. Finally, another amazing reason why we should place state right in the URL is that doing so makes it possible to bookmark or to share the page with the exact UI state that the page had at the time that we are sharing or bookmarking it.
+
+For instance, in an online shop, we might be filtering products by color and by price. If that filter is saved in the URL we can then share the page with someone and they will see the exact same filters applied to the list of products. This enables a great user experience.
+
+Let's now see how we do this using the React Router. We know that in a URL like this:
+
+```
+www.example.com/app/cities/lisbon?lat=38.72&lng=-9.14
+```
+
+we know that we have a path which is `/app/cities`, and we can consider this part a state becasue it corresponds to the component that is being displayed. But this is not useful for state management in the way that we have been describing.
+
+For storing state in the URL we use **params** or **query strings**.
+
+- Params: stands for parameters and it is very useful to pass data to the next page
+- Query string: is useful to store some global state that should be accessible everywhere.
+
+To understand it a bit better, let's look at this example in more detail. The URL mentioned above corresponds to a certain view. In the URL we see that the param is `lisbon` and because of that the page that was loaded is about the city of Lisbon. So by creating a link that points to a URL with this param we are able to pass the city name to the next page whenever the user clicks on that link. If the URL had another city name as the param, then the loaded page would be based on that param.
+
+We also have the query string which works in a very similar way. In this example, we store the `lat` and `lng` pieces of state in the query string which corresponds to a certain position on the map. So the location of the city is reflected right in the URL. In this example, we leveraged the power of the URL to manage state in an effective way by reading the city name and the GPS location from the URL instead of using application state inside React.
+
+#### **Dynamic routes with URL parameters**
+
+To use `params` with React Router we do it in 3 steps:
+
+1. Create a new route
+2. Link to the new route
+3. In the new route, read the state from the URL.
+
+Let's follow these steps one by one in an example.
+
+```js
+<BrowserRouter>
+  <Routes>
+    <Route path="/" element={<Homepage />} />
+    <Route path="product" element={<Product />} />
+    <Route path="pricing" element={<Pricing />} />
+    <Route path="login" element={<Login />} />
+    <Route path="app" element={<AppLayout />}>
+      <Route
+        index
+        element={<CityList cities={cities} isLoading={isLoading} />}
+      />
+      <Route
+        path="cities"
+        element={<CityList cities={cities} isLoading={isLoading} />}
+      />
+      // This is the route for URL params
+      <Route path="cities/:id" element={<City />} />
+      <Route
+        path="countries"
+        element={<CountryList cities={cities} isLoading={isLoading} />}
+      />
+      <Route path="form" element={<p>Form</p>} />
+    </Route>
+    <Route path="*" element={<PageNotFound />} />
+  </Routes>
+</BrowserRouter>
+```
+
+Now whenever the URL takes the shape of `cities/[something]` it will then render the `City` component corresponding to the city's ID.
+
+So we now need to create a link in each of our `CityItem` components in order to create a URL that leads to a `City` component:
+
+```js
+function CityItem({ city }) {
+  const { cityName, emoji, date, id } = city;
+
+  return (
+    <li>
+      <Link className={styles.cityItem} to={`${id}`}>
+        <span className={styles.emoji}>{emoji}</span>
+        <h3 className={styles.name}>{cityName}</h3>
+        <time className={styles.date}>{formatDate(date)}</time>
+        <button className={styles.deleteBtn}>&times;</button>
+      </Link>
+    </li>
+  );
+}
+```
+
+> Note that we should only pass the city ID into the `to` prop of the `<Link>` component. This will make it so that the ID of the city will be added to the current URL. If we pass the ID with a `/` at the beginning, so like `/${id}`, it will add the ID to the root URL which is wrong.
+
+Now its time to read the data from the URL into the `City` component. In order to do this, we use the `useParams` hook provided by React Router.
+
+```js
+import { useParams } from "react";
+
+function City() {
+  const x = useParams();
+}
+```
+
+Now if we have a URL like this:
+
+```
+localhost:3000/app/cities/30498573
+```
+
+variable `x` will now be an object with the `id` property holding `30498573` as value. Why is this property called `id`? Because we defined the `path` prop of the `<Route />` component with as `path="cities/:id"`.
+
+#### **Reading and setting a query string**
+
+In the `Link` element we inserted for each `CityItem` component where we tried to form the URL with the city ID, we can now go on and set a query string.
+
+```js
+function CityItem({ city }) {
+  const { cityName, emoji, date, id, position } = city;
+
+  return (
+    <li>
+      <Link
+        className={styles.cityItem}
+        to={`${id}?lat=${position.lat}&lng=${position.lng}`}
+      >
+        <span className={styles.emoji}>{emoji}</span>
+        <h3 className={styles.name}>{cityName}</h3>
+        <time className={styles.date}>{formatDate(date)}</time>
+        <button className={styles.deleteBtn}>&times;</button>
+      </Link>
+    </li>
+  );
+}
+```
+
+The query string in the URL should always start with a `?` mark. Then we add a name for the value that is being stored in the URL, then we would haev an `=` sign between the variable name and the value, and finally the value itself would be inserted dynamically. This will make it so that as we click on a `CityItem` component in the UI, the URL will be formed as:
+
+```
+http://localhost:5173/app/cities/73930385?lat=38.727881642324164&lng=-9.140900099907554
+```
+
+So the `lat` and `lng` values are now globally accessible. For instance, the `Map` component that is working just on the same page, can now access these variables to load the city location on the map.
+
+So now we are going to read the `lat` and `lng` values from the URL into the `Map` component. To do this we use the `useSearchParams` custom hook. This is very similar to the `useState` hook. So it also returns an array with the first element being the state variable, and the second element being the state setter function.
+
+```js
+function Map() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  return <div className={styles.mapContainer}>Map</div>;
+}
+```
+
+Now you might think that the `lat` variable defined in the query string is simply accessible as a `lat` property on the `searchParams` object, but this is not the case. The `searchParams` is an object but in order to access variables defined in the query string, you should use the `.get()` method on it.
+
+```js
+function Map() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const lat = searchParams.get("lat");
+  const lng = searchParams.get("lng");
+
+  return (
+    <div className={styles.mapContainer}>
+      <h1>Map</h1>
+      <h1>
+        Position: {lat}, {lng}
+      </h1>
+    </div>
+  );
+}
+```
+
+We can also update the query string using the `setSearchParams` function. For instance, in the `Map` component, we can implement a button that `onClick`, updates the `searchParams` state to a specific value.
+
+```js
+function Map() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const lat = searchParams.get("lat");
+  const lng = searchParams.get("lng");
+
+  return (
+    <div className={styles.mapContainer}>
+      <h1>Map</h1>
+      <h1>
+        Position: {lat}, {lng}
+      </h1>
+      <button
+        onClick={() => {
+          setSearchParams({ lat: 23, lng: 50 });
+        }}
+      >
+        Change position
+      </button>
+    </div>
+  );
+}
+```
