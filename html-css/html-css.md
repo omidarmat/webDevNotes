@@ -27,10 +27,41 @@
 - [**Introduction to CSS**](#introduction-to-css)
   - [**Anatomy of a CSS code**](#anatomy-of-a-css-code)
   - [**Different types of implementing CSS**](#different-types-of-implementing-css)
-- [CSS selectors](#css-selectors)
-  - [Combining selectors](#combining-selectors)
-  - [Descendant selector](#descendant-selector)
+- [**CSS selectors**](#css-selectors)
+  - [**Combining selectors**](#combining-selectors)
+  - [**Descendant selector**](#descendant-selector)
+  - [**Class and ID selectors**](#class-and-id-selectors)
+    - [**ID selector**](#id-selector)
+    - [**Class selector**](#class-selector)
+    - [**Pseudo-class selector**](#pseudo-class-selector)
+    - [**Pseudo-element selector**](#pseudo-element-selector)
+    - [**Adjacent sibling selector**](#adjacent-sibling-selector)
+- [**CSS theory**](#css-theory)
+  - [**Conflicts between selectors**](#conflicts-between-selectors)
+  - [**Inheritance and the universal selector**](#inheritance-and-the-universal-selector)
+  - [**CSS box model**](#css-box-model)
+    - [Element height and width calculation](#element-height-and-width-calculation)
+      - [Changing the default behavior](#changing-the-default-behavior)
+    - [Global reset](#global-reset)
+    - [**Types of boxes**](#types-of-boxes)
+    - [**Absolute positioning**](#absolute-positioning)
 - [**Styling text**](#styling-text)
+- [**General Stylings**](#general-stylings)
+  - [**Background color**](#background-color)
+  - [**Border**](#border)
+  - [**Padding**](#padding)
+  - [**Margin**](#margin)
+  - [**Adding dimensions**](#adding-dimensions)
+  - [**Centering the webpage**](#centering-the-webpage)
+- [**Colors in CSS**](#colors-in-css)
+- [**Building layouts**](#building-layouts)
+  - [Float layouts](#float-layouts)
+  - [Flexbox layouts](#flexbox-layouts)
+    - [Flexbox container properties](#flexbox-container-properties)
+    - [Flexbox items properties](#flexbox-items-properties)
+  - [CSS grid](#css-grid)
+    - [CSS grid container properties](#css-grid-container-properties)
+    - [CSS grid items properties](#css-grid-items-properties)
 
 # **Introduction to HTML**
 
@@ -443,11 +474,11 @@ There are 3 places where we can write CSS.
 </head>
 ```
 
-# CSS selectors
+# **CSS selectors**
 
 Selectors help us manage the specificity of applying styles to elements. We can select multiple elements together. We can also select elements by their element name, their class names, their IDs, etc.
 
-## Combining selectors
+## **Combining selectors**
 
 We can select multiple HTML elements to declarte certain styles that want to be applied to all of them.
 
@@ -461,11 +492,328 @@ p {
 }
 ```
 
-## Descendant selector
+## **Descendant selector**
+
+This selector is used when you want to select elements that are child elements to another parent element. Take this example:
+
+```css
+header p {
+  font-size: 16px;
+}
+```
+
+This selector will select all the `<p>` elements that are children of the `<header>` element.
+
+> Using the descendant selector like the example above, which the selector basically reflects the HTML structure is not a good practice. This can lead to problems. If you include another `<header>` element in another component, the styles applied to the `<p>` element will also be applied in that component while you don't want this. This is where you can give names to HTML elements by using class names or IDs.
+
+## **Class and ID selectors**
+
+### **ID selector**
+
+In order to give an HTML element an ID you should insert it as an attribute to the element:
+
+```html
+<p id="author">Post text content</p>
+```
+
+To select this `<p>` element using its ID you can use this CSS syntax:
+
+```css
+#author {
+  font-size: 16px;
+}
+```
+
+> IDs are unique among all HTML elements in a document. You are not allowed to repeat this ID in another element. If you need to use a name multiple times for elements, you should use classes. In real-world applications, you almost never use IDs for HTML elements. Instead, you use classes in order to maintain the ability of developing your UI futher in the future.
+
+### **Class selector**
+
+In order to give an HTML element a class name you should insert it as an attribute to the element:
+
+```html
+<p class="author">Post text content</p>
+```
+
+> You can give an HTML element multiple class names by placing a space between them.
+
+```html
+<p class="author name">Omid Armat</p>
+<p class="author age">31</p>
+```
+
+To select this element using its class name you can use this CSS syntax:
+
+```css
+.author {
+  font-size: 16px;
+}
+
+.related {
+  list-style: none;
+}
+```
+
+> If the name that you are giving to an HTML element consists of more than one word, it is a convention to write them with a dash in between. For instance, `author-active`.
+
+> **IMPORTANT** | If you select an element multiple times using the element selector, the class selector and the ID selector, you might ask which CSS rule will apply? Refer to [conflicts between selectors](#conflicts-between-selectors).
+
+### **Pseudo-class selector**
+
+Here is a list of pseudo-classes available in CSS:
+
+- `:first-child`
+- `:last-child`
+- `:nth-child(2)`
+- `:nth-child(odd)`
+- `:nth-child(even)`
+- `:link`: only used for `<a>` elements that have the `href` attribute.
+- `:visited`: only used for `<a>` elements that are previously visited. In real-world applications, we usually use the same CSS rules for `:visited` and `:link` pseudo-classes.
+- `:hover`: used to style elements while they are hovered by the mouse.
+- `:active`: used to style elements while they are being clicked by the user. Once the user release the click on their mouse, the styling disappears. We usually use the same CSS rules for the `:hover` and `:active` pseudo-class selectors.
+
+In CSS there is a way to select the first of a list of identical elements. For instance, when you have multiple `<li>` elements as a list, you can select only the first one by using the `:first-child` pseudo-class:
+
+```css
+li:first-child {
+  font-size: 24px;
+}
+```
+
+This pseudo-class selector applies to all the `<li>` elements that appear first in any available list of `<li>` elements.
+
+> **IMPORTANT** | The `:first-child` pseudo-class selector only selects the target element if it actually is the first child. So, in the example above, if for any reason you are placing an `<img />` element before the first `<li>` element, then the first `<li>` element will no longer be the first child. The `<img />` element is now the first child. So the pseudo-class selector above will not apply anymore.
+
+### **Pseudo-element selector**
+
+Here is a list of pseudo-elements available in CSS:
+
+- `::first-letter`
+- `::first-line`
+- `::after` and `::before`: the `::after` creates a pseudo-element that will automatically be the very first child of the selected element. The `::before` creates pseudo-element that will automatically be the very last child of the selected element. These pseudo-elements requires the `content` property to be set to a string, even an empty one.
+
+Pseudo-elements are elements that don't exist in HTML but we can select and style in CSS. some common examples are the first letter or the first line of a paragraph or some other text. Pseudo-elements start with `::` in CSS syntax.
+
+```css
+h1::first-letter {
+  font-style: normal;
+}
+
+h1 {
+  position: relative;
+}
+
+h1::after {
+  content: "TOP";
+  background-color: #ffe70e;
+  font-weight: bold;
+  display: inline-block;
+  padding: 5px 10px;
+  position: absolute;
+  top: -15px;
+  right: -25px;
+}
+```
+
+> By default, any pseudo-element is an inline element. So in order to make the box model apply normally to it but not to create a line break, we should set the `display` property of it to `inline block`.
+
+### **Adjacent sibling selector**
+
+A sibling element is an element that is a part of the same parent element. Now an adjacent sibling of an element is the element that appears right after it. This selector syntax includes using `+` between elements.
+
+```css
+h3 + p {
+  color: red;
+}
+```
+
+# **CSS theory**
+
+## **Conflicts between selectors**
+
+Conflicts between selectors happens when multiple CSS selctors, and therefore multiple CSS rules, apply to the exact same element. Let's learn how CSS behaves in situations like this.
+
+When this situation happens, all styles or **all CSS rules actually apply**. However, if there are **duplicate CSS declarations** among these CSS rules, then CSS behvaes according to the **priority** that it gives to different selectors. Here is a descending list of priorities:
+
+1. Declarations marked with `!important`: you place the keyword at the end of a CSS declaration.
+2. Inline styles
+3. ID selector (`#`)
+4. Class selector (`.`) and pseudo-class selector (`:`)
+5. Element selector
+6. Universal selector (`*`)
+
+> If there are multiple selectors of the same type, for instance multiple ID selectors, then the last rule that appears in the code will be applied to the element.
+
+## **Inheritance and the universal selector**
+
+Inheritance is a mechanism by which some CSS properties get their values inherited from parent elements to child elements. This mechanism is utilized when we want to apply some styles to the whole webpage.
+
+```css
+body {
+  font-family: sans-serif;
+}
+```
+
+Not all CSS properties are inherited. Mostly the ones related to text styling are inherited. Many other CSS properties are not inherited. For instance, if you add a `border-top` property to the `<body>` element, it will not be applied to all the elements inside it. Here is a list of some CSS properties related to text that get inherited:
+
+- `font-family`
+- `font-size`
+- `font-weight`
+- `font-style`
+- `color`
+- `line-height`
+- `letter-spacing`
+- `text-align`
+- `text-transform`
+- `text-shadow`
+- `list-style`
+
+Keep in mind that inherited properties can be very easily over-written by rules mentioned later in the code or by selectors with higher priorities.
+
+Now you might ask what if you want to apply a CSS rule to all the elements on your page while that CSS rule does not get inherited? This is where the universal selector comes to play. The universal selector selects every single element on the page. The universal selector is almost always used to implement a [global reset](#global-reset) to the [CSS box model](#css-box-model).
+
+```css
+* {
+}
+```
+
+## **CSS box model**
+
+The CSS box model defines how elements are displayed on a webpage and how they are sized. In the CSS box model, each and every element on the webpage is considered a rectangular box. This rectangular box can have **content**, **border**, **space inside (padding)** and **space outside (margin)**.
+
+1. **Content:** the actual content of the element, which can be text, images, a table, etc. We can specify both the width and the height of the content area with specific CSS properties.
+2. **Border:** border is technically inside the element.
+3. **Padding:** the invisible white space between the content and the border. Padding is also inside the element.
+4. **Margin:** the invisible white space outside the element, which is used to create space between elements on the page.
+
+**Fill area:** area that gets filled with **backgroung color** or **background image**.
+
+### Element height and width calculation
+
+We can specify the height and the width of the content area. If we choose not to define them, the box model will imply them based on the box model. However, the implied height and width are not the final sizes of the element since the border and the padding are also taken into account. So thhis is how the final dimensions of the element are calculated by default in the box mode:
+
+Final element width = left border + left padding + width + right padding + right border
+
+Final element height = top border + top padding + height + bottom padding + bottom border
+
+As you see, the margin is not calculated in this default behavior. However, we can change this default behavior becasue it does not make sense.
+
+#### Changing the default behavior
+
+In order to change the default behavior of the CSS box model so that the values given to `height` and `width` properties of an element would simply specify the entire dimensions of that element, we can use the `box-sizing` property of the element ane set it to `border-box`. This way the final element width is determined by the `width` property that we set in CSS rules.
+
+In order to apply this to all elements in the page, we use the universal selector in CSS:
+
+```css
+* {
+  box-sizing: border-box;
+}
+```
+
+### Global reset
+
+The global reset is a technique used almost in all CSS code bases in order to make the process of adding white spaces to the elements easier. This technique involves using the universal selector and setting all the margins and paddings to zero.
+
+```css
+* {
+  box-sizing: border-box
+  margin: 0;
+  padding: 0;
+}
+```
+
+This piece of code is always written at the beginning of a CSS file. Note that the universal selector is easily overwritten by all other selectors.
+
+### **Types of boxes**
+
+In CSS we consider different elements as 2 different types of boxes:
+
+1. Inline box: these are boxes that only occupy the space that they need for their content. They cause no line breaks after themselves. The CSS box model applies in a different way to these elements; `height` and `width` do not apply. `padding` and `margin` are only applied horizontally.
+
+HTML elements that are considered inline boxes by CSS are:
+
+- `a`
+- `img`
+- `strong`
+- `em`
+- `button`
+
+You can set the box type of a block-level element to inline by using the `display` property.
+
+```css
+p {
+  display: inline;
+}
+```
+
+1. Block-level box: these are boxes that occupy all the space that they can (no matter the content) and they create line breaks after them. The box model applies to these boxes as we learned.
+
+HTML elements that are considered block-level by CSS are:
+
+- `body`
+- `main`
+- `header`
+- `footer`
+- `section`
+- `nav`
+- `aside`
+- `div`
+- `h1` to `h6`
+- `p`
+- `ul` and `ol` and their `li`s
+
+You can set the box type of an inline element to block-level by using the `display` property.
+
+```css
+strong {
+  display: block;
+}
+```
+
+3. Inline-block box: they look inline from the outside, but behaves like block-level on the inside. So they occupy the space they need for their content, and therefore they don't create line breaks after themselves. However, the CSS box model applies as we learned. So height and width are applied, and margins and paddings are applied in all directions. There are no HTML element that is by default an inline-block box, but you can set the box type of an element to inline-block by using the `display` property:
+
+```css
+a {
+  display: inline-block;
+}
+```
+
+### **Absolute positioning**
+
+In CSS there are a couple of different positioning modes but the more important ones are **normal flow** and **absolute positioning**.
+
+1. Normal flow: it is the default mode of positioning elements on the page. We can also achieve the normal flow by setting the `position` property of an element to `relative`. In this case, elements are laid out according to their order in the HTML code.
+2. Absolute positioning: this allows us to absolutely position elements anywhere in our page. This is achieved by setting the `position` property of an element to `absolute`. In this case the element is removed from the normal flow. It completely loses any impact on surrounding elements, and it can even overlap them. In order to actually position an absolutely positioned element, we can use the `top`, `left`, `right` and `bottom` properties. This poisitioning is calculated in relation to a relatively positioned container element. Of course, by default, this absolute positioning will be in relation to the viewport.
+
+As an example, imagine we want a like button to remain always in the same position when we scroll up or down in the page. This is where we need to position the button absolutely.
+
+```html
+<body>
+  <div>
+    <!-- main elements of the page -->
+  </div>
+  <button>Like</button>
+</body>
+```
+
+Now to position the button element absolutely we should do this:
+
+```css
+body {
+  position: relative;
+}
+
+button {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+```
+
+> The `position: relative` property should always be set on a parent element of the absolutely positioned element. This parent element should not necessarily be a direct parent.
 
 # **Styling text**
 
-We will now learn the CSS properties that you can use to style text.
+Here is a list of CSS properties that are used to style texts.
 
 ```css
 p {
@@ -479,7 +827,293 @@ p {
   /* line height will be 1.5 times the font size  */
   text-align: center;
   /* centers the text inside its parent element */
+  font-weight: bold;
+  text-decoration: none;
+  text-decoration: underline dotted orange;
+  /* text decoration is usually used to style <a> elements which are underlined by default. This is a shorthand property for multiple other CSS properties: text-decoration-line, text-decoration-style, and text-decoration-color.  */
 }
 ```
 
-> When you style a `<p>` element just like the example above, all other text elements that exist inside this `<p>` element will **inherit** the styles you declared unless you delare styles for them specifically. For instance, if you have a `<strong>` element inside the `<p>` element, the text inside the `<strong>` element will follow the styles declarations that you made for the `<p>` element which is the parent element.
+> When you style a `<p>` element just like the example above, all other text elements that exist inside this `<p>` element will **inherit** the styles you declared unless you delare styles for them specifically. For instance, if you have a `<strong>` element inside the `<p>` element, the text inside the `<strong>` element will follow the styles declarations that you made for the `<p>` element which is the parent element. Read more by referring to [Inheritance and the universal selector](#inheritance-and-the-universal-selector)
+
+# **General Stylings**
+
+In order to understand the behavior of CSS properties mentioned here you need a good understanding of the [CSS box model](#css-box-model).
+
+## **Background color**
+
+In order to give any block element a background color you should use the `background-color` CSS property:
+
+```css
+.main-header {
+  background-color: #f7f7f7;
+}
+```
+
+## **Border**
+
+To apply a border to a container element you can use the `border` CSS property. this property accepts first the width of the border line, second the style of the border line, and third the color of the border.
+
+```css
+.aside {
+  border: 5px solid #1098ad;
+}
+```
+
+CSS `border` property is a shorthand property for multiple other CSS properties that can define the width, the style, and the color of the border separately. But we usually go with the shorthand version.
+
+In case you want the border to be applied only to one side of the element:
+
+```css
+.aside {
+  border-top: 5px solid #1098ad;
+}
+```
+
+## **Padding**
+
+The padding property accepts a numeric value with a unit. It can also receive four different numeric values defining the padding on each side of the element, starting from the top padding and rotating clockwise.
+
+```css
+.main-header {
+  padding: 20px;
+  /* This will give 20px padding to all sides of the element */
+
+  padding: 20px 40px;
+  /* This will give 20px padding to top and bottom, and 40px to left and right */
+}
+```
+
+> This is a shorthand property for `padding-top`, `padding-right`, `padding-bottom` and `padding-left`.
+
+## **Margin**
+
+In order to create white space between one element and another we use the margin property.
+
+```css
+.main-header {
+  margin: 20px;
+  /* This is a shorthand property that behvaes in the exact same way as the padding property.  */
+}
+```
+
+> Margins and paddings are almost always set based on a **global reset** applied to the CSS box model.
+
+## **Adding dimensions**
+
+Using the `width` and `height` properties, we can set the dimensions of the element. But there is a point to remember here. For instance, when we set the height of an element to `80px` in the box model's default behavior, then the actual hight of the element will not be `80px`. The actual height of the element will be calculated based on the content, the padding on top and bottom and the border on top and bottom. In order to get rid of this unreasonable default behavior [more about this later...]
+
+We can add dimensions to image elements by using the `width` and `height` properties.
+
+```css
+.post-img {
+  width: 800px;
+}
+```
+
+> Specifing only one of the width or height properties will automatically preserve the image's aspect ratio and determine image's height based on that.
+
+> You can use the `%` as the unit of numeric values passed into the width and height properties. The percentage would then mean the percentage of the parent container's width or height. If the parent container of an image occupies the whole width of the screen, then the image would resize itself based on the percentage we set as its width or height. This brings us to the realm of building **responsive UIs**.
+
+## **Centering the webpage**
+
+In order to center the whole content of our webpage, we should first wrap all elements that exist in the `<body>` element into another container element, usually a `<div>`. Then we define the `<div>` element's width and margin. In this trick, we set the margin on right and left of the container element to `auto`.
+
+```css
+.container {
+  width: 700px;
+  margin: 0 auto;
+}
+```
+
+# **Colors in CSS**
+
+There are 2 different ways of defining colors in CSS.
+
+1. RGB or RGBA notation
+
+```css
+p {
+  /* RGB notation */
+  color: rgb(244, 179, 63);
+
+  /* RGBA notation (A stands for Alpha) */
+  color: rgba(244, 179, 63, 0.7);
+}
+```
+
+2. Hexadecimal notation
+
+```css
+p {
+  color: #f4b33f;
+}
+```
+
+# **Building layouts**
+
+Layouts is the way text, images, and other content is places and arranged on a webpage. Layout gives a page a visual structure, into which we place our content.
+
+Building a layout means arrangin page elements into a visual structure, instead of simply having them placed on after another (normal flow).
+
+There are basically 2 types of layout:
+
+1. Page layout: laying out the elements inside a webpage
+2. Component layout: page layouts are made up of components. Components themselves need to have some kind of layout, because they are also made up of smaller piece of content. Now let's learn the 3 ways of creating layouts in CSS.
+
+## Float layouts
+
+The old way of building layouts of all sizes, using the `float` CSS property. They are still used but they are getting outdated fast.
+
+## Flexbox layouts
+
+Modern way of laying out elements in a 1-dimensional row without using floats. These are perfect for component layouts.
+
+The main idea behind flexbox is that empty space inside a container element can be automatically divided by its child elements.
+
+Flexbox makes it easy to automatically align items to one another inside a parent container, both horizontally and vertically.
+
+Flexbox solves common problems such as vertical centering and creating equal-height columns.
+
+A flexbox layout is applied to a container element in terms of CSS rules application.
+
+```css
+.container {
+  display: flex;
+}
+```
+
+This will arrange all direct children inside the container element side-by-side along the **main axis**. The other prependicular axis is called **cross axis**, along which we can arrange flexbox items using the `flex-direction` property.
+
+We can now specify some CSS properties for the flexbox container and for the flexbox items.
+
+Horizontally, each flexbox item would occupy the space necessary for their content. However, vertically, all the flex items would be as tall as the tallest element.
+
+### Flexbox container properties
+
+```css
+.container {
+  display: flex;
+  gap: 20px;
+  /* Specifies the space between flexbox items inside the container */
+  align-items: center;
+  /* This defines the vertical alignment of flexbox items inside the container. It can accept flex-start, flex-end, stretch, baseline */
+  justify-content: center;
+  /* This defines the horizontal alignment of flexbox items inside the continer. It can accept flex-start, flex-end, center, space-between, space-around, space-evenly */
+  flex-direction: row;
+  /* Specifies the axis along which the flexbox items are arranged. It accepts row-reverse, column, column-reverse */
+  flex-wrap: wrap;
+  /* This allows items to wrap into a new line if they are too large. It also accepts wrap, wrap-reverse */
+  align-content: stretch;
+  /* This only applies when there are multiple lines. It also accepts flex-start, flex-end, center, space-between, space-arround */
+}
+```
+
+### Flexbox items properties
+
+```css
+.flex-item {
+  align-self: auto;
+  /* This overwrites align-items for individual flexbox items  */
+  flex-grow: 0;
+  /* This allows an element to grow. 0 means no, 1 and more means yes. If the content and dimensions of flexbox items arrange them in a way that free space is available inside the container, then setting grow to 1 will allow the element to grow and use the available free space. Otherwise, items will only occupy the space they need for their content. Setting grow to different values for individual flexbox items will allow them to grow and occupy different portions of the free space. */
+  flex-shrink: 1;
+  /* This allows an element to shrink. 0 means no, 1 and more means yes. If the content and dimensions of the flexbox items is set in a way that pushes them out of the flexbox container, setting the shrink property to 1 will allow items with smaller content to shrink in order to fit the elements into the flexbox container as mush as possible. */
+  flex-basis: 100px;
+  /* Also accepts auto. Defines an item's width, instead of the width property. This is not a rigid value. If an element cannot fit into the value set for it, it will grow. */
+  flex: 0 1 auto;
+  /* Recommended shorthand for flex-grow, flex-shrink, and fles-basis.  */
+  order: 0;
+  /* Controles order of items. -1 makes item first, 1 makes it last. */
+}
+```
+
+## CSS grid
+
+Designed for laying out elements in a fully-fledged 2-dimensional grid. This is perfect for page layouts and complex components.
+
+The main idea behind CSS grid is that we divide a container element into rows and columns that can be filled with its child elements.
+
+In two dimensional contexts, CSS grid allows us to write less nested HTML and easier-to-read CSS.
+
+CSS grid is not meant to replace flexbox. Instead, they work perfectly together.
+
+A CSS grid layout is applied to a container element in terms of CSS rules application. Then we should specify how many columns the grid should have. the rows are almost always created by the content itself.
+
+```css
+.container {
+  display: grid;
+  grid-template-columns: 250px 150px;
+}
+```
+
+This will create 2 columns in the grid container, one with 250px width, and another with 150px width. Now if you have more than 2 grid items, they will automatically be arranged in subsequent rows.
+
+Each row in a CSS grid will have the height of the tallest grid item in that row. So the height of different rows in a CSS grid may not be the same. We can however set the number of rows and their height explicitely. However, this is not a normal practice:
+
+```css
+.container {
+  display: grid;
+  grid-template-columns: 250px 150px;
+  grid-template-rows: 300px 200px;
+}
+```
+
+In CSS grid we have a **row axis** and **column axis**. **Grid lines** are imaginary lines that seperate rows and columns. Grid lines are labled with numbers which we can use to place a grid item exactly in a specific place in the grid. Intersection of grid lines create the **grid cells** where the grid items are placed.
+
+The `fr` unit is almost always used with the CSS grid and many other layout features of CSS. `fr` stands for fraction. Setting the size of a column in CSS grid to `1fr` will allow the column to fill up all the available space.
+
+```css
+.container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  /* The 2 columns  will occupy the same width of the available space */
+  grid-template-columns: 2fr 1fr;
+  /* The column with 2fr will occupy twice the width of the other column with 1fr */
+  grid-template-columns: 1fr 1fr 1fr auto;
+  /* The forth column will occupy only the width that it needs for its content. */
+  grid-template-columns: repeat(4, 1fr);
+  /* The same as writing 1fr four times */
+}
+```
+
+### CSS grid container properties
+
+```css
+.container {
+  display: grid;
+  grid-template-columns: 250px 150px;
+  /* To stablish the grid row and column tracks. One length unit for each track is required. Any unit can be used. The new 'fr' unit is used to fill unused space. */
+  gap: 30px;
+  /* Defines gap both horizontally and vertically */
+  column-gap: 30px;
+  /* Defines gap between columns */
+  row-gap: 50px;
+  /* Defines gap between rows */
+  justify-items: stretch;
+  /* To align items horizontally inside cells horizontally. Also accepts start, center, end */
+  align-items: stretch;
+  /* To align items vertically inside cells vertically. Also accepts start, center, end */
+  justify-content: start;
+  /* To align grid tracks horizontally inside grid container. Only applies if container is larger than the grid. Also accepts center, end. Not very important. */
+  align-content: start;
+  /* To align grid tracks vertically inside grid container. Only applies if container is larger than the grid. Also accepts center, end. Not very important. */
+}
+```
+
+### CSS grid items properties
+
+```css
+.grid-item {
+  grid-column: 1 / 3;
+  grid-column: 1 / span 2;
+  grid-column: 1 / -1;
+  /* To place a grid item into a specific grid cell or across multiple cells, based on grid line numbers. The 'span' keyword followed by the number of columns across which the item should be spanned can be used. -1 always refer to the last grid line. */
+  grid-row: 2 / 4;
+  /* To place a grid item into a specific grid cell, based on grid line numbers. The 'span' keyword followed by the number of columns across which the item should be spanned can be used. -1 always refer to the last grid line. */
+  justify-self: stretch;
+  /* To overwrite justify-items and align-items of the grid container for grid items. Also accepts start, center, end */
+  align-self: stretch;
+  /* To overwrite justify-items and align-items of the grid container for grid items. Also accepts start, center, end */
+}
+```
