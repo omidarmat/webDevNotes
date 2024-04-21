@@ -12,6 +12,7 @@
     - [**Lists**](#lists)
       - [**Ordered list**](#ordered-list)
       - [**Unordered list**](#unordered-list)
+    - [**Block quote**](#block-quote)
   - [**Images**](#images)
     - [**`src` and `alt`**](#src-and-alt)
     - [**`width` and `height`**](#width-and-height)
@@ -23,6 +24,7 @@
     - [**Footer**](#footer)
     - [**Aside element**](#aside-element)
   - [**Button element**](#button-element)
+  - [**Table element**](#table-element)
 - [**HTML entities**](#html-entities)
 - [**Introduction to CSS**](#introduction-to-css)
   - [**Anatomy of a CSS code**](#anatomy-of-a-css-code)
@@ -40,9 +42,9 @@
   - [**Conflicts between selectors**](#conflicts-between-selectors)
   - [**Inheritance and the universal selector**](#inheritance-and-the-universal-selector)
   - [**CSS box model**](#css-box-model)
-    - [Element height and width calculation](#element-height-and-width-calculation)
-      - [Changing the default behavior](#changing-the-default-behavior)
-    - [Global reset](#global-reset)
+    - [**Element height and width calculation**](#element-height-and-width-calculation)
+      - [**Changing the default behavior**](#changing-the-default-behavior)
+    - [**Global reset**](#global-reset)
     - [**Types of boxes**](#types-of-boxes)
     - [**Absolute positioning**](#absolute-positioning)
 - [**Styling text**](#styling-text)
@@ -53,15 +55,28 @@
   - [**Margin**](#margin)
   - [**Adding dimensions**](#adding-dimensions)
   - [**Centering the webpage**](#centering-the-webpage)
+  - [**Stroke**](#stroke)
+  - [**Box shadow**](#box-shadow)
+  - [**Border radius**](#border-radius)
+  - [**Transform**](#transform)
+  - [**Cursor**](#cursor)
+  - [**Styling a table**](#styling-a-table)
+  - [**Background image**](#background-image)
+  - [**Styling `<img />` elements**](#styling-img--elements)
+  - [**Overflow**](#overflow)
+  - [**Adding animation**](#adding-animation)
+  - [**Sticky navigation**](#sticky-navigation)
 - [**Colors in CSS**](#colors-in-css)
 - [**Building layouts**](#building-layouts)
-  - [Float layouts](#float-layouts)
-  - [Flexbox layouts](#flexbox-layouts)
-    - [Flexbox container properties](#flexbox-container-properties)
-    - [Flexbox items properties](#flexbox-items-properties)
-  - [CSS grid](#css-grid)
-    - [CSS grid container properties](#css-grid-container-properties)
-    - [CSS grid items properties](#css-grid-items-properties)
+  - [**Float layouts**](#float-layouts)
+  - [**Flexbox layouts**](#flexbox-layouts)
+    - [**Flexbox container properties**](#flexbox-container-properties)
+    - [**Flexbox items properties**](#flexbox-items-properties)
+  - [**CSS grid**](#css-grid)
+    - [**CSS grid container properties**](#css-grid-container-properties)
+    - [**CSS grid items properties**](#css-grid-items-properties)
+  - [**Responsive design**](#responsive-design)
+    - [**`rem` and `max-width`**](#rem-and-max-width)
 
 # **Introduction to HTML**
 
@@ -250,6 +265,18 @@ To create an unordered list you should use `<ul>` element, and for each list ite
 </ul>
 ```
 
+### **Block quote**
+
+To create a block quote we use the `<blockquote>` HTML element that is usually used for marking up a testimonial in webpages.
+
+```html
+<blockquote>
+  <p>Sample text for testimonial</p>
+  <p>Author: Omid Armat</p>
+  <p>Job: Junior developer</p>
+</blockquote>
+```
+
 ## **Images**
 
 To insert an image into your webpage you need to use the `<img />` element. This element has no closing tag and therefore no contact.
@@ -394,6 +421,66 @@ The `<button>` element is usually used when you want to add some functionality f
 <button></button>
 ```
 
+## **Table element**
+
+In order to create a table in HTML, you use the `<table>` element. Then for each table row we use the `<tr>` element inside the `<table>`. Finally inside each `<tr>` element we use one `<td>` element for placing table data in each cell.
+
+```html
+<table>
+  <tr>
+    <td>Chair</td>
+    <td>The laid back</td>
+    <td>The worker bee</td>
+    <td>The chair 4/2</td>
+  </tr>
+  <tr>
+    <td>Width</td>
+    <td>80cm</td>
+    <td>60cm</td>
+    <td>220cm</td>
+  </tr>
+  <tr>
+    <td>Depth</td>
+    <td>70cm</td>
+    <td>65cm</td>
+    <td>80cm</td>
+  </tr>
+</table>
+```
+
+However, this will simply put the table data right next to each other in a table with no visible styles. You should use CSS to style the table and make its cells and borders visible. Refer to [styling a table](#styling-a-table).
+
+We also have `<thead>` and `<tbody>` elements for a table. To tell HTML that the first row of the table is actually the table head, we wrap the first `<tr>` element in a `<thead>` element and change the `<tr>` elemtns inside to `<th>` elements. We then wrap the rest of the rows in a `<tbody>` element. We can also mark the first element of each row as a table head element.
+
+```html
+<table>
+  <thead>
+    <tr>
+      <th>Chair</th>
+      <th>The laid back</th>
+      <th>The worker bee</th>
+      <th>The chair 4/2</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>Width</th>
+      <td>80cm</td>
+      <td>60cm</td>
+      <td>220cm</td>
+    </tr>
+    <tr>
+      <th>Depth</th>
+      <td>70cm</td>
+      <td>65cm</td>
+      <td>80cm</td>
+    </tr>
+  </tbody>
+</table>
+```
+
+This will make the `<th>` elements appear bold in the webpage. They will also be automatically centered horizontally in their cells.
+
 # **HTML entities**
 
 HTML entities are basically some symbols that we can insert them into our HTML text elements using a special syntax that always starts with `&` and ends with a `;`. There are whole tables provided on the web, providing you with a list of HTML entities that you can use.
@@ -457,7 +544,7 @@ There are 3 places where we can write CSS.
 
 > This is a better way of implementing CSS, but there is yet another better way. If you have a lot of CSS code this will make the HTML file unmanagable.
 
-3. External CSS: In this way of implementing CSS, you create a new file in your project directoy, for instance, `style.css`. Then we need a way of connecting the HTML file to the CSS file. This is done by inserting a `<link>` element in the `head` element of the HTML document.
+3. External CSS: In this way of implementing CSS, you create a new file in your project directoy, for instance, `style.css`. Then we need a way of connecting the HTML file to the CSS file. This is done by inserting a `<link />` element in the `head` element of the HTML document.
 
 ```html
 <head>
@@ -657,7 +744,7 @@ Not all CSS properties are inherited. Mostly the ones related to text styling ar
 
 - `font-family`
 - `font-size`
-- `font-weight`
+- `font-weight`: accepts both keywords (such as `bold`) and numbers (given by the font family)
 - `font-style`
 - `color`
 - `line-height`
@@ -687,7 +774,7 @@ The CSS box model defines how elements are displayed on a webpage and how they a
 
 **Fill area:** area that gets filled with **backgroung color** or **background image**.
 
-### Element height and width calculation
+### **Element height and width calculation**
 
 We can specify the height and the width of the content area. If we choose not to define them, the box model will imply them based on the box model. However, the implied height and width are not the final sizes of the element since the border and the padding are also taken into account. So thhis is how the final dimensions of the element are calculated by default in the box mode:
 
@@ -697,7 +784,7 @@ Final element height = top border + top padding + height + bottom padding + bott
 
 As you see, the margin is not calculated in this default behavior. However, we can change this default behavior becasue it does not make sense.
 
-#### Changing the default behavior
+#### **Changing the default behavior**
 
 In order to change the default behavior of the CSS box model so that the values given to `height` and `width` properties of an element would simply specify the entire dimensions of that element, we can use the `box-sizing` property of the element ane set it to `border-box`. This way the final element width is determined by the `width` property that we set in CSS rules.
 
@@ -709,7 +796,7 @@ In order to apply this to all elements in the page, we use the universal selecto
 }
 ```
 
-### Global reset
+### **Global reset**
 
 The global reset is a technique used almost in all CSS code bases in order to make the process of adding white spaces to the elements easier. This technique involves using the universal selector and setting all the margins and paddings to zero.
 
@@ -769,6 +856,8 @@ strong {
 }
 ```
 
+> The `<section>` element is usually used as a very generic part of any HTML document. It is a common practice to separate different sections of your webpage using the `<section>` element.
+
 3. Inline-block box: they look inline from the outside, but behaves like block-level on the inside. So they occupy the space they need for their content, and therefore they don't create line breaks after themselves. However, the CSS box model applies as we learned. So height and width are applied, and margins and paddings are applied in all directions. There are no HTML element that is by default an inline-block box, but you can set the box type of an element to inline-block by using the `display` property:
 
 ```css
@@ -811,6 +900,17 @@ button {
 
 > The `position: relative` property should always be set on a parent element of the absolutely positioned element. This parent element should not necessarily be a direct parent.
 
+Absolute positioning is also used when you need to place a child element at the very center (horizontally or vertically) of the parent container element. In this case, you may think that setting the `top` property of the child element to 50% will place it correcly as you wish, but it won't. This is becasue CSS will center the top of the child element in the parent container. So you should manually compensate for the child element's dimensions. To do this you should use the `transform` property and use the `translate` CSS function to move the element 50% of its own dimension.
+
+```css
+.btn {
+  position: absolute;
+  top: 50%; /* in relation to the parent element */
+  left: 0;
+  transform: translate(-50%, -50%); /* in relation to the element itself */
+}
+```
+
 # **Styling text**
 
 Here is a list of CSS properties that are used to style texts.
@@ -831,6 +931,8 @@ p {
   text-decoration: none;
   text-decoration: underline dotted orange;
   /* text decoration is usually used to style <a> elements which are underlined by default. This is a shorthand property for multiple other CSS properties: text-decoration-line, text-decoration-style, and text-decoration-color.  */
+  letter-spacing: 0.5px;
+  /* defines the space between letters. This property is not set using the 'rem' unit since it is a very small dimension */
 }
 ```
 
@@ -859,6 +961,8 @@ To apply a border to a container element you can use the `border` CSS property. 
   border: 5px solid #1098ad;
 }
 ```
+
+> The border property can simply be set to `none` in case you don't want any borders around the element.
 
 CSS `border` property is a shorthand property for multiple other CSS properties that can define the width, the style, and the color of the border separately. But we usually go with the shorthand version.
 
@@ -915,6 +1019,17 @@ We can add dimensions to image elements by using the `width` and `height` proper
 
 > You can use the `%` as the unit of numeric values passed into the width and height properties. The percentage would then mean the percentage of the parent container's width or height. If the parent container of an image occupies the whole width of the screen, then the image would resize itself based on the percentage we set as its width or height. This brings us to the realm of building **responsive UIs**.
 
+You can set the dimensions of an element using the `vw` and `vh` units which stand for **viewport width** and **viewport height** respectively.
+
+```css
+header {
+  height: 100vh;
+  /* This will make the header to occupy 100% of the viewport height */
+  width: 100vw;
+  /* This will make the header occupy 100% of the viewport width. This unit is rarely used, becasue container elements are usually block elements and therefore they almost always occupy the entire width of the page */
+}
+```
+
 ## **Centering the webpage**
 
 In order to center the whole content of our webpage, we should first wrap all elements that exist in the `<body>` element into another container element, usually a `<div>`. Then we define the `<div>` element's width and margin. In this trick, we set the margin on right and left of the container element to `auto`.
@@ -923,6 +1038,271 @@ In order to center the whole content of our webpage, we should first wrap all el
 .container {
   width: 700px;
   margin: 0 auto;
+  /* Using this technique with the margin property requires the container to have a specified width */
+}
+```
+
+## **Stroke**
+
+The `stroke` property is used for SVG vector graphics that are inserted into the HTML code, usually as icons. It accepts a color value.
+
+```css
+.icon {
+  stroke: #087f5b;
+}
+```
+
+## **Box shadow**
+
+The `box-shadow` property is a shorthand that receives first, the horizontal offset, second the vertical offset, third the amount of shadow blur, and finally the color and transparency of the shadow defined using the RGBA notation.
+
+```css
+.item {
+  box-shadow: 0 0 32px rgba(0, 0, 0, 0.1);
+}
+```
+
+> If you want to add a border to the inside of a button or link element, there is no way of doing it with the `border` porperty. Instead, you can use the `box-shadow` property with the `inset` keyword.
+
+```css
+.btn {
+  background-color: #fdf2e9;
+  box-shadow: inset 0 0 0 3px #fff;
+}
+```
+
+## **Border radius**
+
+This property is used to make the corners of a container box round. This property accetps a number with a unit as value.
+
+```css
+.img {
+  border-radius: 28px;
+}
+```
+
+Setting the border radius to `50%` will make an square element fully round as a circle.
+
+```css
+.btn {
+  height: 40px;
+  width: 40px;
+  border-radius: 50%;
+}
+```
+
+## **Transform**
+
+This property is used for many different things. One use case is to scale elements.
+
+```css
+img {
+  transform: scale(2);
+  /* This will double the current size of the element. Scaling elements may cause them to overlap other elements. */
+}
+```
+
+## **Cursor**
+
+In order to change the shape of the mouse cursor as it hovers over an element, you use the `cursor` property on the element.
+
+```css
+.btn {
+  cursor: pointer;
+}
+```
+
+## **Styling a table**
+
+Remember the table example we mentioned in the HTML section:
+
+```html
+<table>
+  <thead>
+    <tr>
+      <th>Chair</th>
+      <th>The laid back</th>
+      <th>The worker bee</th>
+      <th>The chair 4/2</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>Width</th>
+      <td>80cm</td>
+      <td>60cm</td>
+      <td>220cm</td>
+    </tr>
+    <tr>
+      <th>Depth</th>
+      <td>70cm</td>
+      <td>65cm</td>
+      <td>80cm</td>
+    </tr>
+  </tbody>
+</table>
+```
+
+We can style the whole `<table>` element to center it in the page and also give it a background color along with many other styles.
+
+```css
+table {
+  width: 800px;
+  background-color: red;
+  margin: 0 auto;
+  border: 1px solid #343a40;
+  /* This will add a border around the whole table */
+}
+```
+
+In order to add borders between all the rows and columns, we can select all the table elements, which is the `<td>` and `<th>` elements, and add a border to them:
+
+```css
+th,
+td {
+  border: 1px solid #343a40;
+  text-align: left;
+  /* We usually align the text in all cells to left. Remember that <th> elements are centered automatically */
+}
+```
+
+However, this will add duplicate borders and we can use the `border-collapse` property on the `<table>` element to remove duplicates.
+
+```css
+table {
+  border-collapse: collapse;
+}
+```
+
+> If you add background color to a table row, you will see empty lines between the row cells which are the space reserved for cell borders. This happens even if you don't specify any border for the table or the cells. So you might always need to set the `border-collapse` property of the `<table>` element to `collapse`.
+
+In order to style the table head, we can simply select the `<tr>` element inside the `<thead>`. We apply formatting to a table row.
+
+```css
+thead tr {
+  background-color: #087f5b;
+  color: #fff;
+}
+```
+
+In order to give all table columns the same width we can set the `width` property on all the `<th>` elements of the `<thead>`. For instance, if you have a table with 4 columns, you can do this:
+
+```css
+thead th {
+  width: 25%;
+}
+```
+
+In order to add a zebra stripe as the background of table rows, we can use CSS pseudo-class selectors. We basically select the odd rows and even ones and give them different background colors.
+
+```css
+tbody tr:nth-child(odd) {
+  background-color: green;
+}
+
+tbody tr:nth-child(even) {
+  background-color: blue;
+}
+```
+
+## **Background image**
+
+In order to insert an image as the background of a container element we use the `background-image` property and use the `url()` function which receives the image file address. This address can be either the file address in relation to the current CSS file, or it can be an actual web URL.
+
+```css
+header {
+  background-imge: url(hero.jpg);
+}
+```
+
+Setting only the background image property is usually not enough since the image's dimensions would not normally fit inside the container element. We can then use CSS properties like `background-size` property to position the image.
+
+```css
+header {
+  background-image: url(hero.jpg);
+  background-size: cover;
+  /* This will make the image always cover the container element no matter how the screen dimensions change.  */
+}
+```
+
+We can also add a color overlay on the image in case there are some text on the image that we want to make more visible. The `background-image` property can actually accept multiple layers of graphics.
+
+```css
+header {
+  background-imge: linear-gradient(to right, red, blue) url(hero.jpg);
+}
+```
+
+> This will place the linear gradient over the image.
+
+So the linear gradient function accepts first the direction of the gradient which can be defined in different ways. One way is to use the `to` keyword along with the direction mentioned as `right`, `top`, etc. Another way is to...
+
+The second and the third arguments passed into the linear gradient function are the colors that will make up the gradient.
+
+## **Styling `<img />` elements**
+
+You may sometimes need to manipulate the appearance of an image in order to make it match visually with your webpage design. This might include removing the color from logo images, changing the opacity, changing contrast or brightness, blurring and many more. To do all these things you need the `filter` property applied to the image element itself. This property can accept many different CSS functions to do the things mentioned above.
+
+```css
+.image {
+  filter: grayscale(100%);
+  /* This will make the image fully black and white. In case you want logos to be all gray, you can use the brightness function along with the opacity property */
+  filter: brightness(0);
+  opacity: 50%;
+  /* Brightness of 0 will make the image full dark black. Then the 50% opacity will make it gray */
+}
+```
+
+## **Overflow**
+
+This property determines whether the overflowing content of a container element will be out of reach or they will somehow be managed to include them in the container element. This property can be responsible for activating the **scroll** feature on a container element if it set to `scroll` on the container element.
+
+In special cases however, simply setting the `overflow` property to `scroll` is not enough. Imagine a list of elements arranged vertically in a flexbox container. If you set the `overflow` property to `scroll` in the container element, the default behavior of the flexbox will be to shrink the elements as much as necessary in order to fit all the elements inside the container's height. However, we might not want them to shrink. Then we would have to set the `flex-shrink` property on all the flexbox items to stop this behavior.
+
+```css
+.container {
+  display: flex;
+  flex-direction: column;
+  overflow: scroll;
+}
+
+.flex-item {
+  flex-shrink: 0;
+}
+```
+
+This will now activate the scroll feature on the container.
+
+The `overflow` property can also accept the `hidden` keyword as value. This will make the overflowing items hidden and out of reach.
+
+## **Adding animation**
+
+In order implement a smooth animation we use the `transition` property. This can have many use cases, but we will now study one example.
+
+If we want to apply an animation on the hover effect of a button, we apply the `transition` property on the button in the state before being hovered. The transition property can accept multiple values that describe the animation settings, but we should at least define 2 of them. First, we specify that on which CSS properties we want the transition to apply. If you are changing two CSS properties on hover and you want the animation to be applied on both of them, you can simply insert `all`. Then you need to give the transition property a duration. Usually `0.3s` is good. We can insert a third value which defines the type of the animation.
+
+```css
+.btn:link,
+.btn:visited {
+  transition: all 0.3s;
+}
+
+.btn:hover,
+.btn:active {
+  background-color: orange;
+  color: #fff;
+}
+```
+
+> Remember to always set the `transition` property on the original state of the element.
+
+## **Sticky navigation**
+
+In some projects you might want to implement a navigation bar that sticks to the top of the viewport no matter how far the user scorlls down the page. To make this technique work, it is a good practice to give a fixed height to the navigation container which is usually a header element.
+
+```css
+.header {
+  height: 9.6rem;
 }
 ```
 
@@ -950,6 +1330,8 @@ p {
 }
 ```
 
+We can use special CSS functions in order to style colors more creatively. For instance, we can use the `linear-gradient()` CSS function as the value for the `background-image` property. Refer to [background-image](#background-image) CSS porperty.
+
 # **Building layouts**
 
 Layouts is the way text, images, and other content is places and arranged on a webpage. Layout gives a page a visual structure, into which we place our content.
@@ -961,11 +1343,11 @@ There are basically 2 types of layout:
 1. Page layout: laying out the elements inside a webpage
 2. Component layout: page layouts are made up of components. Components themselves need to have some kind of layout, because they are also made up of smaller piece of content. Now let's learn the 3 ways of creating layouts in CSS.
 
-## Float layouts
+## **Float layouts**
 
 The old way of building layouts of all sizes, using the `float` CSS property. They are still used but they are getting outdated fast.
 
-## Flexbox layouts
+## **Flexbox layouts**
 
 Modern way of laying out elements in a 1-dimensional row without using floats. These are perfect for component layouts.
 
@@ -989,7 +1371,7 @@ We can now specify some CSS properties for the flexbox container and for the fle
 
 Horizontally, each flexbox item would occupy the space necessary for their content. However, vertically, all the flex items would be as tall as the tallest element.
 
-### Flexbox container properties
+### **Flexbox container properties**
 
 ```css
 .container {
@@ -1009,7 +1391,9 @@ Horizontally, each flexbox item would occupy the space necessary for their conte
 }
 ```
 
-### Flexbox items properties
+> In special cases, the `<body>` element can be set to act as a flexbox container in order to center an element inside it.
+
+### **Flexbox items properties**
 
 ```css
 .flex-item {
@@ -1028,7 +1412,17 @@ Horizontally, each flexbox item would occupy the space necessary for their conte
 }
 ```
 
-## CSS grid
+> Flexbox can also be used on an element with only one child element in case you need to center the child in the parent container. Using flexbox makes this process very easy. You simply set the parent container's `flex` property to `flex`, and then set both `align-items` and `justify-content` properties to `center`.
+
+```css
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+```
+
+## **CSS grid**
 
 Designed for laying out elements in a fully-fledged 2-dimensional grid. This is perfect for page layouts and complex components.
 
@@ -1077,7 +1471,7 @@ The `fr` unit is almost always used with the CSS grid and many other layout feat
 }
 ```
 
-### CSS grid container properties
+### **CSS grid container properties**
 
 ```css
 .container {
@@ -1101,7 +1495,7 @@ The `fr` unit is almost always used with the CSS grid and many other layout feat
 }
 ```
 
-### CSS grid items properties
+### **CSS grid items properties**
 
 ```css
 .grid-item {
@@ -1117,3 +1511,48 @@ The `fr` unit is almost always used with the CSS grid and many other layout feat
   /* To overwrite justify-items and align-items of the grid container for grid items. Also accepts start, center, end */
 }
 ```
+
+## **Responsive design**
+
+We need to think about responsive design from the very beginning of any project.
+
+Responsive design is a technique to make a webpage adjust its layout and visual style to any possible screen size. In practice, this means that responsive design makes websites usable on all devices.
+
+Responsive web design is a set of practices, not a separate technology. It is just CSS.
+
+There are 4 big ingredients to responsive design:
+
+1. **Fluid layouts:** to allow webpage to adapt to the current viewport width (or even height). This involves using `%` or `vw` or `vh` instead of `px` for elements that should adapt to viewport (usually for layout). You may also always need to use the `max-width` property instead of `width`.
+2. **Responsive units:** Use `rem` unit instead of `px` for most lengths. This makes it easy to scale the entire layout down or up automatically. One helpful trick here is to set `1rem` to `10px` for easy calculations.
+3. **Flexible images:** by default, images don't scale automatically as we change the viewport, so we need to fix that. Alwaays use `%` for image dimensions together with the `max-width` property.
+4. **Media queries:** brings all other ingredients together. This is used to change CSS styles on certain viewport widths called breakpoints. You almost always write media queries at the end of designing a full page.
+
+### **`rem` and `max-width`**
+
+By setting the `width` property to a specific value (`1000px`) on a container element, you actually fix the element's width regardless of the space available in the viewport. So if the viewport becomes smaller, the element would retain its width and the browser will automatically activate a horizontal scroller to show the element. But this is not a good thing in web design. To fix this we can use the `max-width` property.
+
+By setting the `max-width` property to a specific value (`1000px`) on a container element, you actually allow the element to occupy the specified width if there is enough space in the viewport. However, if the viewport changes so that there is not enough space, the element will shrink in width in order to fit into the viewport.
+
+The `rem` unit stands for Root Element's font size. The root of the document is the `<html>` element which is the parent element of all other elements. If we don't define any font size on the `<html>` element, then 1rem equals to the default font size, which is 16px if the user does not change it.
+
+It might seem strange to define length based on font size. But it is the strength of the `rem` unit. We can simply change the font size on the `<html>` element and that will automatically change all the dimensions specified in our page respectively.
+
+In order to use the `rem` unit with easier calculations we set the font size on the HTML element to 10px. Now 1rem is 10px.
+
+```css
+html {
+  font-size: 10px;
+}
+```
+
+This enables us to simply change the font size on the HTML element on different breakpoints of the **media queries**.
+
+However, this is not a good way to implement such a technique. This way we won't respect the user's definition of the browser's font size. In order to take the user's preference into account, we should define the font size of the HTML element with a percentage value of 62.5%. This value comes from dividing 10 by 16.
+
+```css
+html {
+  font-size: 62.5%;
+}
+```
+
+We would then change this percentage on different breakpoints of the media query.
