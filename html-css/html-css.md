@@ -2,6 +2,10 @@
   - [**Anatomy of an HTML element**](#anatomy-of-an-html-element)
     - [**Attributes**](#attributes)
   - [**HTML Document Structure**](#html-document-structure)
+    - [**Favicon**](#favicon)
+      - [**Favicon for browsers**](#favicon-for-browsers)
+      - [**Favicon for iOS**](#favicon-for-ios)
+      - [**Favicon for Android**](#favicon-for-android)
 - [**HTML elements**](#html-elements)
   - [**Text elements**](#text-elements)
     - [**Headings**](#headings)
@@ -16,6 +20,7 @@
   - [**Images**](#images)
     - [**`src` and `alt`**](#src-and-alt)
     - [**`width` and `height`**](#width-and-height)
+    - [**Image optimization**](#image-optimization)
   - [**Hyperlinks**](#hyperlinks)
   - [**Container elements**](#container-elements)
     - [**Page navigation element**](#page-navigation-element)
@@ -65,6 +70,7 @@
   - [**Styling `<img />` elements**](#styling-img--elements)
   - [**Overflow**](#overflow)
   - [**Adding animation**](#adding-animation)
+  - [**Smooth scrolling**](#smooth-scrolling)
   - [**Sticky navigation**](#sticky-navigation)
 - [**Colors in CSS**](#colors-in-css)
 - [**Building layouts**](#building-layouts)
@@ -77,6 +83,9 @@
     - [**CSS grid items properties**](#css-grid-items-properties)
   - [**Responsive design**](#responsive-design)
     - [**`rem` and `max-width`**](#rem-and-max-width)
+    - [**Media queries**](#media-queries)
+      - [**Media queries in practice**](#media-queries-in-practice)
+      - [**How to select media queries breakpoints**](#how-to-select-media-queries-breakpoints)
 
 # **Introduction to HTML**
 
@@ -158,12 +167,88 @@ Another important attribute that should usually be included is `charset` which d
 
 > Note that the `<meta />` is another element that has no closing tag.
 
+Another usecase of the `<meta />` tag is to add a description about the web page. It basically should include a short summary of our website's content. It is also the text that will appear for each of the search results in Google and other pages.
+
+```html
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="description"
+      content="Omnifood is an AI-powered food subscription that will make you eat healthy again, 365 days per year."
+    />
+  </head>
+  <body></body>
+</html>
+```
+
 Another element that is usually used inside the `<head>` element is the `<title>` element which determines the main title of the whole webpage. This title is displayed in the browser tab.
 
 ```html
 <head>
   <meta charset="UTF-8" />
-  <title>The basic language of the web</title>
+  <title>Omnifood &mdash; Never cook again!</title>
+</head>
+```
+
+### **Favicon**
+
+Favicon is the icon that appears in the browser tab. There are some technical rules involved in implementing your own icon. We should consider Favicon for different things.
+
+#### **Favicon for browsers**
+
+First of all, you need to create PNG file for the logo of your webpage. This file is usually called `favicon.png`. You need to resize this image file to 64x64 pixels. Then you should insert it in a `<link />` tag inside the `<head>` element.
+
+```html
+<head>
+  <!-- Browser -->
+  <link rel="icon" href="img/favicon.png" />
+</head>
+```
+
+There are ways of adding website as a favourite to iOS and Android devices. So we should provide an icon for this feature.
+
+#### **Favicon for iOS**
+
+For iOS devices we need PNG file usually called `apple-touch-icon.png`. Then we should resize this image to 118x118 pixels.
+
+Then you include it in a `<link />` tag again.
+
+```html
+<head>
+  <!-- Browser -->
+  <link rel="icon" href="img/favicon.png" />
+  <!-- iOS -->
+  <link rel="apple-touch-icon" href="img/apple-touch-icon.png" />
+</head>
+```
+
+#### **Favicon for Android**
+
+For Android devices we need two PNG files with different dimensions, one with 192x192 pixels and another with 512x512 pixels.
+
+For Android devices, the process of including the favicon in the HTML works a bit differently. You basically need to create a new file right in the root of your project directory. This file should be called `manifest.webmanifest`.
+
+Inside this file, we write this code:
+
+```json
+{
+  "icons": [
+    { "src": "img/favicon-192.png", "type": "image/png", "sizes": "192x192" },
+    { "src": "img/favicon-512.png", "type": "image/png", "sizes": "512x512" }
+  ]
+}
+```
+
+Then you should refernce this file in your HTML file, using another `<link />` tag.
+
+```html
+<head>
+  <link rel="icon" href="img/favicon.png" />
+  <!-- iOS -->
+  <link rel="apple-touch-icon" href="img/apple-touch-icon.png" />
+  <!-- Androdi -->
+  <link rel="manifest" href="manifest.webmanifest" />
 </head>
 ```
 
@@ -305,6 +390,25 @@ We can specify the dimensions of the image loaded into the screen by using the c
 ```
 
 > Specifying only the `width` or the `height` attribute of the image will cause the browser to maintain the image's aspect ratio. If you specify both attributes you can override the aspect ratio and distort the image.
+
+### **Image optimization**
+
+You should consider optimizing the images you use in your webpage both in terms of **image dimensions** and **file size**.
+
+The whole process, in summary, is that you start your web design process with a huge image, if accessible of course. After your design is complete, you should check the largest width that your images will ever have in the rendered design on the screen. For instance, you see that an image will never be appear with a width bigger than 188. You round it up to 200 and double it up to 400. Why? Because You should account for the high-density screens as they need 2 pixels of the image to display 1 pixel in the design. So you go ahead and resize the image to have a width of 400 pixels. This was the first step of image optimization process.
+
+In the next step, you need to compress the image. There are many tools you can use. You can use the _Squoosh.app_ website to do it online. Then you place the image in your webpage. It is recommended to use the `webp` format for `png` images. However, you should consider browser support for the `webp` format since not all Safari browsers can display it. In order to fix this, you can use a trick with HTML.
+
+You should insert a `<picture>` element where you want your image to appear in the HTML code. Then inside this element, you should define two `<source />` tags, each pointing to a separate image file, one to the `webp` image, and the other to the `png` image. You also need to insert the `<img />` tag itself as a fallback option. This way, the browser will decide based on the two `<source />` elements which format it can load best.
+
+```html
+<picture>
+  <source srcset="img/hero.webp" type="image/webp" />
+  <source srcset="img/hero.png" type="image/png" />
+
+  <img src="img/hero.webp" class="hero-img" alt="Woman enjoying food" />
+</picture>
+```
 
 ## **Hyperlinks**
 
@@ -1296,6 +1400,52 @@ If we want to apply an animation on the hover effect of a button, we apply the `
 
 > Remember to always set the `transition` property on the original state of the element.
 
+## **Smooth scrolling**
+
+In order to implement a feature that enables the user to move to a specific section on the page by clicking on one of the link in the navigation bar, you should first specify an ID attribute on the section.
+
+```html
+<a href="#cta">Start eating well</a>
+<section id="cta"></section>
+```
+
+This is good, but what if we want to implement a 'smooth' scrolling? If you only want to account for Google Chrome and Firefox browsers, you don't need any JavaScript to do it. You just need to introduce a CSS declaration in the `html` element selector of your CSS file:
+
+```css
+html {
+  scroll-behavior: smooth;
+}
+```
+
+But in order to account for other browsers like Safari, you need to type some JavaScript code. So in JavaScript, you first need to select all links on your page.
+
+```js
+const allLinks = document.querySelectorAll("a:link");
+```
+
+This will basically return a `NodeList` of all links on your page. You can then attach an event listener to each of them. The callback function that you define in an event listener has access to the event object. You only use the event object to prevent the default behavior of links when their are clicked. Then you read the `href` attribute of the link element that is clicked in order to implement the scrolling destination. We actually want one scrolling to go the top of the page, and one scrolling to each section.
+
+```js
+const allLinks = document.querySelectorAll("a:link");
+allLinks.forEach(function (link) {
+  link.addEventListener("click", function (e) {
+    e.preventDefault();
+    const href = link.getAttribute("href");
+
+    // Scroll back to top
+    if(href==='#') window.scrollTo({
+      top: 0,
+      behavior: 'smooth';
+    })
+
+    // Scroll down to each section
+    if(href!== '#' && href.startsWith('#'))
+    const sectionEl = document.querySelector(href);
+  sectionEl.scrollIntoView({ behavior: 'smooth'})
+  });
+});
+```
+
 ## **Sticky navigation**
 
 In some projects you might want to implement a navigation bar that sticks to the top of the viewport no matter how far the user scorlls down the page. To make this technique work, it is a good practice to give a fixed height to the navigation container which is usually a header element.
@@ -1306,11 +1456,80 @@ In some projects you might want to implement a navigation bar that sticks to the
 }
 ```
 
+In order to achieve such an effect you should use a combination of CSS and JavaScript. What you should do is to first, define a specific class that creates the sticky navigation effect, and then apply or remove this class on or from the navigation element.
+
+However, applying the `position: fixed` declaration to the navigation will take it out of the flow of the HTML document and therefore a part of the hero section that was right after the navigation bar previously, is now positioned under the navigation bar. But this is not what we want. So we need to compensate for the height of the navigation bar and add some margin to the top of the hero section once the navigation bar becomes sticky. So you should also define a separate CSS rule for the hero section that makes the conpensation, but you want this rule to be applied only if the sticky effect is applied. What you should do is to give the sticky class to the `<body>` element which contains the `<header>` element which contains the navigation bar in it. Then apply the CSS rules for sticky navigation effect to the header element only if the parent element (`<hedaer>`) has the `sticky` effect attached to it. Then you can also add the compensation CSS rule only if the parent element (`<header>`) has the sticky class attached to it.
+
+```css
+.sticky .header {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  width: 100%;
+  z-index: 999;
+}
+
+.sticky .section-hero {
+  margin-top: 9.6rem;
+}
+```
+
+Then we would add this class to the body element or remove from it.
+
+```html
+<body class="sticky">
+  <header class="header">
+    <nav></nav>
+  </header>
+  <section class='section-hero'>
+</body>
+```
+
+So you want the sticky class attached to the body element once the hero section is scrolled over and gone out of the viewport. What you should do in JavaScript is to utilize the **Intersection Observer** to make your application observe the position of an specific element on your page.
+
+The intersection observer object, which we usually store in a variable as written below, receives a callback function and an object of options. The callback function is responsible for the action that should be performed as soon as the observer notices something about the element that it should observe.
+
+In this example, we want the observer to observe the hero section and make the navigation bar sticky as soon as the hero section moves out of the viewport.
+
+The object of options should contain a `root` property which determines where the target element should be observed or not. This property should be set to `null` when we want to observe the element through the viewport. Then we define a `threshold` property which determines at which visible amount of the target section, the observer should execute its callback funciton. If we set this to zero, it means that the callback function of the observer will only be executed when 0% of the target section is visible in the viewport. Setting it to 1 will make the callback function be executed when 100% of the target element is visible in the viewport.
+
+We can then define the callback function. The callback function has access to an array of `entries`. It basically receives an entry for each `threshold` value. Since we only have 1 value for the threshold, we will only receive the 1st element of the entries array which will be `entries[0]`.
+
+> The `threshold` can receive multiple values.
+
+The entry that we receive an `IntersectionObserverEntry` object that contains a lot of properties. Among all of them, you should look for `isIntersecting` property which will be `false` as soon as the target element moves out of the viewport. While it is inside the viewport, this property will hold `true`. We can use this property to implement the action of attaching the `sticky` class to the navigation bar.
+
+You may also need to make the sticky effect apply just a little bit sooner than the 0 threshold. You can actually define a `rootMargin` property in the object of options and set to a pixel amount and that will do the job. Tha amount is usually set to be equal to the fixed height that you defined earlier for the navigation bar.
+
+Then you also need to implement a scenario for removing the sticky navigation. You just need to add another condition to the callback function.
+
+```js
+const sectionHeroEl = document.querySelector(".section-hero");
+const observer = new IntersectionObserver(
+  function (entries) {
+    const ent = entries[0];
+    if (!ent.isIntersecting) {
+      document.body.classList.add("sticky");
+    }
+
+    if (ent.isIntersecting) {
+      document.body.classList.remove("sticky");
+    }
+  },
+  {
+    root: null,
+    threshold: 0,
+    rootMargin: "-80px",
+  }
+);
+observer.observe(sectionHeroEl);
+```
+
 # **Colors in CSS**
 
 There are 2 different ways of defining colors in CSS.
 
-1. RGB or RGBA notation
+1. **RGB or RGBA notation**
 
 ```css
 p {
@@ -1322,7 +1541,7 @@ p {
 }
 ```
 
-2. Hexadecimal notation
+2. **Hexadecimal notation**
 
 ```css
 p {
@@ -1556,3 +1775,81 @@ html {
 ```
 
 We would then change this percentage on different breakpoints of the media query.
+
+### **Media queries**
+
+Working with media queries can work with `max-width` property in desktop-first strategies, and with `min-width` property in mobile-first strategies.
+
+Let's say that we want to apply certain styles for the range between 0 and 600 pixels. We then write in the CSS file:
+
+```css
+@media (max-width: 600px) {
+}
+```
+
+This media query checks if the screen width is between 0 and 600 pixels, and if it is then all the styles in this media query will work. After 600 pixels it will stop working. So we can create more media queries.
+
+Now we define another media query for the range between 0 and 1200 pixels.
+
+```css
+@media (max-width: 1200px) {
+}
+```
+
+Inside these media queries we overwrite some specific parts of the global CSS, so the code that is outside of any media query.
+
+Now you might ask if we have a screen width of 400 pixels, which media query will apply? Both queries will apply because both are true. What will happen to conflicting CSS declarations? The one that appears last in the code is the one that will apply.
+
+#### **Media queries in practice**
+
+In order to make media queries actually work on our page, you need to include a `<meta />` tag in the `<head>` element of our HTML document.
+
+```html
+<meta name="viewport" content="width=device-width" , initial-scale="1.0" />
+```
+
+Without this line of code, responsive design will not work on mobile devices, because browsers on mobile devices will, by default, zoom the webpage until it fits the screen. But we don't want this. Therefore we will have to include this line of code in our HTML file.
+
+What we do in practice to implement media queries is that, first you create a new file dedicated to writing media queries. So in the CSS folder of your project, create a `queries.css` file. Then you would also have to link it to your HTML document using another `<link />` tag inside the `<head>` element.
+
+```html
+<link rel="stylesheet" href="css/queries.css" />
+```
+
+Now inside this new file you can create a media query and then inside it, you select an element an give it CSS declarations.
+
+There is one very important thing to remember about the responsive unit of `rem` in media queries. They do not respond to the `font-size: 62.5%` that we set for the `html` element. **So `rem` and `em` do not depend on HTML font size in media queries. Instead, `1rem` equals `16px`**. When we create media queries, we should take this point into account when targetting breakpoints. For instance, if you want to set a breakpoint on 1350 pixels, you should divide it by 16, and then mention the value with `em`.
+
+```css
+@media (max-width: 84em) {
+  /* This media query will apply to (84*16) 1344px width */
+  .section-hero {
+    max-width: 120rem;
+    /* This rem inside the media query has nothing to do with the em that we used to target a breakpoint. So here, 1rem still equals 10px. */
+    background-color: orange;
+  }
+
+  .heading-primary {
+    font-size: 4.4rem;
+  }
+}
+
+@media (max-width: 75em) {
+  html {
+    font-size: 56.25%;
+  }
+
+  .section-hero {
+    border: 20px dashed blue;
+    background-color: green;
+  }
+}
+```
+
+> Note that if the screen width goes below 600 pixels, the `background-color: green` will be applied by overwriting the background color defined in the 1200 pixels media query.
+
+Remember that at some point in managing media queries you are very likely to end up manipulating the HTML font size. If so, feel free to do it, because we actually changed the value of 1rem to use it right here.
+
+#### **How to select media queries breakpoints**
+
+Breakpoints are the viewport widths at which we want our design to change. The best strategy to select breakpoints is to consider the screen widths where our design breaks down. Taking this factor into account will actually make our design ready for any screen width.
