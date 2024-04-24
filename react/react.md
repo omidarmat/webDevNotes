@@ -122,6 +122,8 @@
     - [**Storing state in the URL**](#storing-state-in-the-url)
       - [**Dynamic routes with URL parameters**](#dynamic-routes-with-url-parameters)
       - [**Reading and setting a query string**](#reading-and-setting-a-query-string)
+    - [**Programmatic navigation with `useNavigate`**](#programmatic-navigation-with-usenavigate)
+    - [**Programmatic navigation with `Navigate`**](#programmatic-navigation-with-navigate)
 
 # **A first look at react**
 
@@ -1765,7 +1767,7 @@ This option scopes the CSS styles to a single component which is the proper way 
 
 CSS modules are similar to regular CSS files with the difference that we write one CSS file for each component. This also better reflects React's separation of concerns.
 
-Let's first learn all the fundamentals of CSS modules that you need. CSS moduels already comes with `create-react-app` and Vite. So you don't need to install any additional package. We should create one CSS file per component.
+Let's first learn all the fundamentals of CSS modules that you need. CSS modules already comes with `create-react-app` and Vite. So you don't need to install any additional package. We should create one CSS file per component.
 
 For instance, for a component file called `PageNav.jsx` we need to create a `PageNav.module.css` file in the `components` folder of our project.
 
@@ -4354,7 +4356,7 @@ npm install react-router-dom@6
 
 Since React version 6.4, there are 2 huge ways of defining routes in our code. We are now going to use the more traditional approach which is to define our routes in a declarative way. This means that we will use a couple of special components that React Router gives us to define our routes right in the JSX. This might seem confusing.
 
-So inside the `App.jsx` file, we use the `<BrowserRouter></BrowserRouter>` tag and make sure that it is imported in the file:
+So inside the `App.jsx` file, we use the `<BrowserRouter>` tag and make sure that it is imported in the file:
 
 ```js
 import { BrowserRouter } from "react-router-dom";
@@ -4366,7 +4368,7 @@ function App() {
 export default App;
 ```
 
-Then inside the `<BrowserRouter>` component, we need the actual `<Routes></Routes>` component.
+Then inside the `<BrowserRouter>` component, we need the actual `<Routes>` component.
 
 ```js
 import { BrowserRouter, Routes } from "react-router-dom";
@@ -4620,7 +4622,7 @@ In order to implement nested routes, we need to use the `<Route />` element with
 </Route>
 ```
 
-> Note that in the `path` prop of the nested apps, you don't need to rewrite the parent route. React is smart enough to understand the hierarchy of routes that you have implemented. Also note that for the `element` prop of the nested routes, it is no longer necessary to insert a component. You can simply insert regular HTML elements.
+> Note that in the `path` prop of the nested routes, you don't need to rewrite the parent route. React is smart enough to understand the hierarchy of routes that you have implemented. Also note that for the `element` prop of the nested routes, it is no longer necessary to insert a component. You can simply insert regular HTML elements.
 
 But now you might ask where would the `<p>` elements passed to the child routes be displayed in the UI? How are we now going to display one component or element inside another component? That is where the `<Outlet />` component provied by React Router comes into play.
 
@@ -4647,7 +4649,7 @@ function Sidebar() {
 
 So when React detects a nested route in the URL, it goes through the `<Route />` elements defined inside the parent `<Route>` element and selects the one corresponding to the nested route. Then it takes the related JSX from the corresponding component file and puts it in the place of the `<Outlet />` element defined in the parent component JSX. This is pretty similar to the concept of children prop, but in this case for the routes.
 
-> In this example, as it would be the case with many examples of nested routes, we may actually not want the bare parent route empty of any of the possible child components corresponding to the defined nested routes. This means that we show a list of `Cities` in the `App` layout component for the `app/cities` route, and we show a list of `Countries` in the `App` layout component for the `app/countries` route, but we actually don't want the page to render empty for the `/app` URL. So we want to display, for instance, the list of cities or any other content as a default render. This is where the **index route** comes to play. To implement an index route, we should another nested route in the parent route and pass an `index` prop to it in order to define it as an index route. See the code exmaple below:
+> In this example, as it would be the case with many examples of nested routes, we may actually not want the bare parent route empty of any of the possible child components corresponding to the defined nested routes. This means that we show a list of `Cities` in the `App` layout component for the `app/cities` route, and we show a list of `Countries` in the `App` layout component for the `app/countries` route, but we actually don't want the page to render empty for the `/app` URL. So we want to display, for instance, the list of cities or any other content as a default render. This is where the **index route** comes to play. To implement an index route, we should use another nested route in the parent route and pass an `index` prop to it in order to define it as an index route. See the code exmaple below:
 
 ```js
 <Route path="app" element={<AppLayout />}>
@@ -4788,13 +4790,13 @@ Now if we have a URL like this:
 localhost:3000/app/cities/30498573
 ```
 
-variable `x` will now be an object with the `id` property holding `30498573` as value. Why is this property called `id`? Because we defined the `path` prop of the `<Route />` component with as `path="cities/:id"`.
+variable `x` will now be an object with the `id` property holding `30498573` as value. Why is this property called `id`? Because we defined the `path` prop of the `<Route />` component with `path="cities/:id"`.
 
 #### **Reading and setting a query string**
 
 In the `Link` element we inserted for each `CityItem` component where we tried to form the URL with the city ID, we can now go on and set a query string.
 
-```js
+```jsx
 function CityItem({ city }) {
   const { cityName, emoji, date, id, position } = city;
 
@@ -4814,7 +4816,7 @@ function CityItem({ city }) {
 }
 ```
 
-The query string in the URL should always start with a `?` mark. Then we add a name for the value that is being stored in the URL, then we would haev an `=` sign between the variable name and the value, and finally the value itself would be inserted dynamically. This will make it so that as we click on a `CityItem` component in the UI, the URL will be formed as:
+The query string in the URL should always start with a `?` mark. Then we add a name for the value that is being stored in the URL, then we would have an `=` sign between the variable name and the value, and finally the value itself would be inserted dynamically. This will make it so that as we click on a `CityItem` component in the UI, the URL will be formed as:
 
 ```
 http://localhost:5173/app/cities/73930385?lat=38.727881642324164&lng=-9.140900099907554
@@ -4875,3 +4877,212 @@ function Map() {
   );
 }
 ```
+
+### **Programmatic navigation with `useNavigate`**
+
+Programmatic navigation means to move to a new URL without the user having to click on any link. A common usecase of this behavior is right after submitting a form. Many times, when the user submites a form, we want them to move to a new page on the application automatically. This is programmatic navigation.
+
+In our example project, we want to implement a programmatic navigation that changes the URL to render a form component once the user clicks on a certain location on the map.
+
+> Basically, some situations actually makes the developer implement programmatic navigation, because according to the UI and its expected functionality, there would essentially be no link for the user to click and move on to a specific URL. So in the mentioned example, forming the URL of the input form is not achieved by clicking on any link, because we have not defined our app to work that way. The input form should only get activated if the user clicks on a location on the map.
+
+In order to implement programmatic navigation in the example mentioned above we use the `useNavigate` hook. This hook returns a function that we can store in a variable, conventionally called `navigate`.
+
+Then on the whole map container we can attach an `onClick` event handler and pass a callback function where the `navigate()` function is called while the target path for the URL is passed into it.
+
+```jsx
+function Map() {
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const lat = searchParams.get("lat");
+  const lng = searchParams.get("lng");
+
+  return (
+    <div className={styles.mapContainer} onClick={() => navigate("form")}>
+      <h1>Map</h1>
+      <h1>
+        Position: {lat}, {lng}
+      </h1>
+      <button
+        onClick={() => {
+          setSearchParams({ lat: 23, lng: 50 });
+        }}
+      >
+        Change position
+      </button>
+    </div>
+  );
+}
+```
+
+This was one usecase of the navigate function. But we can also use the same function to navigate back, which is something that we cannot do just with `<Link />`s. In our example, when we render the input form as a result of going forward with the `navigate` function, we will have a _back_ button to move back from the input form. So we would have to use the `useNavigate` hook inside the `Form` component, but this time passing a different value into it; a number!
+
+```jsx
+function Form() {
+  const navigate = useNavigate();
+  const [cityName, setCityName] = useState("");
+  const [country, setCountry] = useState("");
+  const [date, setDate] = useState(new Date());
+  const [notes, setNotes] = useState("");
+
+  return (
+    <form className={styles.form}>
+      <div className={styles.row}>
+        <label htmlFor="cityName">City name</label>
+        <input
+          id="cityName"
+          onChange={(e) => setCityName(e.target.value)}
+          value={cityName}
+        />
+        {/* <span className={styles.flag}>{emoji}</span> */}
+      </div>
+
+      <div className={styles.row}>
+        <label htmlFor="date">When did you go to {cityName}?</label>
+        <input
+          id="date"
+          onChange={(e) => setDate(e.target.value)}
+          value={date}
+        />
+      </div>
+
+      <div className={styles.row}>
+        <label htmlFor="notes">Notes about your trip to {cityName}</label>
+        <textarea
+          id="notes"
+          onChange={(e) => setNotes(e.target.value)}
+          value={notes}
+        />
+      </div>
+
+      <div className={styles.buttons}>
+        <Button type="primary">Add</Button>
+        <Button
+          type="back"
+          onClick={(e) => {
+            e.preventDefault();
+            navigate(-1);
+          }}
+        >
+          &larr; Back
+        </Button>
+      </div>
+    </form>
+  );
+}
+```
+
+> Including a button element inside a form element will make it so that whenever we click on the button, a page reload will happen as a default behavior. So if you have your button inside the form element, remember to `preventDefault` behavior from happening.
+
+This time we pass `-1` to the `navigate` function. `-1` basically refers to the **number of steps that we want to go back in the browser's history**. We can also use `1` or `-2` or any other number if necessary! Usually we only need `-1`.
+
+### **Programmatic navigation with `Navigate`**
+
+There is also a declarative way of programmatic navigation. Let's now check out the `<Navigate />` component. It is not so much used anymore, but it is still important to learn because one important usecase of it is inside nested routes. Let's see what that means.
+
+As you can remember with the example project that we have been building, when we move to the `/app` route, we implemented an index route so that there would be a default render on this route that would make a list of cities visible. However, when this happens, the cities button on the webpage is not rendered as the active link, so its appearance is just the same as the button for countries. Now if we click on the cities button, the list of cities would still be there and the button gets the appearance of an active button and the URL will be updated to `/app/cities`. This is not a good thing to happen on an SPA. In order to fix this problem, we can use the `Navigate` component to immediately navigate to the cities component as soon as the user enters the `/app` route.
+
+Right now in our `App.jsx` file, we have both the index route and the cities route pointing to the exact same element, so the `CityList` component.
+
+```jsx
+function App() {
+  const [cities, setCities] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(function () {
+    async function fetchCities() {
+      try {
+        setIsLoading(true);
+        const res = await fetch(`${BASE_URL}/cities`);
+        const data = await res.json();
+        setCities(data);
+      } catch (err) {
+        alert("There was an error loading data...");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchCities();
+  }, []);
+
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Homepage />} />
+        <Route path="product" element={<Product />} />
+        <Route path="pricing" element={<Pricing />} />
+        <Route path="login" element={<Login />} />
+        <Route path="app" element={<AppLayout />}>
+          <Route
+            index
+            element={<CityList cities={cities} isLoading={isLoading} />}
+          />
+          <Route
+            path="cities"
+            element={<CityList cities={cities} isLoading={isLoading} />}
+          />
+          <Route path="cities/:id" element={<City />} />
+          <Route
+            path="countries"
+            element={<CountryList cities={cities} isLoading={isLoading} />}
+          />
+          <Route path="form" element={<Form />} />
+        </Route>
+        <Route path="*" element={<PageNotFound />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+```
+
+But let's now change the index route's element prop to point towards the `<Navigate />` component. And inside this component we can insert the `to` prop which will basically act as a redirect.
+
+```jsx
+function App() {
+  const [cities, setCities] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(function () {
+    async function fetchCities() {
+      try {
+        setIsLoading(true);
+        const res = await fetch(`${BASE_URL}/cities`);
+        const data = await res.json();
+        setCities(data);
+      } catch (err) {
+        alert("There was an error loading data...");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchCities();
+  }, []);
+
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Homepage />} />
+        <Route path="product" element={<Product />} />
+        <Route path="pricing" element={<Pricing />} />
+        <Route path="login" element={<Login />} />
+        <Route path="app" element={<AppLayout />}>
+          <Route index element={<Navigate replace to="cities" />} />
+          <Route
+            path="cities"
+            element={<CityList cities={cities} isLoading={isLoading} />}
+          />
+          <Route path="cities/:id" element={<City />} />
+          <Route
+            path="countries"
+            element={<CountryList cities={cities} isLoading={isLoading} />}
+          />
+          <Route path="form" element={<Form />} />
+        </Route>
+        <Route path="*" element={<PageNotFound />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+```
+
+> Note that we have inserted a `replace` keyword into the `Navigate` component. This keyword will replace the current element in the history stack of the browser. Otherwise, the browser's back button won't work.
