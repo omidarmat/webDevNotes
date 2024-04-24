@@ -44,6 +44,9 @@
         - [**Preventing race conditions**](#preventing-race-conditions)
       - [**Listening for keypress event on the document object**](#listening-for-keypress-event-on-the-document-object)
     - [**RECAP**](#recap)
+  - [**The Context API**](#the-context-api)
+    - [**Creating and providing a context**](#creating-and-providing-a-context)
+    - [**Advanced pattern: A custom provider and hook**](#advanced-pattern-a-custom-provider-and-hook)
   - [**React Fragments**](#react-fragments)
   - [**Styling React applications**](#styling-react-applications)
     - [**Inline styling**](#inline-styling)
@@ -1666,6 +1669,231 @@ The cleanup function is an optional part of any effect. It means that we don't h
 So as a practical guideline, remember that using a cleaup function becomes necessary whenever the side effect you introduced is executed again when the component is re-rendered or unmounted. For example, if you have implemented an HTTP request in your effect, this may create a situation in which your component re-renders while your first request is being done, starting a new second HTTP request, leading to the **race condition** bug. So you need to cleanup the previous request in such situations. Other examples include API subscription, starting a timer, or adding an event listener.
 
 > Remember a good rule about introducing effects: each effect should do only one thing. use the `useEffect` hook for each side effect seperately. This makes effects easier to cleanup.
+
+## **The Context API**
+
+Let's start with the problem that the context API solves. Imagine an application where you need to pass state into multiple deeply nested child components.
+
+The first solution that comes to mind is to simply pass the state variable as props all the way down until it reaches the components that need the state. However, this will create a new problem, because passing props down through multiple levels in the tree can become inconvenient. This problem is called prop drilling.
+
+> Remember that we previously mentioned **component composition** as a possible solution. But it is not always possible. Component composition with the `children` prop does not always solve this problem.
+
+We need a way of directly passing down state from a parent component into a deeply nested child component. React has already thought of that and has provided us with the Context API. The context API allows components everywhere in the tree to read state that a context shares.
+
+First of all, the context API is a system to pass data throughout the app without manually passing props down the component tree. It essentially allows us to **broadcast global state** to the entire app.
+
+The first part of the Context API is the **Provider**. The provider gives all child components access to a `value`. This provider can sit everywhere in the component tree, but it is common to place it at the very top.
+
+The second part of the Context API is the **value** that the provider provides to the components. The value is the data that we want to broadcast through the provider. We pass this value into the provider. This value usually contains one or more state variables and even some setter functions.
+
+Finally, we have the **Consumers**. Consumers are all the components that subscribe to the context, and therefore are able to read the provided context value.
+
+Now you might ask, what happens when the context value changes? When the context value is updated, all consumers of that value will get re-rendered. This means that now we have a new way in which component instances can be re-rendered. We already knew that state updates re-render a component, but now we know that an update to a context value also re-renders a component as long as that component is subscribed to that context.
+
+### **Creating and providing a context**
+
+We usually create a context in the top component of our application which is usually the `App` component. Inside this file, we call the `createContext()` function that is provided to us by React. Make sure that you import it from React first. This function returns a context that we can store in a variable. Into the `createContext` function we could pass a default value for the context. However, we usually never do that becasue that value can never change over time. So we normally leave the function empty or pass `null` into it.
+
+```jsx
+// Create a new context
+const PostContext = createContext();
+```
+
+> Note that the variable name we selected for the context starts with a capital letter. That is because the context is actually a component.
+
+Then we need to pass the value into the context provider. What we do in this step is to insert the `<PostContext.Provider>` component in our JSX in a way that it wraps all other components. However, this will not do anything on its own. So we have to pass the value into the provider.
+
+```jsx
+function App() {
+  // Some other logical code
+
+  return (
+    <PostContext.Provider
+      value={{
+        posts: searchedPosts, //derived state
+        onAddPost: handleAddPost, //handler function
+        onClearPosts: handleClearPosts, //handler function
+        searchQuery, //state variable
+        setSearchQuery, //state setter function
+      }}
+    >
+      <section>
+        <button
+          onClick={() => setIsFakeDark((isFakeDark) => !isFakeDark)}
+          className="btn-fake-dark-mode"
+        >
+          {isFakeDark ? "☀️" : "🌙"}
+        </button>
+
+        <Header
+          posts={searchedPosts}
+          onClearPosts={handleClearPosts}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+        />
+        <Main posts={searchedPosts} onAddPost={handleAddPost} />
+        <Archive onAddPost={handleAddPost} />
+        <Footer />
+      </section>
+    </PostContext.Provider>
+  );
+}
+```
+
+Usually we create one context per state domain. So for instance, in the example above, we would create a context only for the posts and call it `PostContext` and then another context for the search, and we would call it `SearchContext`. But here we just keep it simple.
+
+Now it is time to consume the context in all the components that need access to this data. In order to do this, we need to call the `useContext()` function provided by React and we pass the context that we created into this function. This function returns the entire value that we passed into the context. We can store it in a variable or we can immediately destructure and take out what we need for a specific component.
+
+For example, a header component of our imaginary project needs the `onClearPosts` handler function.
+
+```jsx
+function Header() {
+  const { onClearPosts } = useContext(PostContext);
+
+  return (
+    <header>
+      <h1>
+        <span>⚛️</span>The Atomic Blog
+      </h1>
+      <div>
+        <Results />
+        <SearchPosts />
+        <button onClick={onClearPosts}>Clear posts</button>
+      </div>
+    </header>
+  );
+}
+```
+
+Another component called `SearchPosts` needs the `searchQuery` and `setSearchQuery`:
+
+```jsx
+function SearchPosts() {
+  const { searchQuery, setSearchQuery } = useContext(PostContext);
+  return (
+    <input
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value)}
+      placeholder="Search posts..."
+    />
+  );
+}
+```
+
+And also the `Results` component needs the `posts` value.
+
+```jsx
+function Results() {
+  const { posts } = useContext(PostContext);
+  return <p>🚀 {posts.length} atomic posts found</p>;
+}
+```
+
+But let's now implement an advanced pattern in using the Context API.
+
+### **Advanced pattern: A custom provider and hook**
+
+The idea is to remove all the state and state updating logic from the main `App` component and place it into our own custom context provider component. It is basically just a refactoring of what we already have at this point. We are just going to have the different parts of implementing a context in different files.
+
+We start with creating a file in the `src` folder called `PostContext.jsx`. In that file, we paste the context creation code that we implemented previously in the `App` component. We also define a function called `PostProvider` which will be responsible for creating and exporting a provider.
+
+```jsx
+//PostContext.jsx
+import { createContext } from "react";
+const PostContext = createContext();
+function PostProvider() {}
+```
+
+Then we take all the state declaration and update logic from the `App` component and place it inside the `PostProvider` function. We also need to take the `<PostContext.Provider>` component that we implemented in the JSX of the `App` component and put it here in this file. We would finally export this function from this file.
+
+```jsx
+const PostContext = createContext();
+function PostProvider() {
+  const [posts, setPosts] = useState(() =>
+    Array.from({ length: 30 }, () => createRandomPost())
+  );
+  const [searchQuery, setSearchQuery] = useState("");
+  const searchedPosts =
+    searchQuery.length > 0
+      ? posts.filter((post) =>
+          `${post.title} ${post.body}`
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase())
+        )
+      : posts;
+
+  function handleAddPost(post) {
+    setPosts((posts) => [post, ...posts]);
+  }
+
+  function handleClearPosts() {
+    setPosts([]);
+  }
+
+  return (
+    <PostContext.Provider
+      value={{
+        posts: searchedPosts,
+        onAddPost: handleAddPost,
+        onClearPosts: handleClearPosts,
+        searchQuery,
+        setSearchQuery,
+      }}
+    ></PostContext.Provider>
+  );
+}
+
+export { PostContext, PostProvider };
+```
+
+However simply importing this into the `App.jsx` file and wrapping the `App` JSX into `<PostProvider></PostProvider>` won't work because what we pass into this post provider component is not received anywhere by the provider.
+
+```jsx
+import { PostProvider, PostContext } from "./PostContext";
+function App() {
+  const [isFakeDark, setIsFakeDark] = useState(false);
+  // Whenever `isFakeDark` changes, we toggle the `fake-dark-mode` class on the HTML element (see in "Elements" dev tool).
+  useEffect(
+    function () {
+      document.documentElement.classList.toggle("fake-dark-mode");
+    },
+    [isFakeDark]
+  );
+
+  return (
+    <section>
+      <button
+        onClick={() => setIsFakeDark((isFakeDark) => !isFakeDark)}
+        className="btn-fake-dark-mode"
+      >
+        {isFakeDark ? "☀️" : "🌙"}
+      </button>
+
+      <PostProvider>
+        <Header />
+        <Main />
+        <Archive />
+        <Footer />
+      </PostProvider>
+    </section>
+  );
+}
+```
+
+> Note how we have wrapped only the components that need to have access to the context and not the whole JSX of the `App` component. However, when you do this you should keep in mind that the context will no longer be accessible in the `App` component itself. It will only be available in the `Header`, `Main`, and only in the components that are placed inside the provider. **So you can only access the context where it is provided**.
+
+We are now going to create our custom hook. Why? Right now to consume the context, we use the `useContext` hook and we pass in the `PostContext` object. This works great, but over time, after using it many times you will notice that it becomes anoying. So we are going to create a custom hook in order to get rid of this repetition. So in the `PostContext.jsx` file we go ahead and create a custom hook called `usePosts` and define it like this:
+
+```jsx
+function usePosts() {
+  const context = useContext(PostContext);
+  return context;
+}
+
+export { PostProvider, usePosts };
+```
+
+Then instead of exporting the `PostContext` component, we export our custom hook and import it in the `App` component. Now in the `App` component file we can easily replace all `useContext(PostContext)` with `usePosts()`.
 
 ## **React Fragments**
 
