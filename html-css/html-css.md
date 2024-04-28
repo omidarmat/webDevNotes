@@ -127,7 +127,7 @@ As the starting structure of this file, we should follow certain steps everytime
 <!DOCTYPE html>
 ```
 
-1. **`html`, `head` and `body` elements:**
+2. **`html`, `head` and `body` elements:**
 
 Each and every HTML document needs to start with an `html` element. Then inside the `html` element we need one `head` element and a `body` element.
 
@@ -622,7 +622,7 @@ h1 {
 
 There are 3 places where we can write CSS.
 
-1. Inline CSS: To insert inline CSS, you should use the `style` attribute on any element that you want to style. This attribute accepts a string of a style declaration.
+1. **Inline CSS:** To insert inline CSS, you should use the `style` attribute on any element that you want to style. This attribute accepts a string of a style declaration.
 
 ```html
 <p style="color: blue">Related articles</p>
@@ -630,7 +630,7 @@ There are 3 places where we can write CSS.
 
 > Inline styles should never be used for many reasons that you are aware of.
 
-2. Internal CSS: To insert internal CSS, you go to the `<head>` element of your HTML document, and in there, you declare a `<style>` element. Inside the `<style>` element you can write the regular syntax of a CSS rule like the example mentioned above.
+2. **Internal CSS:** To insert internal CSS, you go to the `<head>` element of your HTML document, and in there, you declare a `<style>` element. Inside the `<style>` element you can write the regular syntax of a CSS rule like the example mentioned above.
 
 ```html
 <head>
@@ -648,19 +648,12 @@ There are 3 places where we can write CSS.
 
 > This is a better way of implementing CSS, but there is yet another better way. If you have a lot of CSS code this will make the HTML file unmanagable.
 
-3. External CSS: In this way of implementing CSS, you create a new file in your project directoy, for instance, `style.css`. Then we need a way of connecting the HTML file to the CSS file. This is done by inserting a `<link />` element in the `head` element of the HTML document.
+3. **External CSS:** In this way of implementing CSS, you create a new file in your project directoy, for instance, `style.css`. Then we need a way of connecting the HTML file to the CSS file. This is done by inserting a `<link />` element in the `head` element of the HTML document.
 
 ```html
 <head>
   <meta charset="UTF-8" />
   <title>The basic language of the web</title>
-  <style>
-    h1 {
-      color: blue;
-      text-align: center;
-      font-size: 20px;
-    }
-  </style>
   <link href="style.css" rel="stylesheet" />
 </head>
 ```
@@ -1617,17 +1610,17 @@ Horizontally, each flexbox item would occupy the space necessary for their conte
 ```css
 .flex-item {
   align-self: auto;
-  /* This overwrites align-items for individual flexbox items  */
+  /* This overwrites align-items for individual flexbox items */
   flex-grow: 0;
-  /* This allows an element to grow. 0 means no, 1 and more means yes. If the content and dimensions of flexbox items arrange them in a way that free space is available inside the container, then setting grow to 1 will allow the element to grow and use the available free space. Otherwise, items will only occupy the space they need for their content. Setting grow to different values for individual flexbox items will allow them to grow and occupy different portions of the free space. */
+  /* This allows an element to grow. 0 means no, 1 and more means yes. If the content and dimensions of flexbox items arrange them in a way that free space is available inside the container, then setting grow to 1 will allow the element to grow and use the available free space. Otherwise, items will only occupy the space they need for their content. Setting grow to different values for individual flexbox items will allow them to grow and occupy different portions of the free space */
   flex-shrink: 1;
-  /* This allows an element to shrink. 0 means no, 1 and more means yes. If the content and dimensions of the flexbox items is set in a way that pushes them out of the flexbox container, setting the shrink property to 1 will allow items with smaller content to shrink in order to fit the elements into the flexbox container as mush as possible. */
+  /* This allows an element to shrink. 0 means no, 1 and more means yes. If the content and dimensions of the flexbox items is set in a way that pushes them out of the flexbox container, setting the shrink property to 1 will allow items with smaller content to shrink in order to fit the elements into the flexbox container as mush as possible */
   flex-basis: 100px;
-  /* Also accepts auto. Defines an item's width, instead of the width property. This is not a rigid value. If an element cannot fit into the value set for it, it will grow. */
+  /* Also accepts auto. Defines an item's width, instead of the width property. This is not a rigid value. If an element cannot fit into the value set for it, it will grow */
   flex: 0 1 auto;
-  /* Recommended shorthand for flex-grow, flex-shrink, and fles-basis.  */
+  /* Recommended shorthand for flex-grow, flex-shrink, and flex-basis */
   order: 0;
-  /* Controles order of items. -1 makes item first, 1 makes it last. */
+  /* Controles order of items. -1 makes item first, 1 makes it last */
 }
 ```
 
@@ -1704,9 +1697,9 @@ The `fr` unit is almost always used with the CSS grid and many other layout feat
   row-gap: 50px;
   /* Defines gap between rows */
   justify-items: stretch;
-  /* To align items horizontally inside cells horizontally. Also accepts start, center, end */
+  /* To align items horizontally inside cells. Also accepts start, center, end */
   align-items: stretch;
-  /* To align items vertically inside cells vertically. Also accepts start, center, end */
+  /* To align items vertically inside cells. Also accepts start, center, end */
   justify-content: start;
   /* To align grid tracks horizontally inside grid container. Only applies if container is larger than the grid. Also accepts center, end. Not very important. */
   align-content: start;

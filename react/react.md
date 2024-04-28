@@ -69,13 +69,16 @@
       - [**Form Events**](#form-events)
       - [**Controlled elements**](#controlled-elements)
   - [**Review: State vs. Props**](#review-state-vs-props)
-- [**React developer tools**](#react-developer-tools)
 - [**Thinking in React**](#thinking-in-react)
-  - [**Thinking: State management**](#thinking-state-management)
-    - [**Types of state**](#types-of-state)
+  - [**Thinking: State management (Basic)**](#thinking-state-management-basic)
+    - [**Types of state (accessibility)**](#types-of-state-accessibility)
     - [**When and where?**](#when-and-where)
     - [**Lifting state**](#lifting-state)
     - [**Derived state**](#derived-state)
+  - [**Thinking: State management (Advanced)**](#thinking-state-management-advanced)
+    - [**Types of state**](#types-of-state)
+    - [**Where to place state**](#where-to-place-state)
+    - [**State management tool options**](#state-management-tool-options)
   - [**Thinking: Components**](#thinking-components)
     - [**Splitting a UI into components**](#splitting-a-ui-into-components)
       - [**When to create a new component?**](#when-to-create-a-new-component)
@@ -118,6 +121,7 @@
       - [**When to use `useReducer`**](#when-to-use-usereducer)
     - [**custom hooks**](#custom-hooks)
 - [**React 3rd party libraries**](#react-3rd-party-libraries)
+  - [**React developer tools**](#react-developer-tools)
   - [**React Router**](#react-router)
     - [**Basic implementation**](#basic-implementation)
     - [**Linking between routes**](#linking-between-routes)
@@ -127,6 +131,10 @@
       - [**Reading and setting a query string**](#reading-and-setting-a-query-string)
     - [**Programmatic navigation with `useNavigate`**](#programmatic-navigation-with-usenavigate)
     - [**Programmatic navigation with `Navigate`**](#programmatic-navigation-with-navigate)
+- [**Project deployment**](#project-deployment)
+  - [**First, build the application**](#first-build-the-application)
+  - [**Second, deploy to Netlify**](#second-deploy-to-netlify)
+  - [**Deploying to Vercel**](#deploying-to-vercel)
 
 # **A first look at react**
 
@@ -234,7 +242,7 @@ However, to follow the tutorials seamlessly, we would have to use version 4 of V
 npm create vite@4
 ```
 
-This will cause the terminal ask us for the name of our project,the framework and the language that we want to use. Then a folder with the name of our project will be created at the location where we opened the terminal. We would then open up VS code inside the project folder, and use this npm command to install all necessary dependencies:
+This will cause the terminal ask us for the name of our project, the framework and the language that we want to use. Then a folder with the name of our project will be created at the location where we opened the terminal. We would then open up VS code inside the project folder, and use this npm command to install all necessary dependencies:
 
 ```
 npm install
@@ -273,7 +281,7 @@ function App() {
 export default App;
 ```
 
-Finally, in order to start developing our project, we don't use the `npm start` script. There actually is no such script implemented in the `package.json` file. If we We use this command instead:
+Finally, in order to start developing our project, we don't use the `npm start` script. There actually is no such script implemented in the `package.json` file. We use this command instead:
 
 ```
 npm run dev
@@ -289,7 +297,7 @@ We should first install 3 packages using the terminal command below:
 npm install eslint vite-plugin-eslint eslint-config-react-app --save-dev
 ```
 
-As they are being installed, we need config our project to integrate it with the 3 packages. So we create a file in the root of our project called `.eslintrc.json`. We should configure ESLint's behavior in this file.
+As they are being installed, we need to config our project to integrate it with the 3 packages. So we create a file in the root of our project called `.eslintrc.json`. We should configure ESLint's behavior in this file.
 
 ```json
 // .eslintrc.json
@@ -2711,12 +2719,6 @@ function handleSubmit(e) {
 | Updating state causes component to re-render |                                                                                                                                  |
 | Used to make components interactive          | Used by parent to configure child component (settings)                                                                           |
 
-# **React developer tools**
-
-Since developer tools are so helpful for developers, the React team built dev-tools specific to React, which can be extremely helpful when working with [state](#state-in-react).
-
-Install React's Chrome dev-tools.
-
 # **Thinking in React**
 
 A core skill that every React developer needs to develop, is to think in React. Thinking in React encompasses many aspects:
@@ -2755,7 +2757,7 @@ Once we know how to think in React, we will be able to answer these questions:
 - What types of state can or should I use?
 - How to make data flow through the application?
 
-## **Thinking: State management**
+## **Thinking: State management (Basic)**
 
 Take a look at a complicated web application. How would we know that we need all pieces of state in the application? How do we know where to place them in the code? This is where state management comes to play.
 
@@ -2763,7 +2765,7 @@ State management is about deciding **when** to create pieces of state, what **ty
 
 Up until this point, we never had to worry about state management. We simply placed each state in a component that needed it. However, as an application grows the need to find the right home to each piece of state starts to become really important.
 
-### **Types of state**
+### **Types of state (accessibility)**
 
 There are two types of state: Local vs. Global.
 
@@ -3136,6 +3138,62 @@ function Stats({ items }) {
   );
 }
 ```
+
+## **Thinking: State management (Advanced)**
+
+In this advanced section of state management, we are going to talk about:
+
+1. State management (domain): UI vs. remote
+2. Where to place each piece of state
+3. Tools to manage all types of state
+
+### **Types of state**
+
+We can classify state in terms of state accessibility and state domain.
+
+1. **Accessibility:** in this categorization we have local state and global state. Local state is needed only by one or few components, and it is only accessible in component and child components. However, global state is state that might be needed by many components, and is accessible to every component in the application.
+
+> If you need to create a state variable in a component but you are not sure if it should be local or global, there is nice trick you can use. All you need to do is to ask yourself **if this component was rendered twice, should a state update in one of them reflect in the other one?** If the answer is no, then it means that it should be a local state, but if it is a yes, you should implement a global state.
+
+2. **Domain:** we can classify each piece of state in 2 categories: When you have a piece of state, it is extremely important to know whether you are dealing with remote state or UI state, because they should be managed in complete different ways.
+
+   - Remote state: this is all application data that is loaded from a remote server, usually using an API. It is state that lives on a server that can be loaded into the application. Remote state is usually acquired asynchronously, and might need to be re-fetched and updated frequently. Therefore, in a large-scale app, remote state should be cached, revalidated and so on, which needs some special tools.
+   - UI state: basically everything else, such as theme, list filters, form data, etc. In other words, all state that is not core application data that we usually fetch from an API is UI state. UI state is usually synchronous and stored right in the application and does not interact with any server at all. UI state is very easy to handle with the tools that we know of, such as `useState` and `useReducer`.
+
+### **Where to place state**
+
+When we want to create a piece of state, we basically have 6 different options on where we can place it.
+
+| Where to place?   | Tools                                    | When to use?                        |
+| ----------------- | ---------------------------------------- | ----------------------------------- |
+| local component   | `useState`, `useReducer`, `useRef`       | local state                         |
+| parent component  | `useState`, `useReducer`, `useRef`       | lifting state up                    |
+| context           | Context API + `useState` or `useReducer` | global state (preferably UI state)  |
+| 3rd-party library | Redux, React Query, SWR, Zustand, etc.   | global state (remote or UI)         |
+| URL               | React Router                             | global state, passing between pages |
+| browser           | local storage, session storage, etc.     | storing data in user's browser      |
+
+> Context API on its own is not a state management feature of React. We almost always use it with `useState` and `useReducer`.
+
+### **State management tool options**
+
+If we combine all classifications of state according to accessibility and domain, we end up with these combinations:
+
+1. Local UI state
+2. Global UI state
+3. Local remote state
+4. Global Remote state
+
+Let's now take a look at the tools that we can use to manage each variation.
+
+| State classification | Local state                                     | Global state                                                                                                                                                  |
+| -------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **UI state**         | `useState`, `useReducer`, `useRef`              | using Context API + `useState`/`useReducer` or using Redux, Zustand, Recoil, etc. or using React Router                                                       |
+| **Remote state**     | `fetch` + `useEffect` + `useState`/`useReducer` | General solutions: using Context API + `useState`/`useReducer` or using Redux, Zustand, Recoil, etc. Highly specialized solution: React Query, SWR, RTK Query |
+
+> In large-scale applications using the combination of `fetch` + `useEffect` + `useState` to manage local remote state is not simply enough. This brings us to the tools that we need to manage global remote state.
+
+> The specialized methods included in managing global remote state involve built-in mechanisms like caching and re-fetching in order to deal with the asynchronous nature of remote state. These solutions are highly recommended.
 
 ## **Thinking: Components**
 
@@ -4552,6 +4610,12 @@ const { movies, isLoading, error } = useMovies(query, handleCloseMovie);
 
 # **React 3rd party libraries**
 
+## **React developer tools**
+
+Since developer tools are so helpful for developers, the React team built dev-tools specific to React, which can be extremely helpful when working with [state](#state-in-react).
+
+Install React's Chrome dev-tools.
+
 ## **React Router**
 
 To implement routing, we start by creating the file structure for the components that correspond to different URLs. Usually, we create a folder in the `src` folder and call it `pages`. This folder will basically include our structural components. So inside the `pages` folder, we now create a file, for instance, called `Product.jsx`, and remember to write `jsx` as the file's extension.
@@ -5314,3 +5378,52 @@ function App() {
 ```
 
 > Note that we have inserted a `replace` keyword into the `Navigate` component. This keyword will replace the current element in the history stack of the browser. Otherwise, the browser's back button won't work.
+
+# **Project deployment**
+
+## **First, build the application**
+
+In order to deploy our applications we first need to build our actual application bundle. This is where Vite takes all the files that we have created during development and bundle them into one single file. That file is what we then deploy to production.
+
+With Vite, the build command is:
+
+```
+npm run builds
+```
+
+This process may end up with some warnings about problems that exist in our code, such as unused variables, etc. We can go on and correct the problems, and then attempt on building our project again.
+
+Finally we acquire a bundle file in the `dust/asets` folder with a name similar to:
+
+```
+index-dff3a02c.js
+```
+
+along with some other files in the `dist` folder like `index.html` and other files such as images that are necessary.
+
+You may see that your bundle is pretty huge in size. We actually do code splitting to avoid such a problem, but some applications are fully hidden behind a login and some applications are only ever used by few users, which is the reason that we don't implement server-side rendering. In this situation it is perfectly fine to have a bit larger bundle size.
+
+## **Second, deploy to Netlify**
+
+Before deploying to Netlify, we need to create a file in the `dist` folder called `netlify.toml`. In this file, you need to insert the code below:
+
+```
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200
+```
+
+You also need to copy this file into the main folder of your project so that you won't lose it in later attempts on building the application, since it will overwrite the currently existing `dist` folder.
+
+We are now ready to deploy this build to a hosting provider like Netlify. In Netlify you go on with adding a new site by manual deployment. You would have to drag and drop your `dist` folder.
+
+You can take this process to the next level by implementing continious integration. This is done, basically, by connecting your GitHub account to Netlify.
+
+## **Deploying to Vercel**
+
+To deploy to Vercel with continious integration, we should use a Git and GitHub repository. In fact, connecting your GitHub account to Vercel is among the first steps in signing up to Vercel.
+
+To deploy to Vercel, you go on with creating a new project, which leads you to a page where Vercel fetches your projects from your GitHub repositories.
+
+The main difference with deploying to Vercel, is that you don't need to build your application manually before deploying. Vercel will automatically detect your React's development kit and package JSON file, and it will build your bundle and finally take care of deploying it. This way, Vercel has implemented the continious integration of projects.
