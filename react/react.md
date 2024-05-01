@@ -4,6 +4,7 @@
   - [**Setting up a new React project: The options**](#setting-up-a-new-react-project-the-options)
     - [**Setting up a project with `create-react-app`**](#setting-up-a-project-with-create-react-app)
     - [**Setting up a project with Vite**](#setting-up-a-project-with-vite)
+      - [**A professional file structure**](#a-professional-file-structure)
 - [**Core concepts of building React apps**](#core-concepts-of-building-react-apps)
   - [**JSX**](#jsx)
     - [**Declarative JSX**](#declarative-jsx)
@@ -45,8 +46,12 @@
       - [**Listening for keypress event on the document object**](#listening-for-keypress-event-on-the-document-object)
     - [**RECAP**](#recap)
   - [**The Context API**](#the-context-api)
+    - [**The provider**](#the-provider)
+    - [**The value**](#the-value)
+    - [**Consumers**](#consumers)
     - [**Creating and providing a context**](#creating-and-providing-a-context)
     - [**Advanced pattern: A custom provider and hook**](#advanced-pattern-a-custom-provider-and-hook)
+  - [**Performance Optimization**](#performance-optimization)
   - [**React Fragments**](#react-fragments)
   - [**Styling React applications**](#styling-react-applications)
     - [**Inline styling**](#inline-styling)
@@ -131,6 +136,12 @@
       - [**Reading and setting a query string**](#reading-and-setting-a-query-string)
     - [**Programmatic navigation with `useNavigate`**](#programmatic-navigation-with-usenavigate)
     - [**Programmatic navigation with `Navigate`**](#programmatic-navigation-with-navigate)
+    - [**Data loading with React Router**](#data-loading-with-react-router)
+  - [**React Query**](#react-query)
+    - [**Setting up React Query**](#setting-up-react-query)
+      - [**React Query Dev tools**](#react-query-dev-tools)
+  - [**Styled Component library**](#styled-component-library)
+    - [**Introducing global styles**](#introducing-global-styles)
 - [**Project deployment**](#project-deployment)
   - [**First, build the application**](#first-build-the-application)
   - [**Second, deploy to Netlify**](#second-deploy-to-netlify)
@@ -320,6 +331,29 @@ export default defineConfig({
 ```
 
 Now we have Vite correctly set up.
+
+#### **A professional file structure**
+
+To establish a professional order in your file structure, so that you will be able to manage your project files more efficiently, you can use this structure inside your `src` folder:
+
+```
+-data
+-features
+-hooks
+-pages
+-services
+-styles
+-ui
+-utils
+```
+
+1. Features: this is for all the feature categories that we identify while planning the app, such as authentication, bookings, cabins, etc.
+2. Hooks: this is for truly reusable custom hooks, which we need in multiple features
+3. Pages: in big projects it is helpful to have this folder. Here we will have one component file per route. The important convention here is that each of these pages will not have any side effect. Instead, they will delegate their functionalities to the components that are associated with the feature. We need to create these pages once, and then we can completely forget about them.
+4. Services: this contains some code for interacting with APIs.
+5. Styles: this contains code regarding CSS.
+6. UI: this is for all the components that don't belong to any of the features or those that we want to reuse in many different features, like inputs, forms, buttons, tables, etc.
+7. Utils: usually contains some helper code.
 
 # **Core concepts of building React apps**
 
@@ -1690,9 +1724,15 @@ We need a way of directly passing down state from a parent component into a deep
 
 First of all, the context API is a system to pass data throughout the app without manually passing props down the component tree. It essentially allows us to **broadcast global state** to the entire app.
 
+### **The provider**
+
 The first part of the Context API is the **Provider**. The provider gives all child components access to a `value`. This provider can sit everywhere in the component tree, but it is common to place it at the very top.
 
+### **The value**
+
 The second part of the Context API is the **value** that the provider provides to the components. The value is the data that we want to broadcast through the provider. We pass this value into the provider. This value usually contains one or more state variables and even some setter functions.
+
+### **Consumers**
 
 Finally, we have the **Consumers**. Consumers are all the components that subscribe to the context, and therefore are able to read the provided context value.
 
@@ -1700,20 +1740,20 @@ Now you might ask, what happens when the context value changes? When the context
 
 ### **Creating and providing a context**
 
-We usually create a context in the top component of our application which is usually the `App` component. Inside this file, we call the `createContext()` function that is provided to us by React. Make sure that you import it from React first. This function returns a context that we can store in a variable. Into the `createContext` function we could pass a default value for the context. However, we usually never do that becasue that value can never change over time. So we normally leave the function empty or pass `null` into it.
+We usually create a context in the top component of our application which is usually the `App` component. Inside this file (or component function), we call the `createContext()` function that is provided to us by React. Make sure that you import it from React first. This function returns a context that we can store in a variable. Into the `createContext` function we could pass a default value for the context. However, we usually never do that becasue that value can never change over time. So we normally leave the function empty or pass `null` into it.
 
 ```jsx
 // Create a new context
 const PostContext = createContext();
 ```
 
-> Note that the variable name we selected for the context starts with a capital letter. That is because the context is actually a component.
+> Note that the variable name we selected for the context starts with a capital letter. That is because the context is actually a component. You will see how we would include it as a component into our JSX code.
 
 Then we need to pass the value into the context provider. What we do in this step is to insert the `<PostContext.Provider>` component in our JSX in a way that it wraps all other components. However, this will not do anything on its own. So we have to pass the value into the provider.
 
 ```jsx
 function App() {
-  // Some other logical code
+  // Some other logic code
 
   return (
     <PostContext.Provider
@@ -1893,6 +1933,7 @@ function App() {
 We are now going to create our custom hook. Why? Right now to consume the context, we use the `useContext` hook and we pass in the `PostContext` object. This works great, but over time, after using it many times you will notice that it becomes anoying. So we are going to create a custom hook in order to get rid of this repetition. So in the `PostContext.jsx` file we go ahead and create a custom hook called `usePosts` and define it like this:
 
 ```jsx
+// PostContext.jsx
 function usePosts() {
   const context = useContext(PostContext);
   return context;
@@ -1902,6 +1943,14 @@ export { PostProvider, usePosts };
 ```
 
 Then instead of exporting the `PostContext` component, we export our custom hook and import it in the `App` component. Now in the `App` component file we can easily replace all `useContext(PostContext)` with `usePosts()`.
+
+## **Performance Optimization**
+
+We start by an overview of what can actually be optimized in React apps and how we can do it. There are 3 main areas where we can focus on when we need to optimize performance of React apps.
+
+1. **Prevent wasted renders:** in order to prevent wasted renders we can memoize components with `memo`, or we can memoize objects and functions with `useMemo` and `useCallback` hooks. We can also use a technique in which we pass elements into other elements as children or as a normal prop in order to prevent them from being re-rendered.
+2. **Improve app speed or responsiveness:** We can use the `useMemo` and `useCallback` and also `useTransition` hooks.
+3. **Reduce bundle size:** we can reduce the bundle size simply by using fewer 3rd-party packages in our code base, and we can also implement code splitting and lazy loading.
 
 ## **React Fragments**
 
@@ -2188,7 +2237,7 @@ This is getting more popular everyday. In this method, you use predefined utilit
 
 ### **No CSS!**
 
-You can build your entire project using a fully-fledged UI component library. A component library contains all kinds of pre-built and pre-styled components that are common in most applications.
+You can build your entire project using a fully-fledged UI component library. A component library contains all kinds of pre-built and pre-styled components that are common in most applications. One of the famous libraries that helps us doing this is the _Styled Components_.
 
 ## **Separation of concerns in React**
 
@@ -5378,6 +5427,394 @@ function App() {
 ```
 
 > Note that we have inserted a `replace` keyword into the `Navigate` component. This keyword will replace the current element in the history stack of the browser. Otherwise, the browser's back button won't work.
+
+### **Data loading with React Router**
+
+## **React Query**
+
+With this library, we will let **React Query** to take over all fetching and storing of remote data. We implement an integration of React Query for all data fetching and remote state management.
+
+React Query is a powerful library for managing remote (server) state. This is state that is stored on a server that we need to load into our application. This library has many features that allow us to write a lot less code, while also making the UX a lot better.
+
+The most fundamental thing about React Query is that all remote state is cached. This means that the fetched data will be stored in order to be reused in different points of the application. For instance, if we fetch data about cabins in component A, React Query will fetch the data from the API and will store the received data in cache, so that component A can use it. Then, if at a later point, component B also wants to fetch the cabin data, no additional API requests will be necessary. Instead, React Query will provide the same data to component B from cache. This has 2 huge advantages:
+
+1. It wastes a bit less data to be downloaded
+2. Once the data is in the cache, all other components can receive it instantly, without showing the user another loading spinner. This will improve the UX a lot.
+
+React Query also gives us all loading and error states, so that we can only focus on what really matters. React Query also automatically re-fetches the data in certain situations. For instance, after a certain timeout or after we leave the browser window and then come back. This is super important in order to ensure that the remote state always stays in sync with the application. For example, if some other user of the app changes the remote state at some point, then the application running on all other devices will have this state out of sync with the newly updated state. So React Query can help with this as well.
+
+Besides re-fetching, with React Query we can pre-fetch data, meaning that we can fetch data that we know will become necessary later but before it is actually displayed on the screen. A classical example of this is pagination, where with pre-fetching we can not only fetch data for the current page, but also for the next page.
+
+It is also very easy to mutate remote state using the many tools that are built into the React Query.
+
+React Query also supports when the user becomes offline. In this situation, since the data is already cache, as the user moves arround in the app while being offline, components that use the cache data can be displayed.
+
+We need a library with all these features because remote state is fundamentally different from UI state. It is asynchronous and usually shared by many users of the app. Applications running in different browsers can very easily get out of sync with the remote data that is stored on the server.
+
+### **Setting up React Query**
+
+You first need to install the library using the terminal:
+
+```
+npm install @tanstack/react-query@4
+```
+
+The idea behind integrating React Query into our application is very similar to what we did earlier with the Context API or Redux. So We first create a place where the data lives, and then we provide that to the application. In the case of React Query, we set up the cash and the query client using the `QueryClient`.
+
+So in our `App.jsx` file:
+
+```jsx
+import { QueryClient } from "@tanstack/react-query";
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60 * 1000,
+    },
+  },
+});
+```
+
+Into the `QueryClient` function we can pass an object of options. One of the options is the `staleTime` property for `queries`. Stale time is the amount of time that data in the cache will stay fresh and valid until it is re-fetched again. Now to provide this to the application, we use the `<QueryClientProvider>` component in our JSX and wrap all our JSX of the `App` component inside it.
+
+```jsx
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <GlobalStyles />
+      <BrowserRouter>
+        <Routes>
+          <Route element={<AppLayout />}>
+            <Route index element={<Navigate replace to="dashboard" />} />
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="bookings" element={<Bookings />} />
+            <Route path="cabins" element={<Cabins />} />
+            <Route path="users" element={<Users />} />
+            <Route path="settings" element={<Settings />} />
+            <Route path="account" element={<Account />} />
+          </Route>
+
+          <Route path="login" element={<Login />} />
+          <Route path="*" element={<PageNotFound />} />
+        </Routes>
+      </BrowserRouter>
+    </QueryClientProvider>
+  );
+}
+```
+
+#### **React Query Dev tools**
+
+you need to install this NPM package:
+
+```
+npm install @tanstack/react-query-devtools
+```
+
+You then need to include `<ReactQueryDevtools>` component as the first child of the `QueryClientProvider` component.
+
+```jsx
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <ReactQueryDevtools initialIsOpen={false} />
+      <GlobalStyles />
+      <BrowserRouter>
+        <Routes>
+          <Route element={<AppLayout />}>
+            <Route index element={<Navigate replace to="dashboard" />} />
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="bookings" element={<Bookings />} />
+            <Route path="cabins" element={<Cabins />} />
+            <Route path="users" element={<Users />} />
+            <Route path="settings" element={<Settings />} />
+            <Route path="account" element={<Account />} />
+          </Route>
+
+          <Route path="login" element={<Login />} />
+          <Route path="*" element={<PageNotFound />} />
+        </Routes>
+      </BrowserRouter>
+    </QueryClientProvider>
+  );
+}
+```
+
+## **Styled Component library**
+
+The styled component library allow us to write CSS right inside our JavaScript component files. The way it works is that we take a regular HTML element and then, using the `styled` function, we create a brand new React component with some CSS styles applied to it. We can then use and reuse that new component instead of using the regular HTML element.
+
+In order to use the Styled Components library you need to install it in the terminal first:
+
+```
+npm install styled-components
+```
+
+Then we can use this syntax in order to implement, for instance, a primary heading component:
+
+```jsx
+// App.jsx
+import styled from "styled-components";
+
+const H1 = styled.h1`
+  font-size: 30px;
+  font-weight: 600;
+`;
+```
+
+The `H1` variable now holds a React component called with that name and we can now use it as a regular React component in our JSX.
+
+```jsx
+function App() {
+  return (
+    <div>
+      <H1>The Wild Oasis</H1>
+    </div>
+  );
+}
+```
+
+In order to make VS code prettify your styled component syntax you can install the `vscode-styled-components` extension.
+
+The intersting thing to know about this, is that the styled components that we define can receive all the same props that a regular HTML or JSX element can receive. For instance, we can pass the `onClick` prop to a button that we define like this:
+
+```jsx
+const Button = styled.button`
+  font-size: 1.4rem;
+  padding: 1.2rem 1.6rem;
+  font-weight: 500;
+  border: none;
+  border-radius: 7px;
+  background-color: purple;
+  color: white;
+`;
+
+function App() {
+  return (
+    <div>
+      <H1>The Wild Oasis</H1>
+      <Button onClick={() => alert("Checked out")}>Check in</Button>
+    </div>
+  );
+}
+```
+
+We can also create an input element like this:
+
+```jsx
+const Input = styled.input`
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 0.8rem 1.2rem;
+`;
+
+function App() {
+  return (
+    <div>
+      <H1>The Wild Oasis</H1>
+      <Button onClick={() => alert("Checked out")}>Check in</Button>
+      <Input type="number" placeholder="Number of guests" />
+    </div>
+  );
+}
+```
+
+> In order to style the `App` component itself, it is a convention to style a `div` element as it would be the container of all the elements and components that you include in the JSX of your `App` component. This conventions requires you to declare a component name of `StyledApp` in terms of styled components.
+
+```jsx
+const StyledApp = styled.div`
+  background-color: orangered;
+  padding: 20px;
+`;
+
+function App() {
+  return (
+    <StyledApp>
+      <H1>The Wild Oasis</H1>
+      <Button onClick={() => alert("Checked out")}>Check in</Button>
+      <Input type="number" placeholder="Number of guests" />
+    </StyledApp>
+  );
+}
+```
+
+Now you might ask, how we can include global styles with styled components, for instance, for CSS resets that should be applied to the entire page.
+
+#### **Introducing global styles**
+
+Inside the `styles` folder, we create a new file called `GlobalStyles.js`, and what we basically do is to create a new styled component which will become our global style component. In this file, we use the `createGlobalStyle` function and pass our global styles into it:
+
+```jsx
+import { createGlobalStyle } from "styled-components";
+
+const GlobalStyles = createGlobalStyle`
+:root {
+  /* Indigo */
+  --color-brand-50: #eef2ff;
+  --color-brand-100: #e0e7ff;
+  --color-brand-200: #c7d2fe;
+  --color-brand-500: #6366f1;
+  --color-brand-600: #4f46e5;
+  --color-brand-700: #4338ca;
+  --color-brand-800: #3730a3;
+  --color-brand-900: #312e81;
+
+  /* Grey */
+  --color-grey-0: #fff;
+  --color-grey-50: #f9fafb;
+  --color-grey-100: #f3f4f6;
+  --color-grey-200: #e5e7eb;
+  --color-grey-300: #d1d5db;
+  --color-grey-400: #9ca3af;
+  --color-grey-500: #6b7280;
+  --color-grey-600: #4b5563;
+  --color-grey-700: #374151;
+  --color-grey-800: #1f2937;
+  --color-grey-900: #111827;
+
+  --color-blue-100: #e0f2fe;
+  --color-blue-700: #0369a1;
+  --color-green-100: #dcfce7;
+  --color-green-700: #15803d;
+  --color-yellow-100: #fef9c3;
+  --color-yellow-700: #a16207;
+  --color-silver-100: #e5e7eb;
+  --color-silver-700: #374151;
+  --color-indigo-100: #e0e7ff;
+  --color-indigo-700: #4338ca;
+
+  --color-red-100: #fee2e2;
+  --color-red-700: #b91c1c;
+  --color-red-800: #991b1b;
+
+  --backdrop-color: rgba(255, 255, 255, 0.1);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0px 0.6rem 2.4rem rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 2.4rem 3.2rem rgba(0, 0, 0, 0.12);
+
+  --border-radius-tiny: 3px;
+  --border-radius-sm: 5px;
+  --border-radius-md: 7px;
+  --border-radius-lg: 9px;
+
+  /* For dark mode */
+  --image-grayscale: 0;
+  --image-opacity: 100%;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+
+  /* Creating animations for dark mode */
+  transition: background-color 0.3s, border 0.3s;
+}
+
+html {
+  font-size: 62.5%;
+}
+
+body {
+  font-family: "Poppins", sans-serif;
+  color: var(--color-grey-700);
+
+  transition: color 0.3s, background-color 0.3s;
+  min-height: 100vh;
+  line-height: 1.5;
+  font-size: 1.6rem;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+*:disabled {
+  cursor: not-allowed;
+}
+
+select:disabled,
+input:disabled {
+  background-color: var(--color-grey-200);
+  color: var(--color-grey-500);
+}
+
+input:focus,
+button:focus,
+textarea:focus,
+select:focus {
+  outline: 2px solid var(--color-brand-600);
+  outline-offset: -1px;
+}
+
+/* Parent selector, finally 😃 */
+button:has(svg) {
+  line-height: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+ul {
+  list-style: none;
+}
+
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+img {
+  max-width: 100%;
+
+  /* For dark mode */
+  filter: grayscale(var(--image-grayscale)) opacity(var(--image-opacity));
+}
+`;
+
+export default GlobalStyles;
+```
+
+> The idea of defining all CSS style variables as design tokens in one central place, is to be able to use them in all different styled components that we are going to build.
+
+Now in order to apply these global styles to our application, the `GlobalStyles` component that we just exported, needs to be added to the component tree but cannot accept any children. We want it to be a sibling of the `StyledApp` component. So we also need to use a React Fragment.
+
+```jsx
+function App() {
+  return (
+    <>
+      <GlobalStyles />
+      <StyledApp>
+        <H1>The Wild Oasis</H1>
+        <Button onClick={() => alert("Checked out")}>Check in</Button>
+        <Input type="number" placeholder="Number of guests" />
+      </StyledApp>
+    </>
+  );
+}
+```
+
+> Instead of using all the CSS variables that we defined manually, the Styled Component library actually also gives us its own way of providing variables to our entire application. This is done using a mechanism called _Themes_. However, it is a lot better to stick to the native CSS.
 
 # **Project deployment**
 
