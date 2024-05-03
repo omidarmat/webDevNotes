@@ -140,6 +140,14 @@
   - [**React Query**](#react-query)
     - [**Setting up React Query**](#setting-up-react-query)
       - [**React Query Dev tools**](#react-query-dev-tools)
+      - [**Fetching data**](#fetching-data)
+      - [**Mutations**](#mutations)
+      - [**Mutations (adding data to remote server state)**](#mutations-adding-data-to-remote-server-state)
+  - [**React Hook Form**](#react-hook-form)
+    - [**Handling form errors**](#handling-form-errors)
+    - [**Uploading images through form**](#uploading-images-through-form)
+    - [**Filling in a form with default values**](#filling-in-a-form-with-default-values)
+  - [**React Hot Toast**](#react-hot-toast)
   - [**Styled Component library**](#styled-component-library)
     - [**Introducing global styles**](#introducing-global-styles)
 - [**Project deployment**](#project-deployment)
@@ -5465,6 +5473,7 @@ So in our `App.jsx` file:
 
 ```jsx
 import { QueryClient } from "@tanstack/react-query";
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -5474,7 +5483,9 @@ const queryClient = new QueryClient({
 });
 ```
 
-Into the `QueryClient` function we can pass an object of options. One of the options is the `staleTime` property for `queries`. Stale time is the amount of time that data in the cache will stay fresh and valid until it is re-fetched again. Now to provide this to the application, we use the `<QueryClientProvider>` component in our JSX and wrap all our JSX of the `App` component inside it.
+Into the `QueryClient` function we can pass an object of options. One of the options is the `staleTime` property for `queries`. Stale time is the amount of time that data in the cache will stay fresh and valid until it is re-fetched again.
+
+With this setup, we have the cache behind the scenes and now to provide this to the application, we use the `<QueryClientProvider>` component in our JSX and wrap all our JSX of the `App` component inside it.
 
 ```jsx
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -5541,6 +5552,988 @@ function App() {
 }
 ```
 
+#### **Fetching data**
+
+We basically want to replace this piece of code:
+
+```jsx
+function Cabins() {
+  useEffect(function () {
+    getCabins().then((data) => console.log(data));
+  }, []);
+
+  return (
+    <Row type="horizontal">
+      <Heading as="h1">All cabins</Heading>
+      <p>TEST</p>
+      <img src="https://dclaevazetcjjkrzczpc.supabase.co/storage/v1/object/public/cabin-images/cabin-001.jpg" />
+    </Row>
+  );
+}
+```
+
+So instad of manually fetching data with the `useEffect` hook, we will now let React Query do this work. We now want to update the `Cabins` component function to return another JSX:
+
+```jsx
+function Cabins() {
+  return (
+    <>
+      <Row type="horizontal">
+        <Heading as="h1">All cabins</Heading>
+        <p>Filter / Sort</p>
+      </Row>
+
+      <Row>
+        <CabinTable />
+      </Row>
+    </>
+  );
+}
+```
+
+And now we want to generate the `CabinTable` component using React Query. In order to use React Query to fetch data, we should use the `useQuery` custom hook.
+
+```jsx
+function CabinTable() {
+  const x = useQuery({
+    queryKey: ["cabin"],
+    queryFn: getCabins,
+  });
+  return <div>Table</div>;
+}
+```
+
+Into this hook, we need to pass an object with 2 properties. First, `queryKey`, which is usually an array containing a string, but can be a complex array too. This query key that we define here will uniquely identify this data that we are going to query here. So if later, we use the `useQuery` hook on another page, with this exact query key, then the data would be read from the cash. Second, the actual query function named `queryFn` as property. This is the function that is responsible for actually fetching the data from the API. The function that we insert here, needs to return a promise. So we can use the `async` function that we previously defined in the `apiCabins.js` file:
+
+```js
+export async function getCabins() {
+  const { data, error } = await supabase.from("cabins").select("*");
+
+  if (error) {
+    console.error(error);
+    throw new Error("Cabins could not be loaded");
+  }
+
+  return data;
+}
+```
+
+Async functions always return a promise. In this function, when the promise is resolved, the incoming data will be returned, and therefore if we pass this `getCabins` function to the query function of the React Query, the returned data will be stored into the cache.
+
+Insepcting the `x` variable that has stored the result of the `useQuery` hook, we can now see that it holds an object. This object includes many properties such as `data`, `error`, `isLoading`, `isSuccess`, etc., which are all different states defined by React Query. We can use these:
+
+```jsx
+function CabinTable() {
+  const {isLoading, data: cabins, error} = useQuery({
+    queryKey: ["cabin"],
+    queryFn: getCabins,
+  });
+
+  if(isLoading) return <Spinner />;
+
+  return (
+    <Table role='table'>
+      <TableHeader role='row'>
+        <div></div>
+        <div>Cabin</div>
+        <div>Capacity</div>
+        <div>Price</div>
+        <div>Discount</div>
+        <div></div>
+      <TableHeader />
+  {cabins.map(cabin => <CabinRow cabin={cabin} key={cabin.id} />)}
+    </Table>
+  );
+}
+```
+
+> Note how we define the `role` attribute for the elements above to make them actually play the role of a table and its rows without having to use the actual `<table>` and `<tr>` HTML elements.
+
+While defining the `CabinRow` component as:
+
+```jsx
+function CabinRow({ cabin }) {
+  const {name, maxCapacity, regularPrice, discount, image} = cabin;
+  return (
+    <TableRowr role='row'>
+      <Img src={image} />
+      <Cabin>{name}</Cabin>
+      <div>Fits up to {maxCapacity} guests</div>
+      <Price>{formatCurrency(regularPrice)}</Price>
+      <Discount>{formatCurrency(discount)}</Discount>
+      <button>Delete</button>
+    </TableRow>
+  );
+}
+```
+
+Up until now, nothing seems to be any different than before. The whole code seems to work like what we did without React Query, but you can see the difference if you move to another page on your app, which means to unmount the cabins component. When you return to the cabins page however, you will see that the data previously loaded, is still there without sending another request to the API. So React Query reads data from cache.
+
+The difference is that when we used the `useEffect` hook to directly fetch data, in this scenario, moving back to the cabins page, the hook would fetch the data again. But with React Query, the data would be read from cache and not re-fetched.
+
+Now if you take a look the React Query Dev tools, you see that after a while, the data is not fresh anymore, but it becomes _stale_. This means that React Query is trying to tell us that the data is old and no longer valid. Doing certain things will cause React Query to automatically re-fetch the data. For instance, if we move away from the browser tab and come back to it again, a re-fetch will be triggered. Remember that while the data is still fresh, doing this will not trigger a re-fetch. So by setting the `staleTime` in the React Query setup to `0`, we make it so that the data becomes stale once it arrives. So anytime you switch between browser tabs, React Query will re-fetch.
+
+```jsx
+import { QueryClient } from "@tanstack/react-query";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 0,
+    },
+  },
+});
+```
+
+#### **Mutations**
+
+We now want to mutate our remote server state and automatically re-render the UI. To do this we first define a function that is responsible for deleting a cabin in our `apiCabins.js` file, where we previously define an async function for fetching cabins data.
+
+```js
+export async function getCabins() {
+  const { data, error } = await supabase.from("cabins").select("*");
+
+  if (error) {
+    console.error(error);
+    throw new Error("Cabins could not be loaded");
+  }
+
+  return data;
+}
+
+export async function deleteCabin(id) {
+  const { data, error } = await supabase.from("cabins").delete().eq("id", id);
+
+  if (error) {
+    console.error(error);
+    throw new Error("Cabins could not be deleted");
+  }
+
+  return data;
+}
+```
+
+However, if we now attempt to delete a cabin by calling this function, nothing will happen since we have the Supabase row-level security enabled on the cabins table. We have enabled all users to only read data from this table, but not to delete from it. So we would have to update this policy temporarily to allow all users to delete cabins from this table. However, we would later update this policy to allow only logged-in users to have these privilages.
+
+Now in order to make the delete button work, so to delete a cabin row, we use React Query, but this time not by the `useQuery` hook. We should now use the `useMutation` hook. This hook receives an object in which we should insert a `mutationFn` property that holds a mutating function.
+
+```jsx
+function CabinRow({ cabin }) {
+  const { id: cabinId, name, maxCapacity, regularPrice, discount, image} = cabin;
+
+const { isLoading: isDeleteing, mutate } = useMutation({
+  mutationFn: (id) => deleteCabin(id),
+})
+
+  return (
+    <TableRowr role='row'>
+      <Img src={image} />
+      <Cabin>{name}</Cabin>
+      <div>Fits up to {maxCapacity} guests</div>
+      <Price>{formatCurrency(regularPrice)}</Price>
+      <Discount>{formatCurrency(discount)}</Discount>
+      <button onClick={() => mutate(cabinId)} disabled={isDeleteing}>Delete</button>
+    </TableRow>
+  );
+}
+```
+
+The `useMutation` hook returns an `isLoading` state along with a `mutate` callback function that we can connect with the delete button. Now deleting a cabin works, but the UI won't re-render immediately. You would have to reload the page to see the deletion happened. What we should do now is to tell React Query what to do if the mutation is successful. This is actually done by defining an `onSuccess` property on the object passed into the `useMutation` hook. This property would accept a callback function which will be executed once the mutation meets success. In this callback function, we tell the React Query to _invalidate_ the cache, so that it will automatically re-fetch data from the remote server. In practical terms, we should call the `invalideQueries` function on the `queryClient`. In order to get access to the `queryClient`, we use a special hook called `useQueryClient`. The `invalidateQueries` function receives an object where you should define the `queryKey` property with an array containing a string that points to the same cache that you want to be mutated.
+
+```jsx
+const queryClient = useQueryClient();
+
+const { isLoading: isDeleteing, mutate } = useMutation({
+  mutationFn: (id) => deleteCabin(id),
+  onSuccess: () => {
+    queryClient.invalidateQueries({
+      queryKey: ["cabin"],
+    });
+  },
+  onError: (err) => alert(err.message),
+});
+```
+
+The `useMutation` hook can also receive an `onError` property in its object, where we can use the error that we throw in the mutation function to display an error to the user.
+
+#### **Mutations (adding data to remote server state)**
+
+Just like what we did in order to be able to delete a cabin data, we now have to implement a handler function for adding a cabin to the `apiCabins.js` function.
+
+```js
+export async function getCabins() {
+  const { data, error } = await supabase.from("cabins").select("*");
+
+  if (error) {
+    console.error(error);
+    throw new Error("Cabins could not be loaded");
+  }
+
+  return data;
+}
+
+export async function createCabin(neWCabin) {
+  const { data, error } = await supabase
+    .from("cabin")
+    .insert([{ newCabin }])
+    .select()
+    .single(); // This part is necessary to actually return the newly created cabin data available to be returned at the end of the createCabin function.
+
+  if (error) {
+    console.error(error);
+    throw new Error("Cabins could not be created");
+  }
+
+  return data;
+}
+
+export async function deleteCabin(id) {
+  const { data, error } = await supabase.from("cabins").delete().eq("id", id);
+
+  if (error) {
+    console.error(error);
+    throw new Error("Cabins could not be deleted");
+  }
+
+  return data;
+}
+```
+
+Remember that you should create a new policy to the cabins table in Supabase so that users will be able to add data to this table. Again, later you should implement this policy only for authenticated users.
+
+Now we would have to use the `useMutation` hook again in order to mutate the remote server state, this time in the `CreateCabinForm` component which uses the React Hook Form to handle form submission data.
+
+```jsx
+function CreateCabinForm() {
+  const { register, handleSubmit, reset } = useForm();
+  const queryClient = useQueryClient();
+
+  const { mutate, isLoading: isCreating } = useMutation({
+    mutationFn: createCabin,
+    onSuccess: () => {
+      toast.success("New cabin successfully created");
+      queryClient.invalidateQueries({
+        queryKey: ["cabin"],
+      });
+      reset();
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  function onSubmit(data) {
+    mutate(data);
+  }
+
+  return (
+    <Form onSubmit={handleSubmit(onSubmit)}>
+      <FormRow>
+        <Label htmlFor="name">Cabin name</Label>
+        <Input type="text" id="name" {...register("name")} />
+      </FormRow>
+
+      <FormRow>
+        <Label htmlFor="maxCapacity">Maximum capacity</Label>
+        <Input type="number" id="maxCapacity" {...register("maxCapacity")} />
+      </FormRow>
+
+      <FormRow>
+        <Label htmlFor="regularPrice">Regular price</Label>
+        <Input type="number" id="regularPrice" {...register("regularPrice")} />
+      </FormRow>
+
+      <FormRow>
+        <Label htmlFor="discount">Discount</Label>
+        <Input
+          type="number"
+          id="discount"
+          defaultValue={0}
+          {...register("discount")}
+        />
+      </FormRow>
+
+      <FormRow>
+        <Label htmlFor="description">Description for website</Label>
+        <Textarea
+          type="number"
+          id="description"
+          defaultValue=""
+          {...register("description")}
+        />
+      </FormRow>
+
+      <FormRow>
+        <Label htmlFor="image">Cabin photo</Label>
+        <FileInput id="image" accept="image/*" />
+      </FormRow>
+
+      <FormRow>
+        {/* type is an HTML attribute! */}
+        <Button variation="secondary" type="reset">
+          Cancel
+        </Button>
+        <Button disabled={icCreating}>Add cabin</Button>
+      </FormRow>
+    </Form>
+  );
+}
+```
+
+We should now think about validing the data that is being submitted through the form. So let's now learn about the React Hook Form library.
+
+## **React Hook Form**
+
+We use the React Hook Form library in order to simplify handling forms in React SPAs. First we need to set up the form in our JSX in the UI. The library is only about handling form submissions and errors, etc. So it does not give us any pre-built components. Take this form as an example:
+
+```js
+function CreateCabinForm() {
+  return (
+    <Form>
+      <FormRow>
+        <Label htmlFor="name">Cabin name</Label>
+        <Input type="text" id="name" />
+      </FormRow>
+
+      <FormRow>
+        <Label htmlFor="maxCapacity">Maximum capacity</Label>
+        <Input type="number" id="maxCapacity" />
+      </FormRow>
+
+      <FormRow>
+        <Label htmlFor="regularPrice">Regular price</Label>
+        <Input type="number" id="regularPrice" />
+      </FormRow>
+
+      <FormRow>
+        <Label htmlFor="discount">Discount</Label>
+        <Input type="number" id="discount" defaultValue={0} />
+      </FormRow>
+
+      <FormRow>
+        <Label htmlFor="description">Description for website</Label>
+        <Textarea type="number" id="description" defaultValue="" />
+      </FormRow>
+
+      <FormRow>
+        <Label htmlFor="image">Cabin photo</Label>
+        <FileInput id="image" accept="image/*" />
+      </FormRow>
+
+      <FormRow>
+        {/* type is an HTML attribute! */}
+        <Button variation="secondary" type="reset">
+          Cancel
+        </Button>
+        <Button>Edit cabin</Button>
+      </FormRow>
+    </Form>
+  );
+}
+```
+
+> Note that we have not made any of the input elements of this form a controlled element. We don't have a state variable for any of them. This will be handled using the React Hook Form library.
+
+And we want to display this form at the bottom of our cabins table.
+
+```jsx
+function Cabins() {
+  const [showForm, setShowForm] = useState(false);
+  return (
+    <>
+      <Row type="horizontal">
+        <Heading as="h1">All cabins</Heading>
+        <p>Filter / Sort</p>
+      </Row>
+
+      <Row>
+        <CabinTable />
+        <Button onClick={() => setShowForm((show) => !show)}>
+          Add new cabin
+        </Button>
+        {showForm && <CreateCabinForm />}
+      </Row>
+    </>
+  );
+}
+```
+
+We can now start handling this form using the React Hook Form library. Let's first install it:
+
+```
+npm install react-hook-form@7
+```
+
+Now in order to use this library, we implement a `useForm` hook and this will return a few functions that we can use. One of the most fundamental things in React Hook Form is to register inputs into the `useForm` hook. The way it works is to go into the `Input` components, enter JavaScript mode and call the `register` function by passing into it the input field name. So we write `{...register('name')}`, for example. The `register` can become more complex by adding some validators and we can then handle the errors in the input process.
+
+```jsx
+function CreateCabinForm() {
+  const { register, handleSubmit } = useForm();
+  function onSubmit(data) {}
+
+  return (
+    <Form onSubmit={handleSubmit(onSubmit)}>
+      <FormRow>
+        <Label htmlFor="name">Cabin name</Label>
+        <Input type="text" id="name" {...register("name")} />
+      </FormRow>
+
+      <FormRow>
+        <Label htmlFor="maxCapacity">Maximum capacity</Label>
+        <Input type="number" id="maxCapacity" {...register("maxCapacity")} />
+      </FormRow>
+
+      <FormRow>
+        <Label htmlFor="regularPrice">Regular price</Label>
+        <Input type="number" id="regularPrice" {...register("regularPrice")} />
+      </FormRow>
+
+      <FormRow>
+        <Label htmlFor="discount">Discount</Label>
+        <Input
+          type="number"
+          id="discount"
+          defaultValue={0}
+          {...register("discount")}
+        />
+      </FormRow>
+
+      <FormRow>
+        <Label htmlFor="description">Description for website</Label>
+        <Textarea
+          type="number"
+          id="description"
+          defaultValue=""
+          {...register("description")}
+        />
+      </FormRow>
+
+      <FormRow>
+        <Label htmlFor="image">Cabin photo</Label>
+        <FileInput id="image" accept="image/*" />
+      </FormRow>
+
+      <FormRow>
+        {/* type is an HTML attribute! */}
+        <Button variation="secondary" type="reset">
+          Cancel
+        </Button>
+        <Button>Add cabin</Button>
+      </FormRow>
+    </Form>
+  );
+}
+```
+
+> Note that setting the `type` attribute to `reset` on the `Button` component will make it so that it won't act as a submission button on the form.
+
+Going into the React Query dev tools, we now see that the input fields now have `onBlur` and `onChange` functions addded to them automatically.
+
+Note that we also need to pass a `onSubmit` prop to the `Form` component. In this prop, we need to immediately call the `handleSubmit` function returned by the React Hook Form and pass into it a handler function that we defined. This makes it so that whenever the form is submitted, our handler function will be called while having access to the form data, so to the values passed into input fields that we registered for the React Hook Form.
+
+### **Handling form errors**
+
+This probably where the React Hook Form shines the most. We can use its features and also create a reusable form row. As we mentioned earlier, the `register` function that we passed as prop to the input fields, can get a bit more complex with data validation.
+
+One of the simplest things that we can do with form validation is to mark an input field as required, so it won't be left empty by the user when submitting. This is done by passing a second argument into the `register()` function. This second argument would be an object in which we can define many properties, one of which is the `required`. This property can accept a string which would be used as an error feedback if the field is left empty.
+
+Another validation task is to determine a minimum value for input fields that receive numbers. This is done by inserting the `min` property into the object. This property should also hold another object where the `value` and `message` properties are set for validation success and error situations.
+
+We can also define our own custom validation functions by inserting a `validate` property into the object. This property should hold a callback function which, by default, has access to the current `value` typed into the input field. In this example we want to compare this value with the value of another input field which is related to the regular price of a cabin. In order to gain access to the value of another input field, we can use the `getValues` function returned by the `useForm` hook. Also note that the error message that should be displayed in case the validation is met with error is passed to the `validate` property next to the validation funciton using the `or` operator (`||`).
+
+Remember that all validations inserted into the form would be executed each time the submit button of the form is clicked. So as we implemented before, the submit button will actually call the submit handler function that we defined previously, and if there is an error in validation, our submit handler function that we passed into the `onSubmit` prop of the `<Form>` component won't be called, but instead, a second callback function that we should now pass into it will be executed. We call this second function `onError`. This function will have access to all the `errors` that happened during data validation.
+
+```jsx
+function CreateCabinForm() {
+  const { register, handleSubmit, reset, getValues, formState } = useForm();
+  const { errors } = formState;
+  const queryClient = useQueryClient();
+
+  const { mutate, isLoading: isCreating } = useMutation({
+    mutationFn: createCabin,
+    onSuccess: () => {
+      toast.success("New cabin successfully created");
+      queryClient.invalidateQueries({
+        queryKey: ["cabin"],
+      });
+      reset();
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  function onSubmit(data) {
+    mutate(data);
+  }
+
+  function onError(errors) {}
+
+  return (
+    <Form onSubmit={handleSubmit(onSubmit, onError)}>
+      <FormRow>
+        <Label htmlFor="name">Cabin name</Label>
+        <Input
+          type="text"
+          id="name"
+          {...register("name", {
+            required: "This field is required",
+          })}
+        />
+        {errors?.name?.message && <Error>{errors.name.message}</Error>}
+      </FormRow>
+
+      <FormRow>
+        <Label htmlFor="maxCapacity">Maximum capacity</Label>
+        <Input
+          type="number"
+          id="maxCapacity"
+          {...register("maxCapacity", {
+            required: "This field is required",
+            min: {
+              value: 1,
+              message: "Capacity should be at least 1",
+            },
+          })}
+        />
+        {errors?.name?.message && <Error>{errors.name.message}</Error>}
+      </FormRow>
+
+      <FormRow>
+        <Label htmlFor="regularPrice">Regular price</Label>
+        <Input
+          type="number"
+          id="regularPrice"
+          {...register("regularPrice", {
+            required: "This field is required",
+            min: {
+              value: 1,
+              message: "Capacity should be at least 1",
+            },
+          })}
+        />
+        {errors?.name?.message && <Error>{errors.name.message}</Error>}
+      </FormRow>
+
+      <FormRow>
+        <Label htmlFor="discount">Discount</Label>
+        <Input
+          type="number"
+          id="discount"
+          defaultValue={0}
+          {...register("discount", {
+            required: "This field is required",
+            validate: (value) =>
+              value <= getValues().regularPrice ||
+              "Discount should be less than regular price",
+          })}
+        />
+        {errors?.name?.message && <Error>{errors.name.message}</Error>}
+      </FormRow>
+
+      <FormRow>
+        <Label htmlFor="description">Description for website</Label>
+        <Textarea
+          type="number"
+          id="description"
+          defaultValue=""
+          {...register("description", {
+            required: "This field is required",
+          })}
+        />
+      </FormRow>
+
+      <FormRow>
+        <Label htmlFor="image">Cabin photo</Label>
+        <FileInput
+          id="image"
+          accept="image/*"
+          type="file"
+          {...register("image", {
+            required: "This field is required",
+          })}
+        />
+      </FormRow>
+
+      <FormRow>
+        {/* type is an HTML attribute! */}
+        <Button variation="secondary" type="reset">
+          Cancel
+        </Button>
+        <Button disabled={icCreating}>Add cabin</Button>
+      </FormRow>
+    </Form>
+  );
+}
+```
+
+Now in order to be able to get the defined error messages and display them in the UI we can use another feature of the React Hook Form, which is a function also returned by the `useForm` hook called `formState`. This would an object that includes an `errors` property, which we can extract by destructuring.
+
+### **Uploading images through form**
+
+We can basically upload files to our remote server using the `FileInput` component defined in the form. Remember that in order to store this image in the new object that is sent to the remote server, we need to only include the image's file name since that is usually the data structure that we define in managing a database in Supabase.
+
+```jsx
+function CreateCabinForm() {
+  const { register, handleSubmit, reset, getValues, formState } = useForm();
+  const { errors } = formState;
+  const queryClient = useQueryClient();
+
+  const { mutate, isLoading: isCreating } = useMutation({
+    mutationFn: createCabin,
+    onSuccess: () => {
+      toast.success("New cabin successfully created");
+      queryClient.invalidateQueries({
+        queryKey: ["cabin"],
+      });
+      reset();
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  function onSubmit(data) {
+    mutate(data, image: data.image[0]);
+  }
+
+  function onError(errors) {}
+
+  return (
+    <Form onSubmit={handleSubmit(onSubmit, onError)}>
+      <FormRow>
+        <Label htmlFor="name">Cabin name</Label>
+        <Input
+          type="text"
+          id="name"
+          {...register("name", {
+            required: "This field is required",
+          })}
+        />
+        {errors?.name?.message && <Error>{errors.name.message}</Error>}
+      </FormRow>
+
+      <FormRow>
+        <Label htmlFor="maxCapacity">Maximum capacity</Label>
+        <Input
+          type="number"
+          id="maxCapacity"
+          {...register("maxCapacity", {
+            required: "This field is required",
+            min: {
+              value: 1,
+              message: "Capacity should be at least 1",
+            },
+          })}
+        />
+        {errors?.name?.message && <Error>{errors.name.message}</Error>}
+      </FormRow>
+
+      <FormRow>
+        <Label htmlFor="regularPrice">Regular price</Label>
+        <Input
+          type="number"
+          id="regularPrice"
+          {...register("regularPrice", {
+            required: "This field is required",
+            min: {
+              value: 1,
+              message: "Capacity should be at least 1",
+            },
+          })}
+        />
+        {errors?.name?.message && <Error>{errors.name.message}</Error>}
+      </FormRow>
+
+      <FormRow>
+        <Label htmlFor="discount">Discount</Label>
+        <Input
+          type="number"
+          id="discount"
+          defaultValue={0}
+          {...register("discount", {
+            required: "This field is required",
+            validate: (value) =>
+              value <= getValues().regularPrice ||
+              "Discount should be less than regular price",
+          })}
+        />
+        {errors?.name?.message && <Error>{errors.name.message}</Error>}
+      </FormRow>
+
+      <FormRow>
+        <Label htmlFor="description">Description for website</Label>
+        <Textarea
+          type="number"
+          id="description"
+          defaultValue=""
+          {...register("description", {
+            required: "This field is required",
+          })}
+        />
+      </FormRow>
+
+      <FormRow>
+        <Label htmlFor="image">Cabin photo</Label>
+        <FileInput
+          id="image"
+          accept="image/*"
+          type="file"
+          {...register("image", {
+            required: "This field is required",
+          })}
+        />
+      </FormRow>
+
+      <FormRow>
+        {/* type is an HTML attribute! */}
+        <Button variation="secondary" type="reset">
+          Cancel
+        </Button>
+        <Button disabled={icCreating}>Add cabin</Button>
+      </FormRow>
+    </Form>
+  );
+}
+```
+
+In order to be able to upload the image to the database, we need to update the `createCabin` function like below:
+
+```jsx
+export async function createCabin(neWCabin) {
+  const imageName = `${Math.random()}-${newCabin.image.name}`.replace("/", "");
+  const imagePath = `<supabase-base-url>/storage/v1/object/public/cabin-images/${imageName}`;
+  // 1. Create cabin
+  const { data, error } = await supabase
+    .from("cabin")
+    .insert([{ newCabin, image: imagePath }]);
+
+  if (error) {
+    console.error(error);
+    throw new Error("Cabins could not be created");
+  }
+
+  // 2. Upload image (after the new cabin row is created in the remote server)
+  const { error: storageError } = await supabase.storage
+    .from("cabin-images")
+    .upload(imageName, newCabin.image);
+
+  // 3. Delete cabin row if there was an error uploading image
+  if (storageError) {
+    await supase.from("cabin").delete().eq("id", data.id);
+    console.error(error);
+    throw new Error(
+      "Cabin image could not be uploaded and the cabin was not created"
+    );
+  }
+
+  return data;
+}
+```
+
+Remember that in order to be able to upload images to the Supabase bucket, you need to enable the related RLS.
+
+### **Filling in a form with default values**
+
+In case we want to display a form to enable the user to edit the data of a cabin, we would reuse the `CreateCabinForm` component, but this time making the component able to receive default values. To do this, we first need to make the component ready to receive data cabin's already exisiting data as an argument, for exmaple, called `cabinToEdit`. Then inside the component we need to destructure the values of this `cabinToEdit` and also figure out if the form is displayed to _edit_ or to _create_ cabin data. Then based on one of the two situations, we need to pass an object of options to the `useForm` hook in which we define a property called `defaultValues`. This default values property, of course, should only be used if the form is actually created to edit a cabin's data. This would be the situation where we would need to prefill the form with the already exisiting data of the cabin.
+
+```jsx
+function CreateCabinForm({cabinToEdit = {}}) {
+  const {id: editId, ...editValues} = cabinToEdit;
+  const isEditSession = Boolean(editId);
+  const { register, handleSubmit, reset, getValues, formState } = useForm({
+    defaultValues: isEditSession ? editValues : {},
+  });
+  const { errors } = formState;
+  const queryClient = useQueryClient();
+
+  const { mutate, isLoading: isCreating } = useMutation({
+    mutationFn: createCabin,
+    onSuccess: () => {
+      toast.success("New cabin successfully created");
+      queryClient.invalidateQueries({
+        queryKey: ["cabin"],
+      });
+      reset();
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  function onSubmit(data) {
+    mutate(data, image: data.image[0]);
+  }
+
+  function onError(errors) {}
+
+  return (
+    <Form onSubmit={handleSubmit(onSubmit, onError)}>
+      <FormRow>
+        <Label htmlFor="name">Cabin name</Label>
+        <Input
+          type="text"
+          id="name"
+          {...register("name", {
+            required: "This field is required",
+          })}
+        />
+        {errors?.name?.message && <Error>{errors.name.message}</Error>}
+      </FormRow>
+
+      <FormRow>
+        <Label htmlFor="maxCapacity">Maximum capacity</Label>
+        <Input
+          type="number"
+          id="maxCapacity"
+          {...register("maxCapacity", {
+            required: "This field is required",
+            min: {
+              value: 1,
+              message: "Capacity should be at least 1",
+            },
+          })}
+        />
+        {errors?.name?.message && <Error>{errors.name.message}</Error>}
+      </FormRow>
+
+      <FormRow>
+        <Label htmlFor="regularPrice">Regular price</Label>
+        <Input
+          type="number"
+          id="regularPrice"
+          {...register("regularPrice", {
+            required: "This field is required",
+            min: {
+              value: 1,
+              message: "Capacity should be at least 1",
+            },
+          })}
+        />
+        {errors?.name?.message && <Error>{errors.name.message}</Error>}
+      </FormRow>
+
+      <FormRow>
+        <Label htmlFor="discount">Discount</Label>
+        <Input
+          type="number"
+          id="discount"
+          defaultValue={0}
+          {...register("discount", {
+            required: "This field is required",
+            validate: (value) =>
+              value <= getValues().regularPrice ||
+              "Discount should be less than regular price",
+          })}
+        />
+        {errors?.name?.message && <Error>{errors.name.message}</Error>}
+      </FormRow>
+
+      <FormRow>
+        <Label htmlFor="description">Description for website</Label>
+        <Textarea
+          type="number"
+          id="description"
+          defaultValue=""
+          {...register("description", {
+            required: "This field is required",
+          })}
+        />
+      </FormRow>
+
+      <FormRow>
+        <Label htmlFor="image">Cabin photo</Label>
+        <FileInput
+          id="image"
+          accept="image/*"
+          type="file"
+          {...register("image", {
+            required: isEditSession ? false : "This field is required",
+          })}
+        />
+      </FormRow>
+
+      <FormRow>
+        {/* type is an HTML attribute! */}
+        <Button variation="secondary" type="reset">
+          Cancel
+        </Button>
+        <Button disabled={icCreating}>{isEditSession ? 'Edit Cabin' : 'Add new cabin'}</Button>
+      </FormRow>
+    </Form>
+  );
+}
+```
+
+Then we should update the `apiCabins.js` file to update a cabin data.
+
+```js
+"Add code here";
+```
+
+## **React Hot Toast**
+
+This 3rd-party library is used to display toast notifications in React applications. We should first install its library:
+
+```
+npm install react-hot-toast
+```
+
+Then we need to set it up in the `App.jsx` file. Just like the `ReactQueryDevtools` we now need to include yet another self-closing component that is responsible for providing some options to the toaster.
+
+```jsx
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <ReactQueryDevtools initialIsOpen={false} />
+      <GlobalStyles />
+      <BrowserRouter>
+        <Routes>
+          <Route element={<AppLayout />}>
+            <Route index element={<Navigate replace to="dashboard" />} />
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="bookings" element={<Bookings />} />
+            <Route path="cabins" element={<Cabins />} />
+            <Route path="users" element={<Users />} />
+            <Route path="settings" element={<Settings />} />
+            <Route path="account" element={<Account />} />
+          </Route>
+
+          <Route path="login" element={<Login />} />
+          <Route path="*" element={<PageNotFound />} />
+        </Routes>
+      </BrowserRouter>
+    </QueryClientProvider>
+
+    <Toaster position='top-center' gutter={12} containerStyle={{margin: '8px'}} toastOptions={{
+      success: {
+        duration: 3000,
+      },
+      error: {
+        duration: 5000,
+      },
+      style: {
+        fontSize: '16px',
+        maxWidth: '500px',
+        padding: '16px 24px',
+        backgroundColor: 'var(--color-grey-0)',
+        color: 'var(--color-grey-700)'
+      }
+    }} />
+  );
+}
+```
+
+We are now able to use this toaster in different parts of our application to display errors.
+
+```jsx
+const queryClient = useQueryClient();
+
+const { isLoading: isDeleteing, mutate } = useMutation({
+  mutationFn: (id) => deleteCabin(id),
+  onSuccess: () => {
+    toast.success("Cabin successfully deleted");
+    queryClient.invalidateQueries({
+      queryKey: ["cabin"],
+    });
+  },
+  onError: (err) => toast.error(err.message),
+});
+```
+
 ## **Styled Component library**
 
 The styled component library allow us to write CSS right inside our JavaScript component files. The way it works is that we take a regular HTML element and then, using the `styled` function, we create a brand new React component with some CSS styles applied to it. We can then use and reuse that new component instead of using the regular HTML element.
@@ -5604,6 +6597,26 @@ We can also create an input element like this:
 
 ```jsx
 const Input = styled.input`
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 0.8rem 1.2rem;
+`;
+
+function App() {
+  return (
+    <div>
+      <H1>The Wild Oasis</H1>
+      <Button onClick={() => alert("Checked out")}>Check in</Button>
+      <Input type="number" placeholder="Number of guests" />
+    </div>
+  );
+}
+```
+
+In designing a form in our application, we many times need to define the `type` attribute for the input fields, so that we would not have to manually insert it into the styled component every single time that we use it. To do this we can attach the `attrs` property to the `input` when declaring a styled input component. This will make it so that the `Input` component will always have the `type` attribute set to `file` on it.
+
+```jsx
+const Input = styled.input.attrs({ type: "file" })`
   border: 1px solid #ddd;
   border-radius: 5px;
   padding: 0.8rem 1.2rem;
