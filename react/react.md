@@ -150,6 +150,7 @@
   - [**React Hot Toast**](#react-hot-toast)
   - [**Styled Component library**](#styled-component-library)
     - [**Introducing global styles**](#introducing-global-styles)
+    - [**Styled Component props and CSS function**](#styled-component-props-and-css-function)
 - [**Project deployment**](#project-deployment)
   - [**First, build the application**](#first-build-the-application)
   - [**Second, deploy to Netlify**](#second-deploy-to-netlify)
@@ -3960,7 +3961,7 @@ myRef.current = 1000;
 
 This `current` property is actually mutable unlike everything else in React. The special thing about refs is that they are persisted across renders. Their `current` property value stays the same between renders like states. This makes refs useful in 2 situations:
 
-1. We can use refs to create variables what stay the same between renders (e.g. preserving previous state or storing the ID of a `setTimeout` function, etc.)
+1. We can use refs to create variables that stay the same between renders (e.g. preserving previous state or storing the ID of a `setTimeout` function, etc.)
 2. We can use refs to select and store DOM elements. Just like the ID of a `setTimeout` function, a DOM element is a peice of data that we want store and preserve between renders.
 
 > Refs are usually only used for data that is NOT rendered. Refs usually only appear in event handlers or effects, not in JSX. We can use them in JSX but usually that is not the place for them. So if you need data that participates in the visual output of the component, that is usually a good sign that you need a state, not a ref.
@@ -5606,6 +5607,7 @@ function CabinTable() {
 Into this hook, we need to pass an object with 2 properties. First, `queryKey`, which is usually an array containing a string, but can be a complex array too. This query key that we define here will uniquely identify this data that we are going to query here. So if later, we use the `useQuery` hook on another page, with this exact query key, then the data would be read from the cash. Second, the actual query function named `queryFn` as property. This is the function that is responsible for actually fetching the data from the API. The function that we insert here, needs to return a promise. So we can use the `async` function that we previously defined in the `apiCabins.js` file:
 
 ```js
+// apiCabins.js
 export async function getCabins() {
   const { data, error } = await supabase.from("cabins").select("*");
 
@@ -5962,7 +5964,7 @@ We can now start handling this form using the React Hook Form library. Let's fir
 npm install react-hook-form@7
 ```
 
-Now in order to use this library, we implement a `useForm` hook and this will return a few functions that we can use. One of the most fundamental things in React Hook Form is to register inputs into the `useForm` hook. The way it works is to go into the `Input` components, enter JavaScript mode and call the `register` function by passing into it the input field name. So we write `{...register('name')}`, for example. The `register` can become more complex by adding some validators and we can then handle the errors in the input process.
+Now in order to use this library, we implement a `useForm` hook and this will return a few functions that we can use. One of the most fundamental things in React Hook Form is to register inputs into the `useForm` hook. The way it works is to go into the `Input` components, enter JavaScript mode and call the `register` function by passing into it the input field ID. So we write `{...register('name')}`, for example. The `register` can become more complex by adding some validators and we can then handle the errors in the input process.
 
 ```jsx
 function CreateCabinForm() {
@@ -6025,9 +6027,9 @@ function CreateCabinForm() {
 
 > Note that setting the `type` attribute to `reset` on the `Button` component will make it so that it won't act as a submission button on the form.
 
-Going into the React Query dev tools, we now see that the input fields now have `onBlur` and `onChange` functions addded to them automatically.
+Going into the React Query dev tools, we now see that the input fields now have `onBlur` and `onChange` functions added to them automatically.
 
-Note that we also need to pass a `onSubmit` prop to the `Form` component. In this prop, we need to immediately call the `handleSubmit` function returned by the React Hook Form and pass into it a handler function that we defined. This makes it so that whenever the form is submitted, our handler function will be called while having access to the form data, so to the values passed into input fields that we registered for the React Hook Form.
+Note that we also need to pass an `onSubmit` prop to the `Form` component. In this prop, we need to immediately call the `handleSubmit` function returned by the React Hook Form and pass into it a handler function that we define. This makes it so that whenever the form is submitted, our handler function will be called while having access to the form data, so to the values passed into input fields that we registered for the React Hook Form.
 
 ### **Handling form errors**
 
@@ -6828,6 +6830,147 @@ function App() {
 ```
 
 > Instead of using all the CSS variables that we defined manually, the Styled Component library actually also gives us its own way of providing variables to our entire application. This is done using a mechanism called _Themes_. However, it is a lot better to stick to the native CSS.
+
+#### **Styled Component props and CSS function**
+
+We are now going to use Styled Component library to create more reusable components. For instance, we want to have this styled component for primary heading:
+
+```jsx
+const H1 = styled.h1`
+  font-size: 30px;
+  font-weight: 600;
+`;
+```
+
+But we want to make it more reusable so that we could use it also for secondary headings and other levels of headings.
+
+We first take this code to its separate file, for instance, called `Heading.jsx`.
+
+```jsx
+const Heading = styled.h1`
+  font-size: 30px;
+  font-weight: 600;
+`;
+
+export default Heading;
+```
+
+Now pay attention to the fact that CSS declarations above are inserted into a template literal. So we can insert JavaScript expressions where you need to.
+
+```jsx
+import styled from "styled-component";
+
+const Heading = styled.h1`
+  font-size: ${10 > 5 ? "20px" : "40px"};
+  font-weight: 600;
+`;
+```
+
+You can also insert CSS declaration in a separate variable and then insert it into the CSS declarations.
+
+```jsx
+const test = `text-align: center;`;
+
+const Heading = styled.h1`
+  font-size: ${10 > 5 ? "20px" : "40px"};
+  font-weight: 600;
+  ${test}
+`;
+```
+
+Now you might notice that defining CSS rules in a separate variable will not provide you with syntax highlighting. To fix this, you can import the `css` function from `styled-components` and then use it before the template literal that you used in the separate variable.
+
+```jsx
+import styled, { css } from "styled-component";
+
+const test = css`
+  text-align: center;
+`;
+
+const Heading = styled.h1`
+  font-size: ${10 > 5 ? "20px" : "40px"};
+  font-weight: 600;
+  ${test}
+`;
+```
+
+But in order to create a more reusable styled component we need to somehow accept some prop where the component is being used. For instance, we use this component in the `App` component like this:
+
+```jsx
+function App() {
+  return <Heading type="h2">Heading text</Heading>;
+}
+```
+
+How are we going to receive that prop in the styled component and act based on it? To do this, we can enter JavaScript mode in the styled component template literal and declare a function like this:
+
+```jsx
+import styled, { css } from "styled-component";
+
+const Heading = styled.h1`
+  ${(props) =>
+    props.type === "h1" &&
+    css`
+      font-size: 3rem;
+      font-weight: 600;
+    `}
+
+  ${(props) =>
+    props.type === "h2" &&
+    css`
+      font-size: 2rem;
+      font-weight: 600;
+    `}
+
+    ${(props) =>
+    props.type === "h3" &&
+    css`
+      font-size: 2rem;
+      font-weight: 500;
+    `}
+
+  line-height: 1.4;
+`;
+```
+
+However, this will always insert a `h1` element in the HTML file no matter what `type` prop you pass into the component. To fix this, we can us the `as` prop instead of `type`.
+
+```jsx
+import styled, { css } from "styled-component";
+
+const Heading = styled.h1`
+  ${(props) =>
+    props.as === "h1" &&
+    css`
+      font-size: 3rem;
+      font-weight: 600;
+    `}
+
+  ${(props) =>
+    props.as === "h2" &&
+    css`
+      font-size: 2rem;
+      font-weight: 600;
+    `}
+
+    ${(props) =>
+    props.as === "h3" &&
+    css`
+      font-size: 2rem;
+      font-weight: 500;
+    `}
+
+  line-height: 1.4;
+`;
+```
+
+And then when we use this component we can do:
+
+```jsx
+function App() {
+  return <Heading as="h2">Heading text</Heading>;
+}
+```
 
 # **Project deployment**
 
