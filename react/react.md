@@ -1101,14 +1101,14 @@ function handleClick() {
 2. We might want to fetch movie data immediately after the component mounts, and also after subsequent re-renders (according to dependancy array)
 
 ```js
-useEffect(function() {
+useEffect(function () {
   function handleClick() {
-  fetch(`http://www.omdbapi.com/?s=inception`)
-    .then((res) => res.json())
-    .then((data) => setMovies(data.Search));
-
-    return () => console.log('cleanup');
-}, [])
+    fetch(`http://www.omdbapi.com/?s=inception`)
+      .then((res) => res.json())
+      .then((data) => setMovies(data.Search));
+  }
+  return () => console.log("cleanup");
+}, []);
 ```
 
 We can say that the two pieces of code produce the exact same result, but they do so at different moments in time. The exact moment in which the effect is executed depends on its **[dependancy array](#dependancy-array)**. We can use the dependancy array to tell an effect to also run after a component re-renders.
@@ -1121,7 +1121,7 @@ Thinking about the different moments of a component lifecycle can be very helpfu
 
 #### **Syncronization and lifecycle**
 
-When a dependancy changes, the effect is executed again. But now let's remember that dependancies are alaways states or props. What happens to a component when its state or prop is updated? The component will re-render. This means that effects and the lifecycle of a component are deeply inter-connected. When the `useEffect` hook was first introduced, many thought that it was a lifecycle hook, rather than a hook for syncing a component with a side effect.
+When a dependancy changes, the effect is executed again. But now let's remember that dependancies are alaways states or props. What happens to a component when its state or prop is updated? The component will re-render. This means that effects and the lifecycle of a component are deeply interconnected. When the `useEffect` hook was first introduced, many thought that it was a lifecycle hook, rather than a hook for syncing a component with a side effect.
 
 The conclusion here is that we can use the dependancy array to run effects when the component renders or re-renders. The `useEffect` is about synchronization and about the component lifecycle.
 
@@ -1280,7 +1280,7 @@ What we are basically trying to do here is to make sure that the page title stay
 
 It is optional to return a cleanup function from an effect. We can simply omit it. This cleanup function runs on 2 occasions:
 
-1. Before the effect is executed again in order to cleanup the results of the previous side effect.
+1. Before the effect is executed again, in order to cleanup the results of the previous side effect.
 2. After a component has unmounted in order to enable us to reset the side effect that we created if it is necessary.
 
 #### **When to use a cleanup function?**
@@ -1318,7 +1318,7 @@ export default function App() {
 
   fetch(`http://www.omdbapi.com/?apikey=${KEY}&s=interstellar`)
     .then((res) => res.json())
-    .then((data) => console.log(data));
+    .then((data) => setMovies(data));
 
     return (
       // JSX
@@ -1405,7 +1405,7 @@ export default function App() {
 
 So we basically define an `async` function `fetchMovies` inside the `useEffect` hook, and called it immediately afterwards. Inside this `async` function, we can use as many `await` expressions as we need.
 
-> Whenever we are using `async` functions, especially to load data from an API, it is a good practice to indicate for the user that some data is being loaded. This way the user would know that they should wait for their expected result. To do this, we usually define another state variable for the loading status. See code example below:
+> Whenever we are using `async` functions, especially to load data from an API, it is a good practice to indicate for the user that some data is being loaded. This way the user would know that they should wait for their expected result. There is an amazing library that takes care of all this along with many other things such as error handling, which is called [React Query](#react-query). But as of now, to do this, we usually define another state variable for the loading status. See code example below:
 
 ```js
 export default function App() {
@@ -1582,7 +1582,7 @@ export default function App() {
 
 ##### **Preventing race conditions**
 
-Currently, with each key stroke on the keyboard, the effect the we have introduced is executed again, starting `fetch` requests one after another. This creates a race condition where the results displayed on the UI will be the result of any request that takes longer to be responded with actual data from the API. However, that is not what we want. We only want the result of the last request to be displayed on the UI. So what we need to do now is to **cleanup** the previous `fetch` request each time the the effect is going to be executed again.
+Currently, with each key stroke on the keyboard, the effect the we have introduced is executed again, starting `fetch` requests one after another. This creates a race condition where the results displayed on the UI will be the result of any request that takes longer to be responded with actual data from the API. However, that is not what we want. We only want the result of the last request to be displayed on the UI. So what we need to do now is to **cleanup** the previous `fetch` request each time the effect is going to be executed again.
 
 In this specific example, we are going to use the `AbortController` API that belongs to the browser. We are going to use it in the cleanup function of the effect.
 

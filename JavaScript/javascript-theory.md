@@ -65,7 +65,7 @@
     - [**Spread operator for arrays**](#spread-operator-for-arrays)
     - [**Rest pattern in arrays**](#rest-pattern-in-arrays)
   - [**Objects**](#objects)
-    - [**Retrieve data from obejct**](#retrieve-data-from-obejct)
+    - [**Retrieve data from object**](#retrieve-data-from-object)
     - [**Object methods**](#object-methods)
     - [**Destructuring objects**](#destructuring-objects)
     - [**Spread operator for objects**](#spread-operator-for-objects)
@@ -165,12 +165,12 @@ Right after the internet was invented, and the first browsers were developed, de
 | 1996     | Mocha was renamed first to LiveScript and then to JavaScript, in order to attract Java developers, since Java was the most popular programming language at that time. But JavaScript has nothing to do with Java. People started to realise that they need a standard JavaScript language. So the language was submitted to an independant standard organization called ECMA. |
 | 1997     | ECMA released **ECMAScript 1 (ES1)**, which was the first official standard for JavaScript. Now every browser could implement the same standard of JavaScript.                                                                                                                                                                                                                |
 | 2009     | After a lot of controversy about where the language should be headed, ES5 was released with lots of new features.                                                                                                                                                                                                                                                             |
-| 2015     | ES6/ES2015 was released. This was the biggest update to the language ever. The reason why releases were also announced with the year number starting from ES6, was that in 2015, ECMAScript changed to an annual release cycle in order to shil less features per update, and therefore, avoiding breaking changes in the language.                                           |
+| 2015     | ES6/ES2015 was released. This was the biggest update to the language ever. The reason why releases were also announced with the year number starting from ES6, was that in 2015, ECMAScript changed to an annual release cycle in order to ship less features per update, and therefore, avoiding breaking changes in the language.                                           |
 | 2016 - ∞ | Releases of ES7/ES2016, ES8/ES2017, ...                                                                                                                                                                                                                                                                                                                                       |
 
 # **JavaScript releases**
 
-JavaScript has a unique feature called **backwards compatibility**. It means that if write old JavaScript code syntax, it will successfully be understood by modern JavaScript engines that we have today, so it will work in modern browsers. So no matter how far JavaScript goes in its future releases, old websites will still keep working.
+JavaScript has a unique feature called **backwards compatibility**. It means that if we write old JavaScript code syntax, it will successfully be understood by modern JavaScript engines that we have today, so it will work in modern browsers. So no matter how far JavaScript goes in its future releases, old websites will still keep working.
 
 This feature is based on a JavaScript development principle which is **Dont' break the web!** It means that there is almost never anything removed from the language, but only added to it in new releases (**incremental updates**).
 
@@ -383,10 +383,12 @@ Truthy and Falsey values are not actually `true` or `false`, but they will trans
 
 In JavaScript, we have 5 falsey values, and everything else is a truthy value.
 
-1. zero (0)
+1. zero (0) and -0 and 0n (bigint)
 2. empty string ('')
 3. `undefined`
 4. `NaN` (returned whenever an operation that involves numbers fails to produce a new number.)
+5. `null`
+6. `document.all` (the only falsey object in JavaScript)
 
 ```js
 console.log(Boolean(0)); // false
@@ -459,9 +461,34 @@ The most basic and important logical operators are **`&&` (AND)**, **`||` (OR)**
 
 ### **if/else statement**
 
+```js
+if (condition) {
+  // code block
+} else {
+  // code block
+}
+```
+
 ### **switch statement**
 
+```js
+switch(variable) {
+  case <value>:
+    // code
+    break
+  case <value>:
+    // code
+    break
+  default:
+    // code
+}
+```
+
 ### **Ternary operator**
+
+```js
+return condition ? value : value;
+```
 
 ### **Loops**
 
@@ -581,7 +608,7 @@ Here is a list of JavaScript features which kind of forms the whole definition o
 
 ## **JavaScript runtime and engine**
 
-A JavaScript runtime is like a big box that includes all the things we need in ourder to use JavaScript in a browser. The heart of any JavaScript runtime, is the JavaScript engine. In addition to the engine, JavaScript runtime includes Web APIs. A runtime also includes a callback queue.
+A JavaScript runtime is like a big box that includes all the things we need in order to use JavaScript in a browser. The heart of any JavaScript runtime, is the JavaScript engine. In addition to the engine, JavaScript runtime includes Web APIs. A runtime also includes a callback queue.
 
 A JavaScript **engine** is a program that executes JavaScript code. There are a lot of steps in doing so. Every browser has its own JavaScript engine, but the most well-known engine is Google's **V8**. Let's dive deeper into the engine's structure.
 
@@ -624,9 +651,9 @@ The computers CPU only understands 0s and 1s. So any computer program ultimately
 - Compilation: The entire source code is converted into machine code at once. The machine code is then written into a portable file that can be executed on any computer. So there are 2 steps here:
 
   - **Compilation:** machine code is built
-  - **Execution:** machine code is executed in CPU. This step can happen way after the srouce code was compiled.
+  - **Execution:** machine code is executed in CPU. This step can happen way after the source code was compiled.
 
-- Interpretation: There would be an interpretter that runs through the source code and executes it line by line. So there is only one step involved here which is execution line by line. The point is that the conversion source code into machine code is done just before the execution.
+- Interpretation: There would be an interpretter that runs through the source code and executes it line by line. So there is only one step involved here which is execution line by line. The point is that the conversion of source code into machine code is done just before the execution.
 
 > **_Note_** | JavaScript used to be a purely interpretted language. The problem with interpretted languages is that they are much slower than compiled languages. However, low performance is no longer acceptible today. Modern JavaScript now uses a mixture of compilation and interprettation which is called Just-In-Time compilation.
 
@@ -640,7 +667,7 @@ Let's now see what exactly happens when our code is executed. So after our code 
 
 1. As the first stage of execution, a **global execution context** is created for top-level code. Top-level code is code that is not inside any function. Obviously, functions should only be excuted when they are called. In any JavaScript project, there is only one global execution context. It is always there.
 2. The global execution context is put into the call stack, and top level code is executed, also functions are declared so that they could be called later.
-3. Functions are now executed and the program waits for callback functions. For each function call, one execution context is created. This execution context will contain all the necessary information for executin exactly that function.
+3. Functions are now executed and the program waits for callback functions. For each function call, one execution context is created. This execution context will contain all the necessary information for executing exactly that function.
 
 All these execution contexts together, make up the call stack. When all functions are executed, the engine will keep waiting for callback functions to arrive. For instance, a callback function attached to a click event.
 
@@ -667,7 +694,7 @@ Scope is an environment in which a certain variable is declared. In case of func
 
 - **Global scope:** outside of any function or code block. Variables declared in global scope are accessible everywhere. They are also called global variables.
 - **Function scope:** also called **local scope**. Each function, no matter it is function declaration, expression or arrow function, has its own scope. Variables declared in a function are only accessible inside the function, not outside.
-- **Block scope:** starting in ES6, code blocks `{}` (for exmple, of if statements or for loops) also create scopes. Variables declared inside blocks are not accessible from outside the scope. Note that this only applies to variables declared with `let` and `const`. So variables declared with `var` in a block, will be accessible outside the scope, so from an outer function scope or the global scope. Also note that functions are also block scoped in `strict` mode.
+- **Block scope:** starting in ES6, code blocks `{}` (for exmple, of if statements or for loops) also create scopes. Variables declared inside blocks are not accessible from outside the block. Note that this only applies to variables declared with `let` and `const`. So variables declared with `var` in a block, will be accessible outside the scope, so from an outer function scope or the global scope. Also note that functions are also block scoped in `strict` mode.
 
 Scoping determines how our program variables are organized and accessed. Scoping is controlled by the placement of functions and code blocks in our program. This is called **lexical scoping**. For instance, a function defined in another function, has access to the variables of the parent function.
 
@@ -692,7 +719,7 @@ Let's now take a look at how hoisting behaves with different types of variables:
 | `let` and `const` variables     | no                                               | TDZ <`uninitialized`> | block    |
 | function expressions and arrows | depends if defined with `let`, `const`, or `var` |
 
-> **_Note_** | TDZ for a `let` or `const` variables starts from the beginning of the scope until the line where the variable is actually declared. TDZ was introduced to JavaScript in ES6, in order to make it easier to avoid and catch errors. Accessing variables before declaration is bad practice and should be avoided. TDZ also makes `const` variables behave as they do.
+> **_Note_** | TDZ for a `let` or `const` variable starts from the beginning of the scope until the line where the variable is actually declared. TDZ was introduced to JavaScript in ES6, in order to make it easier to avoid and catch errors. Accessing variables before declaration is bad practice and should be avoided. TDZ also makes `const` variables behave as they do.
 
 > **_Note_** | Hoisting was implemented in JavaScript in order to make it possible to use functions before they are declared. This is essential for some programming techniques such as **mutual recursion**.
 
@@ -1028,7 +1055,7 @@ let arr = ["a", "b", "c", "d", "e"];
 console.log(arr.slice(2)); // ['c', 'd', 'e']
 console.log(arr.slice(2, 4)); // ['c', 'd']
 console.log(arr.slice(-1)); // ['e']
-consoloe.log(arr.slice(1, -2)); // ['b', 'c']
+console.log(arr.slice(1, -2)); // ['b', 'c']
 ```
 
 > **_Note_** | it is also possible to create shallow copies with the slice method. Just use it with no index.
@@ -1101,7 +1128,7 @@ console.log(arr.flat(2)); // [1, 2, 3, 4, 5, 6, 7, 8];
 - Receives the callback function that we would normally pass into the `.map()` method.
 - Returns a new flattened array.
 
-**`.sort()`**: used to sort elements of an array based a sorting logic implemented in a callback function that is passed into the method. If no callback is passed into the method, it can only be used to sort string values in an array, not numbers.
+**`.sort()`**: used to sort elements of an array based on a sorting logic implemented in a callback function that is passed into the method. If no callback is passed into the method, it can only be used to sort string values in an array, not numbers.
 
 - Mutates the original array.
 - Receives a callback function where the sorting logic is implemented.
@@ -1159,7 +1186,7 @@ console.log(a, c); //2 4
 > **_Note_** | Attempting to retrieve more variables than the actual length of the array will result in `undefined`. However, we can prevent producing an `undefined` value by definging default values.
 
 ```js
-const arr = [2, 3, 4];
+const arr = [2, 3];
 
 const [a = 1, b = 1, c = 1] = arr;
 console.log(a, b, c); //2 3 1
@@ -1254,7 +1281,7 @@ add(...numbers);
 
 Objects are the most fundamental concept in the whole JavaScript language.
 
-In arrays there is no way of giving names to elements. So we are not able to reference them by a name, but only with their index number. Objects, however, provides this option.
+In arrays there is no way of giving names to elements. So we are not able to reference them by a name, but only with their index number. Objects, however, provide this option.
 
 In objects we define key-value pairs. So each value will have a key (property) that can be referenced by it.
 
@@ -1275,7 +1302,7 @@ After defining the object, we can still add key-value pairs to it using the dot 
 omid.location = "iran";
 ```
 
-### **Retrieve data from obejct**
+### **Retrieve data from object**
 
 Unlike arrays, the order of properties does not matter when we want to retrieve them. To retrieve data from an object we have two ways:
 
@@ -1429,7 +1456,7 @@ const rolesSet = new Set(["user", "user", "author", "admin", "admin"]);
 console.log(roleSet); // {'user', 'author', 'admin'}
 ```
 
-> **_Note_** | Just like arrays, sets are iterables. Unlike array, however, the order of elements in a set does not matter.
+> **_Note_** | Just like arrays, sets are iterables. Unlike arrays, however, the order of elements in a set does not matter.
 
 #### **Set properties and methods**
 
@@ -1525,19 +1552,19 @@ const meMap = new Map(Object.entries(meObject));
 
 ### **Map methods**
 
-**`.get()`**: accepts a value as key, and retrieves the related value.
+**`.get()`**: accepts a key, and retrieves the related value.
 
 ```js
 console.log(me.get(true)); // Working
 ```
 
-**`.has()`**: checks if a certain key-value pair exists in the map. Accepts a value as key.
+**`.has()`**: checks if a certain key-value pair exists in the map. Accepts a key.
 
 ```js
 console.log(me.has("name")); // true
 ```
 
-**`.delete()`**: deletes a key-value pair from map. Accepts a value as key.
+**`.delete()`**: deletes a key-value pair from map. Accepts a key.
 
 ```js
 me.delete(true);
@@ -1584,12 +1611,12 @@ console.log(airline.length); // 16
 
 First of all, we should know that when we use methods on strings, behind the scenes, JavaScript will convert the string primitive to a string **object** with the same content. Then we can have access to methods. This process is called **boxing**. After the method's operation is done, the obejct is converted back to a regular string primitive.
 
-### **Finding positions of characters**
-
 ```js
 // behind the scenes
 const stringObj = new String("TAP Airline Portugal");
 ```
+
+### **Finding positions of characters**
 
 **`.indexOf()`:** used to get the index of a given character. This returns the index of the first occurence.
 
@@ -1686,7 +1713,7 @@ const name = ["Mr.", "Omid", "Armat"];
 console.log(name.join(" ")); // Mr. Omid Armat
 ```
 
-**`.padStart()` and `.padEnd()`:** padding means to add a number of characters to a string until the final string has a desired length. This methods add some characters to the beginning/end of any given string.
+**`.padStart()` and `.padEnd()`:** padding means to add a number of characters to a string until the final string has a desired length. These methods add some characters to the beginning/end of any given string.
 
 - Accepts two arguments: first, the desired length of the returned string. Second, the character that should be added until reaching the desired number of characters.
 - Returns a new string.
@@ -1749,7 +1776,7 @@ Some functionalities are implemented, by default, in an asynchronous way in Java
 ## **JavaScript pre-defined asynchronous functionalities**
 
 1. `setTimeout()` function.
-2. Changing the `src` attribute of an image element. Once it is done, a `load` event is emited to which we can listen to using an event listener.
+2. Changing the `src` attribute of an image element. Once it is done, a `load` event is emited to which we can listen using an event listener.
 3. Geolocation API
 4. AJAX calls: stands for Asynchronous JavaScript And XML and allows us to communicate with remote web servers. With AJAX calls, we can request data from web servers dynamically.
 
@@ -1769,7 +1796,7 @@ const request = new XMLHttpRequest();
 
 We then have to `.open()` the request by specifying the HTTP method and the URL. Afterwards, we would have to `.send()` the request. Sending the request will start performing the asynchronous task of sending the request and waiting for the server's response. So we cannot expect the resulting data to be immediately available on the request object.
 
-Once the respond from the server arrives, which means the requested data is ready, the request object will emit a `load` event, to which we can listen. The event listener would receive a callback function that will actually be called once the `load` event is detected. Note that the actual data comming from the server will be stored on the `responseText` property of the request object.
+Once the response from the server arrives, which means the requested data is ready, the request object will emit a `load` event, to which we can listen. The event listener would receive a callback function that will actually be called once the `load` event is detected. Note that the actual data comming from the server will be stored on the `responseText` property of the request object.
 
 ```js
 request.open("GET", "<URL>");
@@ -1788,7 +1815,7 @@ const data = JSON.parse(this.responseText);
 
 #### **Fetch API**
 
-To perform an AJAX call in this method, we create a request by calling the `fetch()` function which receives a URL. There are multiple options that can be specified in the fetch function, but to perform a simple `GET` response, we just need to pass in a URL.
+To perform an AJAX call in this method, we create a request by calling the `fetch()` function which receives a URL. There are multiple options that can be specified in the fetch function, but to perform a simple `GET` request, we just need to pass in a URL.
 
 If we immediately attempt to log the request result to the console, we would see a **pending promise**.
 
