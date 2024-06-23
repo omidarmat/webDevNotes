@@ -104,7 +104,7 @@
     - [**Four fundamental OOP principles**](#four-fundamental-oop-principles)
   - [**OOP in JavaScript**](#oop-in-javascript)
     - [**Prototype \& prototypal inheritance**](#prototype--prototypal-inheritance)
-    - [**Implementing prototypal inheritance in JavaScripts**](#implementing-prototypal-inheritance-in-javascripts)
+    - [**Implementing prototypal inheritance in JavaScript**](#implementing-prototypal-inheritance-in-javascript)
       - [**1. Constructor function and the `prototype` property:**](#1-constructor-function-and-the-prototype-property)
         - [**_Creating a construtor function_**](#creating-a-construtor-function)
         - [**_Defining methods on prototype_**](#defining-methods-on-prototype)
@@ -2014,7 +2014,7 @@ Object-oriented programming is a programming paradigm based on the concept of ob
 
 - We use objects to **model** or describe real-world or abstract features.
   - Objects are self-contained pieces/blocks of code.
-  - Objects usually contain **properties** and **methods**. With objects, we pack data and the corresponding behavior into on block of code.
+  - Objects usually contain **properties** and **methods**. With objects, we pack data and the corresponding behavior into one block of code.
 - In OOP, objects are **building blocks** of applications, and interact with one another through a **public interface (API)**.
   - An API includes methods that the code outside the object can access and use to communicate with the object.
 
@@ -2082,13 +2082,13 @@ num.map((v) => v * 2);
 
 So the `num` array is linked to `Array.prototype` object, and therefore has access to all methods defined on it. The map method is not defined on the `num` array, but on its prototype.
 
-### **Implementing prototypal inheritance in JavaScripts**
+### **Implementing prototypal inheritance in JavaScript**
 
 There are 3 ways of implementing prototypal inheritance in JavaScript:
 
 #### **1. Constructor function and the `prototype` property:**
 
-this is a technique to create objects from a function, and it is how built-in objects like Array, Map and Set are actually implemented in JavaScript.
+This is a technique to create objects from a function, and it is how built-in objects like Array, Map and Set are actually implemented in JavaScript.
 
 ##### **_Creating a construtor function_**
 
@@ -2128,7 +2128,7 @@ Person.protoype.species = "Homo Sapiens";
 
 Static methods are usually used as helper functions defined on constructor functions. So objects (instances) created from a constructor function will not have access to static methods.
 
-For instance, the `from` method is available on the `Array` constructor, but not on simple arrays.
+For instance, the `from` method is available on the `Array` constructor, but not on array instances.
 
 To define a static method on the `Person` constructor function:
 
@@ -2219,7 +2219,7 @@ console.log(arr.__proto__); // Array.prototype
 console.log(arr.__proto__.__proto__); // Object.prototype
 ```
 
-When we call the `hasOwnProperty` method on an object like `omid`, JavaScript will first start looking for the method on the object itself. If it is not there, it will go up the prototype chain and look for the method in `omid`'s prototype, which is `Person.prototype`. If it is not there too, it will go up the prototype chain on level further and look into `Object.prototype`. This is where it will find and call the method.
+When we call the `hasOwnProperty` method on an object like `omid`, JavaScript will first start looking for the method on the object itself. If it is not there, it will go up the prototype chain and look for the method in `omid`'s prototype, which is `Person.prototype`. If it is not there too, it will go up the prototype chain one level further and look into `Object.prototype`. This is where it will find and call the method.
 
 ##### **_Inheritance between constructor functions (classes)_**
 
@@ -2233,7 +2233,7 @@ const Person = function (name, birthYear) {
   this.birthYear = birthYear;
 };
 
-Person.prototype.calaAge = function () {
+Person.prototype.calcAge = function () {
   return 2037 - this.birthYear;
 };
 ```
@@ -2275,7 +2275,7 @@ Student.prototype.introduce = function () {
 
 #### **2. ES6 Classes:**
 
-this introduced classes to JavaScript. However, this is not exactly what we mean by 'classes' in traditional OOP. ES6 classes do **NOT** behave like classes in traditional OOP.
+This is where classes were introduced to JavaScript. However, this is not exactly what we mean by 'classes' in traditional OOP. ES6 classes do **NOT** behave like classes in traditional OOP.
 
 ##### **_Defining a class and instance properties_**
 
@@ -2367,7 +2367,7 @@ Here are some tips to remember about ES6 classes:
 
 ##### **_Defining getters and setters_**
 
-Every object in JavaScript can have getter and setter properties. These are calls **Assessor properties**, while normal properties are called **Data properties**.
+Every object in JavaScript can have getter and setter properties. These are called **Assessor properties**, while normal properties are called **Data properties**.
 
 Getters and setters are functions that get and set values, but on the outside, they look like regular properties.
 
@@ -2591,7 +2591,7 @@ class Account {
 
 this is the easiest way of linking an object to a prototype object. However, this syntax is not used much.
 
-In this last way of implementing OOP programming, the idea is still based on prototypal inheritance, but there are no `prototype` properties involved. Also, there is no constructor function, and no `new` operator.
+In this last way of implementing OOP, the idea is still based on prototypal inheritance, but there are no `prototype` properties involved. Also, there is no constructor function, and no `new` operator.
 
 We use `Object.create()` to manually set the prototype of an object, to any other object that we want. For example, we can now create a new object and make it the prototype of all the person objects.
 
