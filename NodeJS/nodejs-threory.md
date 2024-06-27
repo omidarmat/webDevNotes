@@ -544,7 +544,7 @@ const <variable-name> = require('<module-name>');
 
 #### **2. Our own modules**
 
-Every single JavaScript file in a NodeJS application is treated as a module. Modules are used in NodeJS to export functionalities form one module and import them into another module.
+Every single JavaScript file in a NodeJS application is treated as a module. Modules are used in NodeJS to export functionalities from one module and import them into another module.
 
 ##### **Different ways of exporting**
 
