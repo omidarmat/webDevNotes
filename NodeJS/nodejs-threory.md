@@ -169,13 +169,13 @@ A static web server only includes website **static files** and a **HTTP server**
 
 #### **Dynamic web server**
 
-In websites that are backed by a dynamic web server, we no longer have static frontend files. Instead, we have some templates that will get populated with the up-to-date data coming from the server. In addition to these template files and a HTTP server, a dynamic server also includes our **web application**. All these three parts interact with each other and provide dynamic contents based on interaction with a **database**. NodeJS is capable of establishing a dynamic web server.
+In websites that are backed by a dynamic web server, we no longer have static frontend files. Instead, we have some templates that will get populated with the up-to-date data coming from the server. In addition to these template files and a HTTP server, a dynamic server also includes a **web application**. All these three parts interact with each other and provide dynamic contents based on interaction with a **database**. NodeJS is capable of establishing a dynamic web server.
 
 In dynamically rendered wesites (also called **server-side rendered**), frontend files are generated dynamically on the server-side based on some templates, so the website is actually built on the server-side. Once front-end files are made ready according to the exact data received from the server, they will then be sent to the browser just to be rendered.
 
 #### **API**
 
-API stands for **Application Programming Interface**. An API is a service from which we can request some data. It is a piece of sotware that can be used by another piece of software to allow applications to talk to each other.
+API stands for **Application Programming Interface**. An API is a service from which we can request some data. It is a piece of software that can be used by another piece of software to allow applications to talk to each other.
 
 The word **application** in API can include many things such as:
 
