@@ -1,5 +1,13 @@
 # NextJS essentials
 
+- [NextJS essentials](#nextjs-essentials)
+  - [Rendering in NextJS](#rendering-in-nextjs)
+  - [Rendering in React](#rendering-in-react)
+    - [Client-Side Rendering (CSR)](#client-side-rendering-csr)
+    - [Server-Side Rendering (SSR)](#server-side-rendering-ssr)
+      - [Suspense for SSR](#suspense-for-ssr)
+    - [React Server Components (RSC)](#react-server-components-rsc)
+
 This file is written based on the content produced by _Codevolution_ in videos available on youtube via the link below:
 
 ```
@@ -14,9 +22,9 @@ Before diving into rendering in NextJS, let's first understand rendering in Reac
 
 To fully understand Rendering in NextJS, it helps to know about the evolution of React's rendering over the last decade. So let's first understand how React has evolved its rendering strategies.
 
-### Rendering in React
+## Rendering in React
 
-#### Client-Side Rendering (CSR)
+### Client-Side Rendering (CSR)
 
 In a typical SPA, when a client sends a request, the server sends a single HTML page to the browser, containing a simple `<div>` tag and a reference to a JavaScript file. This JavaScript file contains everything your application needs to run, including React library itself and your application code. It is downloaded when the HTML file is parsed. The downloaded JavaScript code then generates the HTML on your computer and inserts it into the DOM under the root `<div>` element. This process is evident when you see the HTML in the DOM inspector, containing rendered HTML, but not in the 'View source' option which shows the HTML file sent by the server to the browser. This HTML file is basically empty.
 
@@ -27,7 +35,7 @@ This method of rendering, where the component code is transformed into a user in
 
 To overcome these drawbacks of CSR, modern React frameworks like Gatsby and NextJS moved toward Server-Side solutions (SSR). This approach fundamentally changes how content is delivered to the user.
 
-#### Server-Side Rendering (SSR)
+### Server-Side Rendering (SSR)
 
 when a request comes in, instead of sending a nearly empty HTML file that depends on client-side JavaScript to construct the page, the server takes charge of rendering the full HTML. This fully-formed HTML document is then sent directly to the browser. Since the HTML is generated on the server, the browser is able to quickly parse and display it, improving the initial page load time. The Server-Side approach effectively addresses the issues associated with CSR.
 
@@ -53,7 +61,7 @@ SSR was a significant improvement over CSR providing faster initial page loads a
 
 These three problems create an _all or nothing_ waterfall problem that spans from the server to the client, where each issue must be resolved before moving to the next one. This is inefficient if some parts of the application are slower than others, as is often the case in real-world apps. As a result, the React team introduced a new and improved SSR architecture.
 
-##### Suspense for SSR
+#### Suspense for SSR
 
 The suspense SSR architecture allows you to use the `<Suspence>` component to unlock two major SSR features:
 
@@ -98,4 +106,4 @@ So the 3 significant drawbacks of traditional SSR have all been addressed by the
 
 These issues highlight the need for a better way to build faster applications that improve upon traditional rendering techniques while overcoming their limitations. Let's take a look at what the solution is.
 
-#### React Server Components (RSC)
+### React Server Components (RSC)
