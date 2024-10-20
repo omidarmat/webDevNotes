@@ -6,7 +6,30 @@
     - [Client-Side Rendering (CSR)](#client-side-rendering-csr)
     - [Server-Side Rendering (SSR)](#server-side-rendering-ssr)
       - [Suspense for SSR](#suspense-for-ssr)
-    - [React Server Components (RSC)](#react-server-components-rsc)
+    - [React Server Component](#react-server-component)
+      - [Client components](#client-components)
+      - [Server Components](#server-components)
+      - [RSC key takeaways](#rsc-key-takeaways)
+      - [RSC and NextJS](#rsc-and-nextjs)
+      - [RSC in NextJS](#rsc-in-nextjs)
+        - [Summary](#summary)
+    - [Rendering lifecycle of server and client components](#rendering-lifecycle-of-server-and-client-components)
+    - [Static rendering](#static-rendering)
+      - [RSC file format](#rsc-file-format)
+        - [Prefetching](#prefetching)
+      - [Summary](#summary-1)
+    - [Dynamic rendering](#dynamic-rendering)
+      - [Summary](#summary-2)
+    - [Streaming](#streaming)
+  - [Server and client composition patterns](#server-and-client-composition-patterns)
+    - [Server component patterns](#server-component-patterns)
+      - [Server-only code](#server-only-code)
+        - [Summary](#summary-3)
+      - [Third-party packages](#third-party-packages)
+        - [Summary](#summary-4)
+      - [Context providers](#context-providers)
+    - [Client component patterns](#client-component-patterns)
+      - [Client-only code](#client-only-code)
 
 This file is written based on the content produced by _Codevolution_ in videos available on youtube via the link below:
 
@@ -106,4 +129,761 @@ So the 3 significant drawbacks of traditional SSR have all been addressed by the
 
 These issues highlight the need for a better way to build faster applications that improve upon traditional rendering techniques while overcoming their limitations. Let's take a look at what the solution is.
 
-### React Server Components (RSC)
+### React Server Component
+
+Until now we have seen React rendering strategies evolve from CSR to SSR and then to suspense for SSR. Each step introduced its own set of improvements, and naturally, its own challenges. Suspense for SSR brought us closer to a seamless rendering experience while we still face some challenges: Increased bundle sizes leading to excessive downloads for users, Unneccessary hydration delaying interactivity, extensive client-side processing that could result in poor performance. To address these challenges, we need a significant leap toward a more powerful solution.
+
+React Server Components (RSC) represent a new architecture designed by the React team. This approach aims to leverage the strengths of both server and client environments, optimizing for efficiency, load times, and interactivity.
+
+The architecture introduces a dual-component model:
+
+- Client components
+- Server components
+
+This distinction is not based on the functionality of the components, but rather on where they execute and the specific environments they are designed to interact with.
+
+#### Client components
+
+Client components are the familiar React components we have been using and talking about in the previous rendering techniques. They are tipically rendered on the clinet-side (CSR), but they can also be rendered to HTML on the server (SSR), allowing users to immediately see the page's HTML content reather than a blank screen.
+
+The idea of client components rendering on the server might seem confusing, but it is helpful to view them as components that primarily run on the client but can (and should) also be executed once on the server as an optimization strategy.
+
+Client components have access to client environment, such as the browser, allowing them to use state, effects, and event listeners to handle interactivity and also access browser-exclusive APIs like geolocation or local storage, allowing you to build UI for specific use cases. In fact, the term "client component" does not signify anything new. It simply helps differentiate these components from the newly introduced server components.
+
+#### Server Components
+
+Server components represent a new type of React component specifically designed to operate exclusively on the server. Unlike client components, their code stays on the server and is never downloaded to the client. This design choice offers multiple benefits to React applications. This design choice offers multiple benefits to React applications:
+
+1. **Reduced bundle sizes:** Server components do not send code to the client, allowing large dependencies to remain server-side. This benefits users with slower internet connections or less capable devices by eliminating the need to download, parse, and execute JavaScript for these components. Additionally, it removes the hydration step, speeding up app loading and interaction.
+2. **Direct access to server-side resources:** By having direct access to server-side resources like databases or file systems, server components enable efficient data fetching and rendering without needing additional client-side processing. Leveraging the server's computational power and proximity to data sources, they manage compute-intensive rendering tasks and send only interactive pieces of code to the client.
+3. **Enhanced security:** Server components' exlusive server-side execution enhances security by keeping sensitive data and logic, including tokens and API keys, away from the client-side.
+4. **Improved data fetching:** Server components enhance data fetching efficiency. Typically, when fetching data on the client-side using `useEffect`, a child component cannot begin loading it data until the parent component has finished loading its own. This sequential fetching of data often leads to poor performance. The main issue is not the round trips themselves, but that these round trips are made from the client to the server. Server components enable applications to shift these sequential round trips to the server-side. By moving this logic to the server, request latency is reduced, and overall performance is improved, eliminating client-server waterfalls.
+5. **Caching:** Rendering on the server enables caching of the results, which can be reused in subsequent requests and across different users. This approach can significantly improve performance and reduce costs by minimizing the amount of rendering and data fetching required for each request.
+6. **Faster initial page load and first contentful paint:** Initial page load and First Contentful Paint (FCP) are significantly improved with server components. By generating HTML on the server, pages become immediately visible to users without the dealy of downloading, parsing, and executing JavaScript.
+7. **Improved SEO:** Regarding SEO, the server-rendered HTML is fully accessible to seach engine bots, enhancing the indexability of your pages.
+8. **Efficient streaming:** Server components allow the rendering process to be divided into managable chunks, which are then streamed to the client as soon as they are ready. This approach allows users to start seeing parts of the page earlier, eliminating the need to wait for the entire page to finish rendering on the server.
+
+With RSC architecture server components take charge of data fetching and static rendering, while client components are tasked with rendering the interactive elements of the application. The bottom line is that the RSC architecture enables React applications to leverage the best aspects of both server and client rendering, all while using a single language, a single framework, and a cohesive set of APIs.
+
+#### RSC key takeaways
+
+RSCs introduce a new way of building React apps by separating components into two types: Server Components and Client Components.
+
+Server components run only on the server, accessing data and preparing content without being sent to the brower, which makes the app faster for users because less information needs to be downloaded.
+
+Server components can't manage clicks or interactivity directly.
+
+Client components, on the other hand, work in the user's browser and handle all the interactive parts of the app, like clicking and typing. They can also be rendered on the server for a fast initial load of the site. This setup helps make websites faster, more secure, and easier for everyone to use, no matter where they are or what device they are using.
+
+#### RSC and NextJS
+
+This deep dive into the evolution of rendering in React is great, but how exactly does it help to understand rendering in NextJS? What is the connection?
+
+The App Router in NextJS is built around the RSC architecture, meaning that all the features and benefits we have discussed are already baked into the lates version of NextJS.
+
+By understanding the evolution of React's rendering, you now have the necessary background for the rest of this section which will focus on NextJS.
+
+#### RSC in NextJS
+
+In this section, we will now try to understand the things we have discussed practically in NextJS.
+
+By default, every component in NextJS app is considered a server component. This includes the root `layout.jsx` and `page.jsx` file. If we create a new component `page.jsx` inside a folder called `about`, we have now created a server component. To prove this, we add a console command to the component.
+
+```js
+// about/page.jsx
+export default function AboutPage() {
+  console.log("About server component");
+  return <h1>About Page</h1>;
+}
+```
+
+If we run the app, we don't see any log message in the browser console. Instead, we see the log in the terminal where we are running the app. So this is a server component. So it has its limitaions. It can't interact directly with browser APIs or handle user interactivity. Attempting to incorporate a client component like `useState` will result in error. On the server, there is no concept of state as it exists in the browser.
+
+We now go on and create another `page.jsx` file inside a folder called `dashboard`. We then use the `'use client'` directive at the beginning of the file. Then we use the `useState` React hook and it works fine.
+
+```jsx
+// dashboard/page.jsx
+"use client";
+
+import { useState } from "react/cjs/react.production.min";
+
+export default function DashboardPage() {
+  const [name, setName] = useState("");
+  return (
+    <div>
+      <h1>Dashboard page</h1>
+      <input value={name} onChange={(e) => setName(e.target.value)} />
+      <p>Hello, {name}!</p>
+    </div>
+  );
+}
+```
+
+The `'use client'` acts as our ticket to cross the boundry from server to client-side and is what allows us to define client components. It signals to NextJS that this component, along with any component it imports, is intended for client-side execution. As a result, the component gains full access to browser APIs and the ability to handle interactivity.
+
+Let's now shift our attention to an important point about client components rendering behavior. Let's add a log statement within the dashboard component.
+
+```jsx
+// dashboard/page.jsx
+"use client";
+
+import { useState } from "react/cjs/react.production.min";
+
+export default function DashboardPage() {
+  console.log("Dashboard client component");
+  const [name, setName] = useState("");
+  return (
+    <div>
+      <h1>Dashboard page</h1>
+      <input value={name} onChange={(e) => setName(e.target.value)} />
+      <p>Hello, {name}!</p>
+    </div>
+  );
+}
+```
+
+Now let's add a link to the homepage that leads to dashboard:
+
+```jsx
+// app/page.jsx
+import Link from "next/link";
+
+export default function Home() {
+  return <Link href="/dashboard">Dashboard</Link>;
+}
+```
+
+Now when we click on the link, we are headed to the dashboard page. We now see the log message in the browser's console. There is no log message in the terminal however. But now if we reload the dashboard route, we will have the message in the browser's console again, and we also see the same message in the terminal. Client components are primarily executed in the client and have access to browser APIs, but they are also pre-rendered once on the server to allow the user to immediately see the page's HTML content rather than a blank screen. It is an optimization strategy that NextJS implements.
+
+##### Summary
+
+In the RSC architecture, and by extension, in the NextJS app router, components are server components by default. To use client components you must use the `'use client'` directive at the beginning of each file. Server components are only rendered on the server, but client components are rendered once on the server and then on the client.
+
+### Rendering lifecycle of server and client components
+
+We are going to learn about the rendering lifecycle of server and client components. In simpler terms, we will explore how they come to life on your screen.
+
+For React Server Components, it is important to consider three elements: Your browser (the client), and on the server-side, NextJS (the framework) and React (the library).
+
+When the browser requests a page, the NextJS app router matches the requested URL to a server component. NextJS then instructs React to render that server component. React renders the server component and any child components, that are also server components, converting them into a special JSON format known as the **RSC payload**.
+
+If we inspect the Network tab when navigating to a route, you will come across this special JSON format which is the RSC payload. During this rendering, if any server component suspends, React pauses rendering of that sub-tree and sends a placeholder value instead. Meanwhile, client components are prepared with instructions for later in the lifecycle.
+
+NextJS uses the RSC payload which includes the client component instructions to generate HTML on the server. This HTML is streamed to the browser to immediately show a fast non-interactive preview of the route. Alongside, NextJS streams the RSC payload as React renders each unit of UI.
+
+In the browser, NextJS processes the streamed React response. React uses the RSC payload and client component instructions to progressively render the UI. Once all the components and the server components output has been loaded, the final UI state is presented to the user. Client components undergo hydration, transformin our app from a static display into an interactive experience. This is the initial loading sequence.
+
+Next, let's take a look at the update sequence for refreshing parts of the app.
+
+The browser requests a refetch of a specific UI such as a full route. NextJS processes the request and matches it to the requested server component. NextJS instructs React to render the component tree. React renders the component similar to the initial loading, but unlike the initial sequence, there is no HTML generation for updates. NextJS progressively streams the response data back to the client. On receiving the streamed response, NextJS triggers a re-render of the route using the new output. React reconciles or merges the new rendered output with the existing components on screen. Since the UI description is a special JSON format and not HTML, React can update the DOM while preserving crucial UI updates such as focus or input values.
+
+This is the essence of the RSC rendering lifecycle with the app router in NextJS.
+
+Diving deeper into rendering, we have 3 server rendering strategies:
+
+1. **Static rendering**
+2. **Dynamic rendering**
+3. **Streaming**
+
+### Static rendering
+
+In this strategy, we generate HTML pages at the time of building our application. This means all the data and the content for a webpage are prepared in advance. This allows the page to be built once, cached by a CDN and served to the client almost instantly. This optimization enables you to share the result of the rendering work among different users, resulting in a significant performance boost for your application. Static rendering is particularly useful for blog pages, e-commerce product pages, documentation, and marketing pages.
+
+But now the question is that how do we inform NextJS that we want to statically render a particular route in our app? The good news is that static rendering is the default rendering strategy in the app router. This means all routes are automatically prepared at build time without additional setup.
+
+> **Note:** You might be wondering now that we have mentioned that HTML is generated at build time, but there is no build for our application yet. We are running the application in development mode. So how is everything working? Let's understand the distinction between a **production server** and a **dev server**. For production, an optimized build is created once, and you deploy that build. Code changes are not made on the fly, once it is deployed.
+>
+> A development server, on the other hand, focuses on the developer experience. We should be able to make changes in our code and see those changes immediately reflected in the browser. We can't afford to build our application once, make changes, rebuild, and so on. Therefore, the NextJS team decided that for production builds, a page will be pre-rendered (or statically rendered) once when we run the build command. However, in development mode, a page will be pre-rendered (or statically rendered) for every request. You can see the raw HTML file called, for instance, `localhost` in the browser's Network tab.
+>
+> You don't have to worry about static rendering in development mode. It is more important to understand how it works when you build your application.
+
+In order to have a better understanding of static rendering, let's use this code as an example in the `AboutPage.jsx` server component.
+
+```jsx
+export default function AboutPage() {
+  console.log("About server component");
+  return <h1>About Page {new Date().toLocaleTimeString()}</h1>;
+}
+```
+
+Now in the terminal we command:
+
+```bash
+npm run build
+```
+
+This will create an optimized build of the application. The output folder will be `.next` placed in the root, containing files and folders essential for serving the application to incoming requests from the browser. Inside, there are `server` and `static` folders.
+
+Within the `server` folder we have an `app` folder corresponding to the app router. Important file types in this folder are HTML files. The root page of our document is rendered here inside the `index.html` file. Also, the `_not-found.html` file is rendered statically. We also have here the `about.html` file corresponding to the `/about` route.
+
+Interstingly, there is also a `.dashboard.html` file although the dashboard component is a client component. We previously mentioned that even client components are pre-renderd as an optimization step and this is the reason we see the client component's HTML content here.
+
+Besides HTML files, there are `rsc` payload files for each route. For instance, we have `about.rsc` for the corresponding server component, and `dashboard.rsc` for the corresponding client component.
+
+#### RSC file format
+
+The `rsc` special JSON format generated by React for each route is a compact string representation of the virtual DOM. It includes abreviations, internal refernces, and encoded special meanings.
+
+For a server component, the payload includes the rendered result of the server component, like the `<h1>` tag with the test `"About Page"` which is the JSX from our component.
+
+For a client component however, the payload includes placeholders or instructions where client components should be rendered along with references to their JavaScript files. For instance, the `/dashboard` route which is a client component, contains a reference to the code for the dashboard component. If we search `Dashboard page` in the payload file, we don't find it. However, if we track the link to the JavaScript file, we see the `"h1", {children:"Dashboard page"}` inside the file. This JavaScript file also contains code necessary for reconciliation and hydration.
+
+In order to serve our application from the built `.next` folder, we run this command in the terminal:
+
+```bash
+npm run start
+```
+
+In the browser, with the Network tab open in the dev tools, click on 'Empty cache and hard reload'. You can see in the preview of the `localhost` file a raw version of the page's HTML. In the response tab you can see the HTML code. Let's now take a look at the `rsc` file for dashboard. This is essential for building the UI on the client-side when we navigate to `/dashboard` using the `<Link>` component on the homepage. You can see that the JavaScript file that is referenced in this file is also downloaded here and is ready for rendering the about page. Now if we click on the dashboard link, we see that the dashboard page is rendered without the need to download any additional resources from the server. The initial load includes everything required fro client-side navigation.
+
+But we must ask, how does NextJS know to download the dashboard component code ahead of time? This is due to a feature known as **prefetching** in NextJS.
+
+##### Prefetching
+
+Prefetching is a technique used to preload a route in the background before the user navigates to it. Routes are automatically prefetched as they become visible in the user's viewport either when the page first loads or as it comes to view through scrolling.
+
+For static routes, the entire route is prefetched and cached by default. Therefore, when we load the homepage, NextJS prefetches the `/about` and `/dashboard` routes (about if you did include a link to it) keeping them ready for instant navigation.
+
+But what about `dashboard.html` in the server folder of the `.next` build output folder? we did not download that. This file is served when you directly navigate to the page in the browser. For instance, if you directly load the URL `localhost:3000/dashboard` you receive the HTML for the dashboard, along with the code shipped to the client for hydration.
+
+Finally, let's observe the time rendered in the about page `about.html` file in the `.next` folder. It is `7:30:36`. This will remain the same regardless of how many times you refresh the page as it was rendered when the application was built. You can see the same in the HTML file.
+
+#### Summary
+
+Static rendering is a strategy where the HTML is generated at build time. Along with the HTML, the RSC payload is created for each component, and JavaScript chunks are produced for client-side component hydration in the browser.
+
+If you navigate directly to a page route, the corresponding HTML file is served. However, if you navigate to the route from a different route, the route is created on the client-side using the RSC payload and JavaScript chunks, without any additional requests to the server.
+
+Static rendering is great for performance, and use cases include blogs, documentation, marketing pages, etc.
+
+### Dynamic rendering
+
+Dynamic rendering is a server rendering strategy where routes are rendered for each user at request time. It is useful when a route has **data that is personalized to the user** or contains **information that can only be known at request time**, such as **cookies** or the **URL's search parameter**. News websites, personalized e-commerce pages, and social media feeds are some examples where dynamic rendering is beneficial.
+
+But now we should ask, how can we use dynamic rendering? How do we inform NextJS that we want to dynamically render a particular route in our application? It turnes out that during rendering, If a dynamic function is discovered, NextJS will automatically switch to dynamically rendering the whole route. In NextJS, dynamic functions are `cookies()`, `headers()`, and `searchParams` which acts more like a prop available for every page. Using any of these will opt the whole route into dynamic rendering at request time.
+
+Let's examin all this in code. We import the `cookies` dynamic function from NextJS, and use it like this:
+
+```jsx
+// about/page.jsx
+import { cookies } from "next/headers";
+
+export default function AboutPage() {
+  const cookieStore = cookies();
+  const theme = cookieStore.get("theme");
+  console.log(theme);
+  return <h1>About Page {new Date().toLocaleTimeString()}</h1>;
+}
+```
+
+What we do with this dynamic function is not important for now. We just want to prove that NextJS will dynamically render this `/about` route page. So with this code in place, let's now build our application and inspect the output. Try to delete the `.next` folder and run the build command in the terminal again.
+
+```bash
+npm run build
+```
+
+If you take a look at the build report in the terminal, you will now see that the `/about` route is marked with a lambda symbol. This means that this route is dynamically rendered.
+
+An important thing to keep in mind is that dynamically rendered pages are not statically rendered at build time. This means that if you inspect the `server` folder inside `.next` build folder, you will not find any HTML file for the About page.
+
+Now if we start the application using this command:
+
+```bash
+npm run start
+```
+
+you will now see in the terminal a log that shows `theme`. You can also see an HTML file in the Network tab of chrome inspector, but we now know that the HTML file is not generated on the server. Since a new page is generated for every request, there is no need to build this page into the build folder.
+
+#### Summary
+
+Dynamic rendering is a strategy where the HTML is generated at request time. NextJS automatically switches to dynamic rendering when it comes across a dynamic function in the component, such as `cookies()`, `headers()`, or the `searchParams` object.
+
+This form of rendering is great for when we need to render HTML personalized to a user, such as a social media feed.
+
+As a developer, you don't need to choose between static and dynamic rendering. NextJS will automatically choose the best rendering strategy for each route based on the features and APIs used.
+
+### Streaming
+
+Streaming is a strategy that allows for progressive UI rendering from the server. Work is divided into chunks and streamed to the client as soon as it is ready. This enables users to see parts of the page immediately, before the entire content has finished rendering.
+
+Streaming significantly improves both the initial page loading performance and the rendering of UI elements that rely on slower data fetches, which would otherwise block the rendering of the entire route.
+
+Streaming is integrated into tht **NextJS app router** by default.
+
+Let's dive into code and see how we can create suspense boundries in our application and rely on streaming for better performance.
+
+```jsx
+// product-details/page.jsx
+import { Product } from "@/components/product";
+import { Reviews } from "@/components/reviews";
+
+export default function ProductDetailPage() {
+  return (
+    <div>
+      <h1>Product detail page</h1>
+      <Product />
+      <Reviews />
+    </div>
+  );
+}
+```
+
+To understand the code better, take a look at what we have written in the `<Product />` and `<Reviews />` component files.
+
+```jsx
+// components/product.jsx
+export const Product = async () => {
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+  return <div>Product</div>;
+};
+```
+
+```jsx
+// components/reviews.jsx
+export const Reviews = async () => {
+  await new Promise((resolve) => setTimeout(resolve, 4000));
+
+  return <div>Reviews</div>;
+};
+```
+
+We are intentially delaying the functionality to simulate the time that it takes to fetch data.
+
+With this setup let's now start the server. If we navigate to `/product-detail` route directly from the browser URL bar, we see that the page takes a while to render the `<h1>` tag along with the two components' JSX; `<Product />` and `<Reviews />`. If we refresh the page, we see in the Network tab of the browser that it took 4.05 seconds for the server to respond, indicating that the data for the entire for the page is fetched before sending the response. Now let's enhance this with streaming strategy supported by the app router.
+
+All we need to do is to import the `<Suspense>` component and wrap the slow components with suspense, and let NextJS handle the rest.
+
+```jsx
+// product-details/page.jsx
+import { Suspense } from "react";
+
+import { Product } from "@/components/product";
+import { Reviews } from "@/components/reviews";
+
+export default function ProductDetailPage() {
+  return (
+    <div>
+      <h1>Product detail page</h1>
+      <Suspense fallback={<p>Loading product details...</p>}>
+        <Product />
+      </Suspense>
+      <Suspense fallback={<p>Loading reviews...</p>}>
+        <Reviews />
+      </Suspense>
+    </div>
+  );
+}
+```
+
+If we now reload the page, we immediately see The page's heading 'Product detail page' followed by the `<Product />` and `<Reviews />` components. The waiting time for server response has significantly decreased to just 91.2 miliseconds.
+
+As the fallback texts are rendered on the page, the process written for each component is being executed and the HTML is being streamed to the client.
+
+This concludes our discussion on server rendering strategies in NextJS.
+
+## Server and client composition patterns
+
+Server components are perfect for:
+
+- Fetching data
+- Directly accessing backend resources
+- Protecting sensitive information (like access tokens and API keys) on the server
+- Keeping large dependencies server-side, which helps reducing client-side JavaScript
+
+Client components however, are perfect for:
+
+- Adding interactivity
+- Handling event listeners (such as `onClick()`, `onChange()`, etc.)
+- Managing state and lifecycle effects (using hooks like `useState()`, `useReducer()`, `useEffect()`)
+- Using browser-exclusive APIs
+- Using custom hooks
+- Using React class components
+
+> **Note:** while these usecases might seem straightforward, there is more to understand how to effectively use them.
+
+### Server component patterns
+
+#### Server-only code
+
+As the first server-component patter, let's talk about the separation of server-only code.
+
+When building NextJS applications, certain code is intended to execute only on the server. For instance, you might have modules or functions that use multiple libraries, use environment variables, interact directly with a database, or process confidential information. Since JavaScript modules can be shared between both server and client components, it is possible for code that is meant only for the server to unintentionally end up in the client. If server-side code gets bundled into the client-side JavaScript, it could lead to a bloated bundle size, expose secret keys, database queries, and sensitive business logic.
+
+It is crucial to separate server-only code from client-side code to protect the application's security and integrity.
+
+To prevent unintended client-side usage of server code, we can use a package called `server-only` to provide a build-time error if developers accidentally import one of these midules into a client component.
+
+Let's check this in an example. First, create two `page.jsx` files, one in a `server-route` directory, and the other in a `client-route` directory.
+
+```jsx
+// server-route/page.jsx
+export default function ServerRoutePage() {
+  return <h1>ServerRoutePage</h1>;
+}
+```
+
+```jsx
+// client-route/page.jsx
+"use client";
+
+export default function ClientRoutePage() {
+  return <h1>ClientRoutePage</h1>;
+}
+```
+
+Then create a folder called `utils` in the `app` folder and create a file called `server-utils` inside it. In this file, let's define a function intended solely for server-side use. The logic and content of the code is not important since this is just an example.
+
+```jsx
+// utils/server-utils.js
+export const serverSideFunction = () => {
+  console.log(
+    `
+    use multiple libraries, use environment variables, interact with a database, process confidential information
+    `
+  );
+
+  return "server result";
+};
+```
+
+Now let's import and invoke this `serverSideFunction` in a server component which is in our `page.jsx` file inside the `server-route` folder.
+
+```jsx
+// server-route/page.jsx
+import { serverSideFunction } from "@/utils/server-utils";
+
+export default function ServerRoutePage() {
+  console.log("Server route rendered");
+  const result = serverSideFunction();
+  return (
+    <>
+      <h1>ServerRoutePage</h1>
+      <p>{result}</p>
+    </>
+  );
+}
+```
+
+Now let's head back to the browser. If we navigate to `/server-route` in the URL bar, we don't see the log message in the browser's console, but we do see it in the terminal because the `page.jsx` component inside the `server-route` folder is a server component. Now next include `serverSideFunction` function in our `ClientRoutePage` component.
+
+```jsx
+// client-route/page.jsx
+"use client";
+
+import { serverSideFunction } from "@/utils/server-utils";
+
+export default function ClientRoutePage() {
+  console.log("Client route rendered");
+  const result = serverSideFunction();
+
+  return (
+    <>
+      <h1>ClientRoutePage</h1>
+      <p>{result}</p>
+    </>
+  );
+}
+```
+
+Back to the browser, let's navigate to `/client-route`. Now we see the log messages in the console. We also see the same logs in the terminal as every client component is also rendered once on the server to generate the initial HTML. However, given the nature of the operations in server-side function it is crucial to ensure that this code executes only on the server. If this code was included in the client-side bundle, it could lead to performance concerns due to a larget bundle size and heavy computations which could degrade the user experience. Additionally, it could pose security risks due to sensitive logic and data exposure and could lead to functional errors as some server-specific logic might not work as intended in browser environment.
+
+To ensure that the `serverSideFunction` remains server-side only, we can use the `server-only` package. In the terminal, run:
+
+```bash
+npm install server-only
+```
+
+Then we import it in the `serverSideFunction.js` file:
+
+```jsx
+// utils/server-utils.js
+import "server-only";
+
+export const serverSideFunction = () => {
+  console.log(
+    `
+    use multiple libraries, use environment variables, interact with a database, process confidential information
+    `
+  );
+
+  return "server result";
+};
+```
+
+Now if a developer accidentally imports this module into a client-side component, like our `ClientRoutePage` component in this example, you will see that the build process will fail with an alert, preventing potential issues related to exposing server-only code to the client.
+
+##### Summary
+
+Maintaining a clear boundry between server-only and client-side code is crucial, especially when dealing with sensitive operations or data.
+
+Using the `server-only` package, enforces this separation and helps maintain your application security, performance and reliablity.
+
+#### Third-party packages
+
+As the second server component pattern, let's explore the integration of third-party packages.
+
+Since server-components introduce a new paradigm in React, third-party packages in the ecosystem are gradually adapting, beginning to add the `'use client'` directive to components that rely on client-only features, marking a clear distinction in their execution environment. However, many components from NPM packages, which traditionally leverage client-side features, have not yet integrated this directive. The absence of `'use client'` means that while these components will function correctly in client components, they may encounter issues or might not work at all within server components. To address this, you can wrap third-part components that rely on client-only features in your own client components.
+
+Let's understand this concept in code. We will now use the `react-slick` NPM package which exports a React carousel component. This carousel component uses client-side features.
+
+```bash
+npm install react-slick click-carousel @types/react-slick
+```
+
+Now let's copy a sample code from the library's playground at NPM website. Copy the code sample into the `ClientRoutePage` client component.
+
+```jsx
+// client-route/page.jsx
+"use client";
+
+import React from "react";
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+
+export default function ClientRoutePage() {
+  const settings = {
+    dots: true,
+  };
+  return (
+    <div className="image-slider-container">
+      <Slider {...settings}>
+        <div>
+          <img src="http://picsum.photos/400/200" />
+        </div>
+        <div>
+          <img src="http://picsum.photos/400/200" />
+        </div>
+        <div>
+          <img src="http://picsum.photos/400/200" />
+        </div>
+        <div>
+          <img src="http://picsum.photos/400/200" />
+        </div>
+      </Slider>
+    </div>
+  );
+}
+```
+
+You can also copy the CSS styles from the playground into your `globals.css` file in your project.
+
+Now in the browser, if you visit `/client-route` you should see a first image. Using the proper styling, you should be able to see the chevrons. Now let's integrate the carousel directly into a server component. We would now copy this code into the `page.jsx` of `server-route` folder.
+
+```jsx
+// server-route/page.jsx
+
+import React from "react";
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+
+export default function ClientRoutePage() {
+  const settings = {
+    dots: true,
+  };
+  return (
+    <div className="image-slider-container">
+      <Slider {...settings}>
+        <div>
+          <img src="http://picsum.photos/400/200" />
+        </div>
+        <div>
+          <img src="http://picsum.photos/400/200" />
+        </div>
+        <div>
+          <img src="http://picsum.photos/400/200" />
+        </div>
+        <div>
+          <img src="http://picsum.photos/400/200" />
+        </div>
+      </Slider>
+    </div>
+  );
+}
+```
+
+Going back to the browser and navigating to `/server-route`, you will now see an error. This is because the slider component is using client-side features but the library code does not have the `'use client'` directive. Once solution is to add the this directive within the `page.jsx` of `/server-route`, but then we cannot use server-only features like database calss, secret environment variables, etc. To resolve this, you must encapsulate third-party components that depend on client-only features within your own client components.
+
+So now in the `components` folder, go on and create a new file called `ImageSlider.jsx`. Copy the same code as before, including the `'use client'` directive at the top, and now inside the `ServerRoutePage` component we can invoke the `ImageSlider.jsx`.
+
+```jsx
+// components/ImageSlider.jsx
+"use client";
+
+import React from "react";
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+
+export default function ServerRoutePage() {
+  const settings = {
+    dots: true,
+  };
+  return (
+    <div className="image-slider-container">
+      <Slider {...settings}>
+        <div>
+          <img src="http://picsum.photos/400/200" />
+        </div>
+        <div>
+          <img src="http://picsum.photos/400/200" />
+        </div>
+        <div>
+          <img src="http://picsum.photos/400/200" />
+        </div>
+        <div>
+          <img src="http://picsum.photos/400/200" />
+        </div>
+      </Slider>
+    </div>
+  );
+}
+```
+
+```jsx
+// server-route/ServerRoutePage.jsx
+import { serverSideFunction } from "@/utils/server-utils";
+import { ImageSlider } from "@/app/components/ImageSlider";
+
+export default function ServerRoutePage() {
+  console.log("Server route rendered");
+  const result = serverSideFunction();
+  return (
+    <>
+      <h1>ServerRoutePage</h1>
+      <p>{result}</p>
+      <ImageSlider />
+    </>
+  );
+}
+```
+
+So we still have a server component, but now with one nested element behaving as a client component. Now in the browser, after refreshing the `/server-route`, you see that the carousel is working as expected.
+
+##### Summary
+
+Third-party packages in the React ecosystem are in a transitional phase where numerous components from NPM packages have not yet adopted the `'use client'` directive. Wrapping such components in our own client components allows us to leverage the ecosystem of third-party packages while adhering to the new server components model.
+
+#### Context providers
+
+As the last server component pattern, let's explore working with context providers.
+
+You know from React that context providers are typically rendered near the root of an application to share global application state and logic; for instance, the application theme. However, since React context is not supported in server components, attempting to create a context at the root of your application will result in an error. To address this, you can create a context and render its provider inside a separate client component. Let's dive into code to understand this with an example.
+
+In our NextJS application, the `layout.jsx` is the root file. Here let's create and provide a theme context for our entire application.
+
+```jsx
+// layout.jsx
+import { createContext } from "react";
+
+const defaultTheme = {
+  colors: {
+    primary: "#007bff",
+    secondary: "#6c757d",
+  },
+};
+
+const ThemeContext = createContext(defaultTheme);
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <ThemeContext.Provider value={defaultTheme}>
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        >
+          {children}
+        </body>
+      </ThemeContext.Provider>
+    </html>
+  );
+}
+```
+
+Going back to the browser, we now see an error that says that we can only use the `createContext` function in a client component, while the root layout component is a server component. To resolve this, we could convert `layout.jsx` to a client component, but this will signal NextJS that the whole application is intended to be rendered on client-side, which is not what we want.
+
+To fix the problem in a better way, we need to create our context and render its provider inside a separate client component. So in the `components` folder let's create a file called `theme-provider.jsx`. It is very important to mention the `'use directive'` directive in this file.
+
+```jsx
+// components/theme-provider.jsx
+"use client";
+import { createContext, useContext } from "react";
+
+const defaultTheme = {
+  colors: {
+    primary: "#007bff",
+    secondary: "#6c757d",
+  },
+};
+
+const ThemeContext = createContext(defaultTheme);
+
+export const ThemeProvider = ({ children }) => {
+  return (
+    <ThemeContext.Provider value={defaultTheme}>
+      {children}
+    </ThemeContext.Provider>
+  );
+};
+
+// also exporting the context for any consuming component
+export const useTheme = () => useContext(ThemeContext);
+```
+
+Now back to the `layout.jsx` file we can update the code with the theme provider component.
+
+```jsx
+// layout.jsx
+import localFont from "next/font/local";
+import "./globals.css";
+import { ThemeProvider } from "./components/theme-provider";
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <ThemeProvider>
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        >
+          {children}
+        </body>
+      </ThemeProvider>
+    </html>
+  );
+}
+```
+
+To make sure this works, we can use this theme provider in a client component like `page.jsx` of `/client-route`.
+
+```jsx
+// client-route/page.jsx
+"use client";
+
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+import { useTheme } from "../components/theme-provider";
+
+export default function ClientRoutePage() {
+  const theme = useTheme();
+  return (
+    <h1
+      style={{
+        color: theme.colors.primary,
+      }}
+    >
+      Client route
+    </h1>
+  );
+}
+```
+
+It is important to note that even though we wrap the rest of the application within the `<ThemeProvider>` client component, server components down the tree will remain server components. We will discuss this with more detail, but this is essentially how you work with context providers and server components. **You don't convert a server component to a client component. Instead, you define a new client component and invoke it within the server component using `children` props.**
+
+### Client component patterns
+
+#### Client-only code
+
+As the first client component pattern, let's talk about the separation of client-only code.
+
+In an earlier seciton, we dived into the concept of server-only code in NextJS.
