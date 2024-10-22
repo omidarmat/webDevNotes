@@ -1,6 +1,19 @@
 # NextJS essentials
 
 - [NextJS essentials](#nextjs-essentials)
+  - [Routing in NextJS](#routing-in-nextjs)
+    - [Route handlers](#route-handlers)
+      - [Handling GET requests](#handling-get-requests)
+      - [Handling POST request](#handling-post-request)
+      - [Dynamic route handlers](#dynamic-route-handlers)
+      - [Handling PATCH requests](#handling-patch-requests)
+      - [Handling DELETE requests](#handling-delete-requests)
+      - [URL query parameters](#url-query-parameters)
+      - [Redirects in route handlers](#redirects-in-route-handlers)
+      - [Headers in route handlers](#headers-in-route-handlers)
+      - [Cookies in route handlers](#cookies-in-route-handlers)
+      - [Caching in route handlers](#caching-in-route-handlers)
+      - [Middleware](#middleware)
   - [Rendering in NextJS](#rendering-in-nextjs)
   - [Rendering in React](#rendering-in-react)
     - [Client-Side Rendering (CSR)](#client-side-rendering-csr)
@@ -21,21 +34,317 @@
     - [Dynamic rendering](#dynamic-rendering)
       - [Summary](#summary-2)
     - [Streaming](#streaming)
-  - [Server and client composition patterns](#server-and-client-composition-patterns)
-    - [Server component patterns](#server-component-patterns)
-      - [Server-only code](#server-only-code)
-        - [Summary](#summary-3)
-      - [Third-party packages](#third-party-packages)
-        - [Summary](#summary-4)
-      - [Context providers](#context-providers)
-    - [Client component patterns](#client-component-patterns)
-      - [Client-only code](#client-only-code)
+    - [Server and client composition patterns](#server-and-client-composition-patterns)
+      - [Server component patterns](#server-component-patterns)
+        - [Server-only code](#server-only-code)
+          - [Summary](#summary-3)
+        - [Third-party packages](#third-party-packages)
+          - [Summary](#summary-4)
+        - [Context providers](#context-providers)
+      - [Client component patterns](#client-component-patterns)
+        - [Client-only code](#client-only-code)
+          - [Summary](#summary-5)
+        - [Client component placement](#client-component-placement)
+    - [Interleaving server and client](#interleaving-server-and-client)
+      - [Importing server component into another server component](#importing-server-component-into-another-server-component)
+      - [Importing client component into another client component](#importing-client-component-into-another-client-component)
+      - [Importing a client component inside a server component](#importing-a-client-component-inside-a-server-component)
+      - [Importing a server component into a client component](#importing-a-server-component-into-a-client-component)
 
 This file is written based on the content produced by _Codevolution_ in videos available on youtube via the link below:
 
 ```
 https://www.youtube.com/playlist?list=PLC3y8-rFHvwjOKd6gdf4QtV1uYNiQnruI
 ```
+
+## Routing in NextJS
+
+Let's dive into the different features that NextJS offers. In this section we will explore the routing feature offered by NextJS, specifically focusing on the app router.
+
+NextJS has a file-system based routing mechanism where the URL path that users can access in the browser are defined by file and folders in your codebase.
+
+> **Note:** Does this mean every file in our app corresponds to a route? No. NextJS is a framework where we need to follow certain conventions. Routing is one such feature where we have to heavily follow the framework conventions.
+
+We are now going to understand NextJS routing conventions.
+
+1. All routes must be placed inside the `app` folder.
+2. Every file that corresponds to a route must be named `page.jsx`.
+3. Every folder corresponds to a path segment in the browser URL.
+
+When these conventions are followed, the file automatically becomes available as a route.
+
+For the first scenario, let's add a route that needs to be rendered when a user visits our website at `localhost:3000`.
+
+```
++ src
+  + app
+    - page.jsx
+```
+
+[to be continued...]
+
+---
+
+Before we get into routing in NextJS, we should start with the concept of **React Server Components (RSC)**.
+
+In NextJS, all components are server components by default. They have the ability to run tasks like reading files or fetching data from a database. However, they don't have the ability to use hooks or handle user interactions.
+
+To create a client component, it is necessary to add `'use client'` directive at the top of the component file. Client components cannot perform tasks like reading files, but they have the ability to use hooks and manage interactions. Client components are the traditional React components that we are familiar with.
+
+In this section which is concerned with Routing, we will explore examples where we use server components that await certain actions to finalize before rendering content on the screen. We will also see examples where we use client components to levarage hooks from the routing module.
+
+### Route handlers
+
+So far we have learned how to route to pages. Now it turnes out with NextJS app router, we have the capability to handle more than just page routing. We can also create custom request handlers for out routes using a feature called **route handlers**. Unlike page routes, which respond with HTML content, route handlers allow you to create RESTful endpoints, giving you full control over the response. You can perform credit operations with a database similar to a Node + Express app, except there is no overhead of having to create and configure a separate server. NextJS provides everything you need out of the box.
+
+Route handlers are also great for making external API requests. For instance, if you are building an application that requires fetching data from a thrid-party service, route handlers are ideal. They run server-side, ensuring that sensitive information like private keys remain secure and never gets shipped to the browser.
+
+For those familiar with page-based routing, route handlers are the equivalent of API routes. As you can see NextJS simplifies routing on both the front end and back end.
+
+Now let's see how to create our first route handler. Go on in initialize a new next project.
+
+```bash
+npx create-next-app@latest
+```
+
+You can go on and create a folder inside `app` folder and call it `hello`. Note that similar to page routes, route handlers must also be placed within the `app` folder. Within this folder we create a new file. You may think that we should call this file `page.jsx`, but you are wrong! You should name it `route.js`. This is the NextJS convention that we must follow.
+
+Within this file, we define and export a function corresponding to the GET HTTP verb. The function name matching an HTTP verb is another convention we must follow. For out simple API example here we are going to respond with plain text. We will be using the standard JavaScript **response object**.
+
+```jsx
+// app/hello/route.js
+export async function GET() {
+  return new Response("Hello world!");
+}
+```
+
+We have now created our first route handler. Now heading to the browser, if you navigate to `/hello`, you will see the plain text response `hello world!` within the viewport.
+
+There are two points to make note of. First, similar to page routes, route handlers can be organized in folders and nested within sub-folders. This allows for cleaner organization and easier management of routes. For instance you can create a `dashboard` folder within the `app` folder and then add a route handler within the folder. You can then create a sub-folder called `users` and inside it, create another `route.js` file. You can then go to the browser and navigate to each route and see the result of each route handler.
+
+Second, you should be mindful of potential conflicts between page routes and route handlers. For instance, if you have a route `profile` with a `page.jsx` file in it, with a React component that simply returns an `<h1>` tag, and another file called `route.js` with a `GET` funciton within the same `profile` folder, the `route.js` route handler will handle the incoming request **by default**. To avoid this conflict between `page.jsx` and `route.js` and have both working, you can move the route handler into an `api` sub-directory. So you would have to create an `api` folder within the `profile` folder, and move `route.js` file into the `api` folder.
+
+```
++ app
+  + profile
+    - page.jsx
+    + api
+      - route.js
+```
+
+Now if a refresh the route `/profile` in the browser, you will see the component response in the viewport. Now if you want to see the API response, you need to navigate to `/profile/api`.
+
+To summarize, route handlers allow you to create custom request handlers for a given route. They are defined in a `route.js` file inside the `app` directory.
+
+#### Handling GET requests
+
+For the purpose of this section, we will use the Thunder Client in VS Code and a data file called `data.js` placed inside a folder called `comments` inside the `app` directory.
+
+```jsx
+// app/comments/data.js
+export const comments = [
+  {
+    id: 1,
+    text: "This is the first comment",
+  },
+  {
+    id: 2,
+    text: "This is the second comment",
+  },
+  {
+    id: 3,
+    text: "This is the third comment",
+  },
+];
+```
+
+let's now create our route handler. In the same `comments` folder, create a `route.js` file.
+
+```jsx
+// app/comments/route.js
+import { comments } from "./data";
+
+export async function GET() {
+  return new Response.json(comments);
+}
+```
+
+Now let's head to the Thunder client to send a `GET` request to the `http://localhost:3000/comments` route. This will be responded with `200` status code and all the comments placed inside the `data.js` file.
+
+Responding to a `GET` request in JSON format, the response status would remain `200`. So we don't need to specify a certain status code.
+
+> **Note:** At the moment we are using the Thunder client to fetch the comments, but in a real-world application the UI would make a request to fetch the comments on page load or on click of a button. But the bottom line is that we are able to define route handlers with NextJS.
+
+#### Handling POST request
+
+The POST request will be sent via the Thunder client using the `POST` verb to the same URL. But in this case, we need to specify a new comment object that is going to be added to the previous data. To do this, in the `Body` tab, under `JSON`, we specify an object as:
+
+```json
+{
+  "test": "New Comment"
+}
+```
+
+Note that we don't specify the `id` property, since it should be generated in the route handler function. Now we should go on and create the handler function in the `route.js` file.
+
+Responding to a `POST` request, `201` that means resource creation is the proper status code of the response object. So we need to return a response and set the code manually:
+
+```jsx
+// app/comments/route.js
+import { comments } from "./data";
+
+export async function POST(request) {
+  const comment = await request.json();
+  const newComment = {
+    id: comments.length + 1,
+    text: comment.text,
+  };
+  comments.push(newComment);
+  return new Response(JSON.stringify(newComment), {
+    headers: {
+      "Content-type": "appication/json",
+      status: 201,
+    },
+  });
+}
+```
+
+> **Note:** remember that all route handler functions have access to the `request` object, along with other things that will be mentioned later.
+
+This is pretty much how we handle POST requests.
+
+#### Dynamic route handlers
+
+Before we can proceed to understand `PATCH` and `DELETE` requests, we need to understand dynamic route handlers. Because these HTTP verbs work a bit different since you need to specify the ID of a comment object to make them work.
+
+While `/comments` route will handle both `GET` and `POST` requests, for a `PATCH` or `DELETE` request our endpoint will be `/comments/:id` where id is the **dynamic segment**.
+
+Dynamic route handlers work similar to dynamic page routes. So within the `comments` folder, we create a new folder called `[id]`.
+
+```
++ app
+  + comments
+    - route.js
+    + [id]
+      - route.js
+```
+
+Now in the `route.js` file inside the `[id]` folder, we define a `GET` handler function. In this function, we need to access the route parameter.
+
+We mentioned before that all route handler functions have access to the `request` object. But there is more. Every route handler function has access to a `context` object. In the current example, the only value of the `context` is `params` which is an object containing the dynamic route parameters for the current route. So from `context`, we can immediately destructure `params`, and from that we get the `id` which corresponds to the dynamic route that we defined using the folder name `[id]`.
+
+```jsx
+// app/comments/[id]/route.js
+import { comments } from "../data";
+
+export async function GET(_request, { params: { id } }) {
+  const comment = comments.find(
+    (comment) => comment.id === parseInt(params.id)
+  );
+
+  return Response.json(comment);
+}
+```
+
+#### Handling PATCH requests
+
+A `PATCH` request applies partial modifications to a resource. In our case, since we have just one property (`text`), updating a comment is quirte straightforward.
+
+Let's begin by understanding how a `PATCH` request looks like in the Thunder client.
+
+The URL will be something like `http://localhost:3000/comments/3` which the last segment defines the id of the target comment object. Under the `Body` tab and in the `JSON` section, we add an object with the `text` property set to a different string like this:
+
+```json
+{
+  "text": "Updated comment"
+}
+```
+
+Let's now add the route handler function.
+
+```jsx
+// app/comments/[id]/route.js
+export async function PATCH(request, { params: { id } }) {
+  const body = await request.json();
+  const { text } = body;
+  const index = comments.findIndex(
+    (comment) => comment.id === parseInt(params.id)
+  );
+  comments[index].text = text;
+  return Response.json(comments[index]);
+}
+```
+
+This is essentially how we handle `PATCH` requests.
+
+#### Handling DELETE requests
+
+A `DELETE` requests deletes a specified resource. In our case, we delete a comment by ID. Let's start by looking at how a `DELETE` request looks like in the Thunder client.
+
+The URL stays the same as before. We don't need a JSON body with the request.
+
+We now need to define the route handler function.
+
+#### URL query parameters
+
+Take the comments array that act as a database for our example. Now let's consider an example where we want to filter this array based on a specific query. For instance, we want to be able to navigate to this route:
+
+```
+http://localhost:3000/comments?query=first
+```
+
+and receive only those comments the text of which includes the word 'first'.
+
+To handle query parameters effectively we need the request parameter. The `GET` handler function in the `route.js` file of `[id]` folder, receives the `request` object.
+
+> **Note:** In this part of the video tutorial, the type of the request object is set to `NextResponse` and not the `Response` object. This is done in TypeScript, while the preferred language in this note is JavaScript. The code sample needs to be updated.
+
+```jsx
+// app/comments/[id]/route.js
+export async function GET(request) {
+  // nextURL is used on `request` while it may need to be updated to utilize `NextRequest`
+  const searchParams = request.nextUrl.searchParams;
+  const query = searchParams.get("query");
+  const filteredComment = query
+    ? comments.filter((comment) => comment.text.includes("query"))
+    : comments;
+  return Response.json(filteredComment);
+}
+```
+
+Query parameters are often optional, but they are incredibly useful for implementing search, sort and pagination functionalities for your data.
+
+#### Redirects in route handlers
+
+We are now going to learn how to handle redirects in route handlers. Remember that we defined a `GET` handler function to return a specific comment by its `id`. However, if we navigate to a route with an `id` parameter value that does not exist in our simulated database, the application will end up in an error. This is because the current logic does not handle IDs that don't exist in the `comments` array. Let's improve this by redirecting to the comments listing page if the request ID is not found.
+
+For redirection, we will use the `redirect` function from `next/navigation`. So in the `route.js` file within the `[id]` folder, at the top we import `redirect`:
+
+```jsx
+import { comments } from "../data";
+import { redirect } from "next/navigation";
+
+export async function GET(_request, { params }) {
+  if (parseInt(params.id) > comments.length) {
+    redirect("/comments");
+  }
+  const comment = comments.find(
+    (comment) => comment.id === parseInt(params.id)
+  );
+
+  return Response.json(comment);
+}
+```
+
+This is just one possible use case of redirection.
+
+#### Headers in route handlers
+
+#### Cookies in route handlers
+
+#### Caching in route handlers
+
+#### Middleware
 
 ## Rendering in NextJS
 
@@ -481,7 +790,7 @@ As the fallback texts are rendered on the page, the process written for each com
 
 This concludes our discussion on server rendering strategies in NextJS.
 
-## Server and client composition patterns
+### Server and client composition patterns
 
 Server components are perfect for:
 
@@ -501,9 +810,9 @@ Client components however, are perfect for:
 
 > **Note:** while these usecases might seem straightforward, there is more to understand how to effectively use them.
 
-### Server component patterns
+#### Server component patterns
 
-#### Server-only code
+##### Server-only code
 
 As the first server-component patter, let's talk about the separation of server-only code.
 
@@ -612,13 +921,13 @@ export const serverSideFunction = () => {
 
 Now if a developer accidentally imports this module into a client-side component, like our `ClientRoutePage` component in this example, you will see that the build process will fail with an alert, preventing potential issues related to exposing server-only code to the client.
 
-##### Summary
+###### Summary
 
 Maintaining a clear boundry between server-only and client-side code is crucial, especially when dealing with sensitive operations or data.
 
 Using the `server-only` package, enforces this separation and helps maintain your application security, performance and reliablity.
 
-#### Third-party packages
+##### Third-party packages
 
 As the second server component pattern, let's explore the integration of third-party packages.
 
@@ -761,11 +1070,11 @@ export default function ServerRoutePage() {
 
 So we still have a server component, but now with one nested element behaving as a client component. Now in the browser, after refreshing the `/server-route`, you see that the carousel is working as expected.
 
-##### Summary
+###### Summary
 
 Third-party packages in the React ecosystem are in a transitional phase where numerous components from NPM packages have not yet adopted the `'use client'` directive. Wrapping such components in our own client components allows us to leverage the ecosystem of third-party packages while adhering to the new server components model.
 
-#### Context providers
+##### Context providers
 
 As the last server component pattern, let's explore working with context providers.
 
@@ -880,10 +1189,440 @@ export default function ClientRoutePage() {
 
 It is important to note that even though we wrap the rest of the application within the `<ThemeProvider>` client component, server components down the tree will remain server components. We will discuss this with more detail, but this is essentially how you work with context providers and server components. **You don't convert a server component to a client component. Instead, you define a new client component and invoke it within the server component using `children` props.**
 
-### Client component patterns
+#### Client component patterns
 
-#### Client-only code
+##### Client-only code
 
 As the first client component pattern, let's talk about the separation of client-only code.
 
-In an earlier seciton, we dived into the concept of server-only code in NextJS.
+In an earlier seciton, we dived into the concept of server-only code in NextJS. We are now going to focus on client-only code.
+
+Just as it is important to restrict cetain operations to the server, it is equally important to confine some functionality to the client-side. Client-only code interacts with browser-specific features like the DOM, the window object, local storage, etc which are not available on the server. Ensuring such code is executed only on the client side, prevents errors during server-side rendering.
+
+To prevent unintended server-side usage of client-side code, we can use a package called `client-only`.
+
+Let's dive into code to understand this subject. In the `src` folder of the project, create a file called `client-utils.js`. Let's define a client-only function here.
+
+```jsx
+//src/utils/client-utils.js
+export const clientSideFunction = () => {
+  console.log(
+    `use window object,
+      use localStorage`
+  );
+  return "client result";
+};
+```
+
+Now let's import and use this function in our `ClientRoutePage` component.
+
+```jsx
+// app/client-route/page.jsx
+"use client";
+
+import { clientSideFunction } from "@/utils/client-utils";
+
+export default function ClientRoutePage() {
+  const result = clientSideFunction();
+  return <h1>Client route {result}</h1>;
+}
+```
+
+You should see the log in the browser's console. This confirms that the code is executin client-side. But let's now safe guard our client-only code using the `client-only` package. In the terminal, use this command to install the package:
+
+```bash
+npm install client-only
+```
+
+Then import the package in the file that we want to be executed only on the client-side. This package will ensure that an error is returned at build time if the code is mistakenly included in the server-side code.
+
+```jsx
+//src/utils/client-utils.js
+import "client-only";
+
+export const clientSideFunction = () => {
+  console.log(
+    `use window object,
+      use localStorage`
+  );
+  return "client result";
+};
+```
+
+Now if we import this `clientSideFunction` in the `page.jsx` file of the `server-route` folder of the project, build process will end up with error since a client-only code will is being executed server-side.
+
+###### Summary
+
+Just as server-only code needs isolation, client-only code must be confined to the client-side to leverage browser specific features effectively.
+
+##### Client component placement
+
+As the second and final client component pattern, let's discuss the placement of client components within the component tree. This aspect plays a crucial role in optimizing the performance of your application.
+
+To compensate for server components not being able to manage state and handle interactivity, you need to create client components. It is recommended to position these client components lower in your component tree. Why? Let's dive into code to find out.
+
+We will now create a new route in our application called `landing-page` with a `page.jsx` in it. Then in the `components` folder, we will create `navbar.jsx`, `nav-search.jsx` and `nav-links.jsx` files.
+
+Let's now visualize these components before we get into code. Imageine a landing page with a navigation bar at the top and a main section below it. It has an outer wrapper which is the `navbar` component itself. within this component, we have the `nav-links` component for various links, and a `nav-search` component that contains a search bar, allowing users to search throughout our site.
+
+This forms a straightforward component tree with the landing page component at the top, the navbar and main component as its children, and the navbar in turn has navlinks and navsearch as its children. We will implement this structure in code within our NextJS application.
+
+Let's now go through the code.
+
+```jsx
+// app/landing-page/page.jsx
+import { Navbar } from "@/app/components/navbar";
+
+export default function LandingPage() {
+  return (
+    <>
+      <Navbar />
+      <main>
+        <h1>Page heading</h1>
+      </main>
+    </>
+  );
+}
+```
+
+```jsx
+// components/navbar.jsx
+import { NavLinks } from "./nav-links";
+import { NavSearch } from "./nav-search";
+
+export const Navbar = () => {
+  console.log("Navbar rendered");
+  return (
+    <div>
+      <NavLinks />
+      <NavSearch />
+    </div>
+  );
+};
+```
+
+```jsx
+// components/nav-links.jsx
+export const NavLinks = () => {
+  console.log("NavLinks renderd");
+  return <div>List of nav links</div>;
+};
+```
+
+```jsx
+// components/nav-search.jsx
+export const NavSearch = () => {
+  console.log("NavSeach rendered");
+  return <div>Nav search input</div>;
+};
+```
+
+let's now head to the browser and navigate to `/landing-page`. Taking a look at the browser's console, there is no log becasue all the components are server components by default. But if you check the terminal, you can see the log statements.
+
+At the moment, the search bar doesn't have any state associated with it. Let's introduce a state variable to track the value of the search input.
+
+```jsx
+// components/navbar.jsx
+"use client";
+
+import { useState } from "react";
+import { NavLinks } from "./nav-links";
+import { NavSearch } from "./nav-search";
+
+export const Navbar = () => {
+  const [search, setSearch] = useState("");
+  console.log("Navbar rendered");
+  return (
+    <div>
+      <NavLinks />
+      <NavSearch />
+    </div>
+  );
+};
+```
+
+Note that we have also added the `'use client'` directive at the top since we are using `useState` in a server component, but we should convert it into a client component. Now we reload the page and see all the logs in the browser's console, not just the `navbar` component logs.
+
+Let's now think about this: if `'use client'` is declared in the `navbar` component, shouldn't that be the only component running client-side? This is a **common misconception**.
+
+When you add `'use-client'` to a component, it not only make that component a client component, but also affects every child component in the component tree below it. In this scenario, `nav-links` and `nav-search` also become client components. You can think of `'use client'` directive as a boundry; once crossed, every subsequent component in the tree operates on the client side.
+
+It is important to understand this concept, especially if you have a large component tree. Imagine converting a server component to a client component to add some interactivity. This change would turn the entire subtree of children into client components, and consequently, all their code will be sent to the browser. Therefore, the recommended practice is to place client components as low as possible in the component tree, ideally making them leaf components.
+
+So in our example, we can now revert the `navbar` component to become a server component again, and instead, conver `nav-search` to a client component.
+
+```jsx
+//components/nav-search.jsx
+"use client";
+
+import { useState } from "react";
+
+export const NavSearch = () => {
+  const [search, setSearch] = useState("");
+  console.log("NavSeach rendered");
+  return <div>Nav search input</div>;
+};
+```
+
+Now as we reload the page, we see that only the `nav-search` component's log appears in the browser's console, meaning the this is the only component executing client-side.
+
+### Interleaving server and client
+
+In this last section of Rendering, let's discuss the supported and unsupported patterns of interleaving sever and client components. Let's dive straight into the code.
+
+We begin by creating a new route.
+
+```jsx
+//app/interleaving/page.jsx
+export default function InterLeavingPage() {
+  return <h1>InterLeavingPage</h1>;
+}
+```
+
+Then we create one server component and one client component:
+
+```jsx
+// components/server-component-one.jsx
+import fs from "fs";
+
+export const ServerComponentOne = () => {
+  fs.readFileSync("src/components/server-component-one.jsx", "utf-8");
+  return <h1>Server component one</h1>;
+};
+```
+
+As you see, we are performing a server specific process in this component. As for the second server component:
+
+```jsx
+//components/server-component-two.jsx
+import fs from "fs";
+
+export const ServerComponentTwo = () => {
+  fs.readFileSync("src/components/server-component-two.jsx", "utf-8");
+  return <h1>Server component two</h1>;
+};
+```
+
+As for the client components we include a client specific operation also:
+
+```jsx
+// components/client-component-one.jsx
+"use client";
+
+import { useState } from "react";
+
+export const ClientComponentOne = () => {
+  const [name, setName] = useState("Batman");
+  return <h1>Client component one</h1>;
+};
+```
+
+```jsx
+// components/client-component-two.jsx
+"use client";
+
+import { useState } from "react";
+
+export const ClientComponentTwo = () => {
+  const [name, setName] = useState("Batman");
+  return <h1>Client component two</h1>;
+};
+```
+
+Our setup is now complete. Let's now discuss the different patterns.
+
+#### Importing server component into another server component
+
+Let's import `server-component-one.jsx` into `page.jsx` of `/interleaving` route.
+
+```jsx
+// interleaving/page.jsx
+import { ServerComponentOne } from "../components/server-component-one";
+
+export default function InterLeavingPage() {
+  return (
+    <>
+      <h1>InterLeavingPage</h1>
+      <ServerComponentOne />
+    </>
+  );
+}
+```
+
+And inside `server-component-one.jsx` let's import `server-component-two.jsx`.
+
+```jsx
+// components/server-component-one.jsx
+import fs from "fs";
+import { ServerComponentTwo } from "./server-component-two";
+
+export const ServerComponentOne = () => {
+  fs.readFileSync("src/components/server-component-one.jsx", "utf-8");
+  return (
+    <>
+      <h1>Server component one</h1>
+      <ServerComponentTwo />
+    </>
+  );
+};
+```
+
+Now heading back to the browser, if you navigate to the `/interleaving` route, you see the route works without any issues.
+
+#### Importing client component into another client component
+
+Let's now import `client-component-one.jsx` into the `page.jsx` of the route `/interleaving`. Then within `clinet-component-one.jsx` we will import `client-component-two.jsx`.
+
+```jsx
+// app/interleaving/page.jsx
+import { ClientComponentOne } from "../components/client-component-one";
+
+export default function InterLeavingPage() {
+  return (
+    <>
+      <h1>InterLeavingPage</h1>
+      <ClientComponentOne />
+    </>
+  );
+}
+```
+
+```jsx
+// components/client-component-one.jsx
+"use client";
+
+import { useState } from "react";
+import { ClientComponentTwo } from "./client-component-two";
+
+export const ClientComponentOne = () => {
+  const [name, setName] = useState("Batman");
+  return (
+    <>
+      <h1>Client component one</h1>
+      <ClientComponentTwo />
+    </>
+  );
+};
+```
+
+Go to browser, and you should see the route working properly.
+
+#### Importing a client component inside a server component
+
+In `page.jsx` of the route `/interleaving` let's import `server-component-one.jsx`. Then within `server-component-one.jsx` let's import `client-component-one.jsx`.
+
+```jsx
+// app/interleaving/page.jsx
+import { ServerComponentOne } from "../components/server-component-one";
+
+export default function InterLeavingPage() {
+  return (
+    <>
+      <h1>InterLeavingPage</h1>
+      <ServerComponentOne />
+    </>
+  );
+}
+```
+
+```jsx
+// components/server-component-one.jsx
+import fs from "fs";
+import { ClientComponentOne } from "./client-component-one";
+
+export const ServerComponentOne = () => {
+  fs.readFileSync("src/components/server-component-one.jsx", "utf-8");
+  return (
+    <>
+      <h1>Server component one</h1>
+      <ClientComponentOne />
+    </>
+  );
+};
+```
+
+Looking at the browser again, the route works perfectly without any issues.
+
+#### Importing a server component into a client component
+
+Let's now import `client-component-one.jsx` into `page.jsx` of `/interleaving`.
+
+```jsx
+// app/interleaving/page.jsx
+import { ClientComponentOne } from "../components/client-component-one";
+
+export default function InterLeavingPage() {
+  return (
+    <>
+      <h1>InterLeavingPage</h1>
+      <ClientComponentOne />
+    </>
+  );
+}
+```
+
+Now within `client-component-one.jsx` import `server-component-one.jsx`.
+
+```jsx
+// components/client-component-one.jsx
+"use client";
+
+import { useState } from "react";
+import { ServerComponentOne } from "./server-component-one";
+
+export const ClientComponentOne = () => {
+  const [name, setName] = useState("Batman");
+  return (
+    <>
+      <h1>Client component one</h1>
+      <ServerComponentOne />
+    </>
+  );
+};
+```
+
+Now in the browser, we have an error. The error says that the `fs` module cannot be resolved. This is because `server-component-one.jsx` is imported into a client component and therefore is converted into a client component and executed client-side. But the `fs` module inside `server-component-one.jsx` cannot be executed client-side. It is a server-side feature, and on the client side, there is no `fs` module.
+
+So this pattern is not supported in NextJS. However, there is a workaround.
+
+Instead of nesting server component inside client component, you can pass it as a **prop** to the client component. A common pattern is to use React `children` prop to create a slot in your client component.
+
+So let's remove the import of `server-component-one.jsx` from `client-component-one.jsx`, and instead, in `page.jsx` of the route `interleaving` let's, place `server-component-one.jsx` between the openning and closing tags of `client-component-one`.
+
+```jsx
+// app/interleaving/page.jsx
+import { ClientComponentOne } from "../components/client-component-one";
+import { ServerComponentOne } from "../components/server-component-one";
+
+export default function InterLeavingPage() {
+  return (
+    <>
+      <h1>InterLeavingPage</h1>
+      <ClientComponentOne>
+        <ServerComponentOne />
+      </ClientComponentOne>
+    </>
+  );
+}
+```
+
+And we also make `client-component-one.jsx` ready to receive a `children` prop.
+
+```jsx
+// components/client-component-one.jsx
+"use client";
+
+import { useState } from "react";
+
+export const ClientComponentOne = ({ children }) => {
+  const [name, setName] = useState("Batman");
+  return (
+    <>
+      <h1>Client component one</h1>
+      {children}
+    </>
+  );
+};
+```
+
+Now heading back to the browser, the route is working fine again.
